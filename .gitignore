@@ -1,0 +1,8 @@
+*.o
+.idea
+.vscode
+lexer
+/tests/ifcc-test-output/*
+antlr/*
+ifcc
+compiler/generated
