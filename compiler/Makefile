@@ -1,7 +1,6 @@
 # You can override these from the command-line, as illustrated by the various `runmake_*.sh` scripts
-ANTLRJAR=../antlr/jar/antlr-4.9.2-complete.jar
-ANTLRINC=../antlr/include
-ANTLRLIB=../antlr/lib/libantlr4-runtime.a
+ANTLRINC = /usr/include/antlr4-runtime
+ANTLRLIB = /usr/lib/libantlr4-runtime.a
 
 CC=g++
 CCFLAGS=-g -c -std=c++17 -I$(ANTLRINC) -Wno-attributes # -Wno-defaulted-function-deleted -Wno-unknown-warning-option
@@ -36,7 +35,7 @@ build/%.o: generated/%.cpp
 # cf https://stackoverflow.com/a/3077254/117814 for the multiple-file trick
 generated/ifcc%.cpp: ifcc.g4
 	@mkdir -p generated
-	java -cp $(ANTLRJAR) org.antlr.v4.Tool  -visitor -no-listener -Dlanguage=Cpp -o generated ifcc.g4
+	antlr4  -visitor -no-listener -Dlanguage=Cpp -o generated ifcc.g4
 
 # prevent automatic cleanup of "intermediate" files like ifccLexer.cpp etc
 .PRECIOUS: generated/ifcc%.cpp   
@@ -49,7 +48,7 @@ FILE ?= ../tests/testfiles/1_return42.c
 
 gui:
 	@mkdir -p generated build
-	java -cp $(ANTLRJAR) org.antlr.v4.Tool -Dlanguage=Java -o generated ifcc.g4
+	java -cp $(ANTLRJAR) -Dlanguage=Java -o generated ifcc.g4
 	javac -cp $(ANTLRJAR) -d build generated/*.java
 	java -cp $(ANTLRJAR):build org.antlr.v4.gui.TestRig ifcc axiom -gui $(FILE)
 
