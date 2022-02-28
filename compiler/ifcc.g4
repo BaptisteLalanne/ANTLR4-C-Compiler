@@ -7,8 +7,7 @@ body : varDeclaration body | constAffectation body | varAffectation body | ;
 varDeclaration : TYPE VAR '=' CONST ';' ;
 constAffectation : VAR '=' CONST ';' ;
 varAffectation : VAR '=' VAR ';' ;
-end : RETURN expr ';' ;
-expr : VAR | CONST ;
+end : RETURN (VAR|CONST) ';' ;
 
 RETURN : 'return' ;
 TYPE : 'int';

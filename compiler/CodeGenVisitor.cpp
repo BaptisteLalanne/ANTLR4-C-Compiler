@@ -14,9 +14,11 @@ antlrcpp::Any CodeGenVisitor::visitBody(ifccParser::ProgContext *ctx)
 
 antlrcpp::Any CodeGenVisitor::visitEnd(ifccParser::ProgContext *ctx) 
 {
-	int retval = stoi(ctx->expr()->getText());
-	cout << " 	movl	$"<<retval<<", %eax\n"
+	/*
+	int retval = stoi(ctx->CONST()->getText()); // ou alors VAR... ça dépend
+	cout << " 	movl	$" << retval << ", %eax\n"
 			" 	ret\n";
+	*/
 	return visitChildren(ctx);
 }
 
