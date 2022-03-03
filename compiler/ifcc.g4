@@ -2,12 +2,34 @@ grammar ifcc;
 
 axiom : prog ;
 
-prog : 'int' 'main' '(' ')' OPENBRACKET body end CLOSEDBRACKET ;
-body : varDeclaration body | constAffectation body | varAffectation body | ;
-varDeclaration : TYPE VAR '=' CONST ';' ;
-constAffectation : VAR '=' CONST ';' ;
-varAffectation : VAR '=' VAR ';' ;
-end : RETURN (VAR|CONST) ';' ;
+prog : 
+	'int' 'main' '(' ')' OPENBRACKET body end CLOSEDBRACKET 
+;
+body : 
+	varDeclr body | 
+	varDeclrConstAffect body | 
+	varDeclrVarAffect body | 
+	constAffect body | 
+	varAffect body | 
+;
+varDeclr : 
+	TYPE VAR ';' 
+;
+varDeclrConstAffect : 
+	TYPE VAR '=' CONST ';' 
+;
+varDeclrVarAffect : 
+	TYPE VAR '=' VAR ';' 
+;
+constAffect :
+	VAR '=' CONST ';' 
+;
+varAffect : 
+	VAR '=' VAR ';' 
+;
+end : 
+	RETURN (VAR|CONST) ';' 
+;
 
 RETURN : 'return' ;
 TYPE : 'int';

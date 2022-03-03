@@ -23,31 +23,16 @@ struct funcStruct {
 class SymbolTable {
 	
 	public:
-		varStruct getVar(string name) {
-			return varMap[name];
-		}
-		funcStruct getFunc(string name) {
-			return funcMap[name];
-		}
-		void addVar(string name, int mO, type vT, scope vS) {
-			struct varStruct s;
-			s.memoryOffset = mO;
-			s.varType = vT;
-			s.varScope = vS;
-			varMap[name] = s;
-		}
-		void addFunc(string name, type rT, int nbP, list<type> pT, string c) {
-			struct funcStruct s;
-			s.returnType = rT;
-			s.nbParameters = nbP;
-			s.parameterTypes = pT;
-			s.code = c;
-			funcMap[name] = s;
-		}
+		varStruct getVar(string name);
+		funcStruct getFunc(string name);
+		void addVar(string name, type vT, scope vS);
+		void addFunc(string name, type rT, int nbP, list<type> pT, string c);
+		static unordered_map<type, int> typeSizes;
 		
 	protected:
 		unordered_map<string, varStruct> varMap;
 		unordered_map<string, funcStruct> funcMap;
+		int stackPointer;
 
 };
 

@@ -13,9 +13,11 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitProg(ifccParser::ProgContext *ctx) ;
 		virtual antlrcpp::Any visitBody(ifccParser::ProgContext *ctx) ;
 		virtual antlrcpp::Any visitEnd(ifccParser::ProgContext *ctx) ;
-		virtual antlrcpp::Any visitVarDeclaration(ifccParser::ProgContext *ctx) ;
-		virtual antlrcpp::Any visitConstAffectation(ifccParser::ProgContext *ctx) ;
-		virtual antlrcpp::Any visitVarAffectation(ifccParser::ProgContext *ctx) ;
+		virtual antlrcpp::Any visitVarDeclr(ifccParser::ProgContext *ctx) ;
+		virtual antlrcpp::Any visitVarDeclrConstAffect(ifccParser::ProgContext *ctx) ;
+		virtual antlrcpp::Any visitVarDeclrVarAffect(ifccParser::ProgContext *ctx) ;
+		virtual antlrcpp::Any visitConstAffect(ifccParser::ProgContext *ctx) ;
+		virtual antlrcpp::Any visitVarAffect(ifccParser::ProgContext *ctx) ;
 
 	protected:
 		SymbolTable& symbolTable;
