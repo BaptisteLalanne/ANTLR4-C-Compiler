@@ -23,6 +23,8 @@ struct funcStruct {
 class SymbolTable {
 	
 	public:
+		bool hasVar(string name);
+		bool hasFunc(string name);
 		varStruct getVar(string name);
 		funcStruct getFunc(string name);
 		void addVar(string name, type vT, scope vS);

@@ -4,6 +4,14 @@ using namespace std;
 
 unordered_map<type, int> SymbolTable::typeSizes = {{INT, 4}, {CHAR, 1}};
 
+bool SymbolTable::hasVar(string name) {
+	return varMap.contains(name);
+}
+
+bool SymbolTable::hasFunc(string name) {
+	return funcMap.contains(name);
+}
+
 varStruct SymbolTable::getVar(string name) {
 	return varMap[name];
 }
