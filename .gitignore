@@ -1,8 +1,11 @@
-*.o
+# IDE
 .idea
 .vscode
-lexer
-/tests/ifcc-test-output/*
-antlr/*
+
+# generated files
+*.o
 ifcc
 compiler/generated
+compiler/build
+tests/ifcc-test-output
+.main*
