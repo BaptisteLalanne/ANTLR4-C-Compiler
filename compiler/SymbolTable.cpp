@@ -1,15 +1,16 @@
 #include "SymbolTable.h"
+#include <iostream>
 
 using namespace std;
 
-unordered_map<type, int> SymbolTable::typeSizes = {{INT, 4}, {CHAR, 1}};
+unordered_map<string, int> SymbolTable::typeSizes = {{"int", 4}, {"char", 1}};
 
 bool SymbolTable::hasVar(string name) {
-	return varMap.contains(name);
+	return varMap.find(name) != varMap.end();
 }
 
 bool SymbolTable::hasFunc(string name) {
-	return funcMap.contains(name);
+	return funcMap.find(name) != funcMap.end();
 }
 
 varStruct SymbolTable::getVar(string name) {
@@ -20,7 +21,7 @@ funcStruct SymbolTable::getFunc(string name) {
 	return funcMap[name];
 }
 
-void SymbolTable::addVar(string name, type vT, scope vS) {
+void SymbolTable::addVar(string name, string vT, string vS) {
 	struct varStruct s;
 	stackPointer -= typeSizes[vT];
 	s.memoryOffset = stackPointer;
@@ -29,7 +30,7 @@ void SymbolTable::addVar(string name, type vT, scope vS) {
 	varMap[name] = s;
 }
 
-void SymbolTable::addFunc(string name, type rT, int nbP, list<type> pT, string c) {
+void SymbolTable::addFunc(string name, string rT, int nbP, list<string> pT, string c) {
 	struct funcStruct s;
 	stackPointer = 0;
 	s.returnType = rT;

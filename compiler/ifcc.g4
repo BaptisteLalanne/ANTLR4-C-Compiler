@@ -27,8 +27,14 @@ constAffect :
 varAffect : 
 	VAR '=' VAR ';' 
 ;
-end : 
-	RETURN (VAR|CONST) ';' 
+end :
+	constEnd | varEnd 
+;
+constEnd : 
+	RETURN CONST ';' 
+;
+varEnd :
+	RETURN VAR ';' 
 ;
 
 RETURN : 'return' ;

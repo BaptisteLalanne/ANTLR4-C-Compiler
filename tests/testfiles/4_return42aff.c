@@ -6,8 +6,10 @@ int main()
 	  42 
 	  
 	  ;
+	  int b;
+	  	b = a;
 	return 
-	a
+	b
 	
 	;
 }

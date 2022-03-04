@@ -4,32 +4,30 @@
 #include <list>
 using namespace std;
 
-enum type {INT, CHAR};
-enum scope {LOCAL, GLOBAL, PARAM};
-
 struct varStruct {
 	int memoryOffset; 
-	type varType;
-	scope varScope;
+	string varType;
+	string varScope;
 };
 
 struct funcStruct {
-	type returnType; 
+	string returnType; 
 	int nbParameters;
-	list<type> parameterTypes;
+	list<string> parameterTypes;
 	string code;
 };
 
 class SymbolTable {
 	
 	public:
+		SymbolTable() : stackPointer(0) { }
 		bool hasVar(string name);
 		bool hasFunc(string name);
 		varStruct getVar(string name);
 		funcStruct getFunc(string name);
-		void addVar(string name, type vT, scope vS);
-		void addFunc(string name, type rT, int nbP, list<type> pT, string c);
-		static unordered_map<type, int> typeSizes;
+		void addVar(string name, string vT, string vS);
+		void addFunc(string name, string rT, int nbP, list<string> pT, string c);
+		static unordered_map<string, int> typeSizes;
 		
 	protected:
 		unordered_map<string, varStruct> varMap;
