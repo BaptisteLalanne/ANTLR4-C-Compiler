@@ -43,6 +43,15 @@ int main(int argn, const char **argv) {
     // Create symbol table 
     SymbolTable symbolTable;
 
+    // Temporary solution waiting for the functions
+    cout << 
+        "	.text\n"
+        "	.globl	main\n"
+		"main:\n"
+        "	pushq	%rbp\n"
+        "	movq	%rsp, %rbp" 
+        << endl;
+
     // Visit tree and linearize
     CodeGenVisitor v(symbolTable);
     v.visit(tree);
