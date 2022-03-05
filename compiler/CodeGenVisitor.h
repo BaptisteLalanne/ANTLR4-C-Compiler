@@ -7,7 +7,7 @@
 class  CodeGenVisitor : public ifccBaseVisitor {
 	
 	public:
-		CodeGenVisitor(SymbolTable& sT) : symbolTable(sT) { }
+		CodeGenVisitor(SymbolTable& sT, ErrorHandler& errorHandler) : symbolTable(sT), eH(errorHandler){ }
 		//virtual antlrcpp::Any visitProg(ifccParser::ProgContext *ctx);
 		virtual antlrcpp::Any visitVarDeclr(ifccParser::VarDeclrContext *ctx) ;
 		virtual antlrcpp::Any visitVarDeclrConstAffect(ifccParser::VarDeclrConstAffectContext *ctx) ;
@@ -19,6 +19,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 
 	protected:
 		SymbolTable& symbolTable;
+		ErrorHandler& eH;
 
 };
 

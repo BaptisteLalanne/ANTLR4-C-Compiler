@@ -13,20 +13,22 @@ bool SymbolTable::hasFunc(string name) {
 	return funcMap.find(name) != funcMap.end();
 }
 
-varStruct SymbolTable::getVar(string name) {
+varStruct& SymbolTable::getVar(string name) {
 	return varMap[name];
 }
 
-funcStruct SymbolTable::getFunc(string name) {
+funcStruct& SymbolTable::getFunc(string name) {
 	return funcMap[name];
 }
 
-void SymbolTable::addVar(string name, string vT, string vS) {
+void SymbolTable::addVar(string name, string vT, string vS, int vL) {
 	struct varStruct s;
 	stackPointer -= typeSizes[vT];
 	s.memoryOffset = stackPointer;
 	s.varType = vT;
 	s.varScope = vS;
+	s.isUsed = false;
+	s.varLine = vL;
 	varMap[name] = s;
 }
 
@@ -37,5 +39,11 @@ void SymbolTable::addFunc(string name, string rT, int nbP, list<string> pT, stri
 	s.nbParameters = nbP;
 	s.parameterTypes = pT;
 	s.code = c;
+	s.isCalled = false;
 	funcMap[name] = s;
+}
+
+string ErrorHandler::errorValues[2] = {"ERROR", "WARNING"};
+void ErrorHandler::generateMessage(int severity, string message, int lineNumber) {
+    cerr << errorValues[severity] << " : " << message << " at line " << lineNumber << "." << endl;
 }

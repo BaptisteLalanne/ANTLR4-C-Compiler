@@ -7,14 +7,14 @@
 #include "generated/ifccLexer.h"
 #include "generated/ifccParser.h"
 #include "generated/ifccBaseVisitor.h"
-
 #include "CodeGenVisitor.h"
-#include "SymbolTable.h"
 
 using namespace antlr4;
 using namespace std;
 
 int main(int argn, const char **argv) {
+
+    ErrorHandler eH;
     
     // Load the given code
     stringstream in;
@@ -53,7 +53,7 @@ int main(int argn, const char **argv) {
         << endl;
 
     // Visit tree and linearize
-    CodeGenVisitor v(symbolTable);
+    CodeGenVisitor v(symbolTable, eH);
     v.visit(tree);
 
     return 0;
