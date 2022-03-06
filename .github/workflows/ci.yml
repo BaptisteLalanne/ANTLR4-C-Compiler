@@ -1,3 +1,6 @@
+# This is a basic workflow to build and run tests on our homemade compiler
+# This CI need to succeed in order to merge into master
+
 name: CI PLD Compilateur
 
 on:
@@ -25,5 +28,4 @@ jobs:
       run: make
     - name: Execute python test script
       working-directory: ./tests
-      continue-on-error: true
       run: python ifcc-test.py testfiles
