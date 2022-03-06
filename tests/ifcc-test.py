@@ -128,7 +128,6 @@ if args.debug:
         
 ######################################################################################
 ## PREPARE step: copy all test-cases under ifcc-test-output
-
 jobs=[]
 
 for inputfilename in inputfilenames:
@@ -162,6 +161,7 @@ if args.debug:
 
 ######################################################################################
 ## TEST step: actually compile all test-cases with both compilers
+all_jobs_passed = True
 
 for jobname in jobs:
     os.chdir(orig_cwd)
@@ -189,10 +189,12 @@ for jobname in jobs:
     elif gccstatus != 0 and ifccstatus == 0:
         ## ifcc wrongly accepts invalid program -> error
         print("TEST FAIL (your compiler accepts an invalid program)")
+        all_jobs_passed = False
         continue
     elif gccstatus == 0 and ifccstatus != 0:
         ## ifcc wrongly rejects valid program -> error
         print("TEST FAIL (your compiler rejects a valid program)")
+        all_jobs_passed = False
         if args.verbose:
             dumpfile("ifcc-compile.txt")
         continue
@@ -201,6 +203,7 @@ for jobname in jobs:
         ldstatus=command("gcc -o exe-ifcc asm-ifcc.s", "ifcc-link.txt")
         if ldstatus:
             print("TEST FAIL (your compiler produces incorrect assembly)")
+            all_jobs_passed = False
             if args.verbose:
                 dumpfile("ifcc-link.txt")
             continue
@@ -210,6 +213,7 @@ for jobname in jobs:
         
     command("./exe-ifcc","ifcc-execute.txt")
     if open("gcc-execute.txt").read() != open("ifcc-execute.txt").read() :
+        all_jobs_passed = False
         print("TEST FAIL (different results at execution)")
         if args.verbose:
             print("GCC:")
@@ -220,3 +224,9 @@ for jobname in jobs:
 
     ## last but not least
     print("TEST OK")
+
+if(all_jobs_passed):
+    sys.exit(0)
+else:
+    ## Used in CI to know if all tests passed
+    sys.exit(1)
