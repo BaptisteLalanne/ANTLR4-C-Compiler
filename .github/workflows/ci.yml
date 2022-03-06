@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Check folder 
+      run: ls
     - name: Checkout makefile
       run: cd compiler
     - name: make
