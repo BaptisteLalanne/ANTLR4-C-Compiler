@@ -2,12 +2,13 @@
 
 using namespace std;
 
-/*antlrcpp:: Any CodeGenVisitor::visitProg(ifccParser::ProgContext *ctx) {
-	cout <<".globl	main\n"
-		" main:" << endl;
-	visit(ctx->body());
-	return 0;
-}*/
+antlrcpp:: Any CodeGenVisitor::visitMainHeader(ifccParser::MainHeaderContext *ctx) {
+	cout << ".globl	main" << endl;
+	cout << "main:" << endl;
+	cout << "	pushq	%rbp" << endl;
+	cout << "	movq	%rsp, %rbp" << endl;
+	return visitChildren(ctx);
+}
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 	if (errorHandler.hasError()) { return -1; }

@@ -3,7 +3,10 @@ grammar ifcc;
 axiom : prog ;
 
 prog : 
-	'int' 'main' '(' ')' OPENBRACKET body end CLOSEDBRACKET 
+	mainHeader OPENBRACKET body end CLOSEDBRACKET
+;
+mainHeader :
+	'int' 'main' '(' ')'
 ;
 body : 
 	varDeclr body | 
