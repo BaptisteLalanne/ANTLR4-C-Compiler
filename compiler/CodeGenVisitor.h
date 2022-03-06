@@ -3,11 +3,12 @@
 #include "antlr4-runtime.h"
 #include "generated/ifccBaseVisitor.h"
 #include "SymbolTable.h"
+#include "ErrorHandler.h"
 
 class  CodeGenVisitor : public ifccBaseVisitor {
 	
 	public:
-		CodeGenVisitor(SymbolTable& sT, ErrorHandler& errorHandler) : symbolTable(sT), eH(errorHandler){ }
+		CodeGenVisitor(SymbolTable& sT, ErrorHandler& eH) : symbolTable(sT), errorHandler(eH) { }
 		//virtual antlrcpp::Any visitProg(ifccParser::ProgContext *ctx);
 		virtual antlrcpp::Any visitVarDeclr(ifccParser::VarDeclrContext *ctx) ;
 		virtual antlrcpp::Any visitVarDeclrConstAffect(ifccParser::VarDeclrConstAffectContext *ctx) ;
@@ -19,7 +20,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 
 	protected:
 		SymbolTable& symbolTable;
-		ErrorHandler& eH;
+		ErrorHandler& errorHandler;
 
 };
 

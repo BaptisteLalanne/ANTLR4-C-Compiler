@@ -2,17 +2,7 @@
 
 #include <unordered_map>
 #include <list>
-#include <string>
 using namespace std;
-
-enum errorType {ERROR, WARNING};
-
-class ErrorHandler {
-    public:
-        static void generateMessage(int severity, string message, int lineNumber);
-    protected:
-        static string errorValues[2];
-};
 
 struct varStruct {
 	int memoryOffset; 

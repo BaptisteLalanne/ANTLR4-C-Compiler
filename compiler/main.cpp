@@ -13,8 +13,6 @@ using namespace antlr4;
 using namespace std;
 
 int main(int argn, const char **argv) {
-
-    ErrorHandler eH;
     
     // Load the given code
     stringstream in;
@@ -40,8 +38,9 @@ int main(int argn, const char **argv) {
         exit(1);
     }
     
-    // Create symbol table 
+    // Create symbol table and error handler
     SymbolTable symbolTable;
+    ErrorHandler errorHandler;
 
     // Temporary solution waiting for the functions
     cout << 
@@ -53,7 +52,7 @@ int main(int argn, const char **argv) {
         << endl;
 
     // Visit tree and linearize
-    CodeGenVisitor v(symbolTable, eH);
+    CodeGenVisitor v(symbolTable, errorHandler);
     v.visit(tree);
 
     return 0;

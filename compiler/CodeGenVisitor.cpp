@@ -10,6 +10,8 @@ using namespace std;
 }*/
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
+	if (errorHandler.hasError()) { return -1; }
+	
 	// Add variable to symbol table
 	string dVarName = ctx->VAR()->getText();
 	string dVarType = ctx->TYPE()->getText();
@@ -18,91 +20,160 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclrConstAffect(ifccParser::VarDeclrConstAffectContext *ctx) {
+	if (errorHandler.hasError()) { return -1; }
+	
 	// Add variable to symbol table
 	string dVarName = ctx->VAR()->getText();
 	string dVarType = ctx->TYPE()->getText();
 	symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
 	int dVarOffset = symbolTable.getVar(dVarName).memoryOffset;
-	// Fetch info
+	
+	// Fetch constant's info
 	int constValue = stoi(ctx->CONST()->getText());
+	
 	// Write assembly instructions
 	cout << "	movl	$" << constValue << ", " << dVarOffset << "(%rbp)" << endl;
+	
 	return 0;
+	
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclrVarAffect(ifccParser::VarDeclrVarAffectContext *ctx) {
+	if (errorHandler.hasError()) { return -1; }
+	
 	// Add variable to symbol table
 	string dVarName = ctx->VAR(0)->getText();
 	string dVarType = ctx->TYPE()->getText();
 	symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
 	int dVarOffset = symbolTable.getVar(dVarName).memoryOffset;
-	// Fetch info
+	
+	// Fetch other variable
 	string oVarName = ctx->VAR(1)->getText();
+	// Check errors
+	if (!symbolTable.hasVar(oVarName)) {
+		string message =  "Variable " + oVarName + " has not been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return -1;
+	}
+	// Fetch other variable's infos, mark it as used
 	symbolTable.getVar(oVarName).isUsed = true;
 	int oVarOffset = symbolTable.getVar(oVarName).memoryOffset;
+	
 	// Write assembly instructions
 	cout << "	movl	" << oVarOffset << "(%rbp), %eax" << endl;
 	cout << "	movl	%eax, " << dVarOffset << "(%rbp)" << endl;
+	
 	return 0;
+	
 }
 
 antlrcpp::Any CodeGenVisitor::visitConstAffect(ifccParser::ConstAffectContext *ctx) {
-	// Fetch info
+	if (errorHandler.hasError()) { return -1; }
+	
+	// Fetch variable
 	string varName = ctx->VAR()->getText();
+	// Check errors
+	if (!symbolTable.hasVar(varName)) {
+		string message =  "Variable " + varName + " has not been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return -1;
+	}
+	// Fetch variable's infos
 	int varOffset = symbolTable.getVar(varName).memoryOffset;
+	
+	// Fetch constant's infos
 	int constValue = stoi(ctx->CONST()->getText());
+	
 	// Write assembly instructions
 	cout << "	movl	$" << constValue << ", " << varOffset << "(%rbp)" << endl;
+	
 	return 0;
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarAffect(ifccParser::VarAffectContext *ctx) {
-	// Fetch info
+	if (errorHandler.hasError()) { return -1; }
+	
+	// Fetch first variable
 	string varName = ctx->VAR(0)->getText();
+	// Check for errors
+	if (!symbolTable.hasVar(varName)) {
+		string message =  "Variable " + varName + " has not been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return -1;
+	}
+	// Fetch first variable's infos
 	int varOffset = symbolTable.getVar(varName).memoryOffset;
+	
+	// Fetch second variable
 	string oVarName = ctx->VAR(1)->getText();
-	symbolTable.getVar(oVarName).isUsed = true;
+	// Check for errors
+	if (!symbolTable.hasVar(oVarName)) {
+		string message =  "Variable " + oVarName + " has not been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return -1;
+	}
+	// Fetch second variable's infos, mark it as used
 	int oVarOffset = symbolTable.getVar(oVarName).memoryOffset;
+	symbolTable.getVar(oVarName).isUsed = true;
+	
 	// Write assembly instructions
 	cout << "	movl	" << oVarOffset << "(%rbp), %eax" << endl;
 	cout << "	movl	%eax, " << varOffset << "(%rbp)" << endl;
+	
 	return 0;
+	
 }
 
 antlrcpp::Any CodeGenVisitor::visitConstEnd(ifccParser::ConstEndContext *ctx) {
-	// Fetch info
-	string varName = ctx->CONST()->getText();
-	int retConst = stoi(varName);
-	symbolTable.getVar(varName).isUsed = true;
+	if (errorHandler.hasError()) { return -1; }
+	
+	// Fetch constant's info
+	int retConst = stoi(ctx->CONST()->getText());
+	
 	// Write assembly instructions
 	cout << "	movl	$" << retConst << ",  %eax" << endl;
 	cout << "	popq	%rbp\n" << "	ret" << endl;
-	// Static Analisys
+	
+	// Static Analysis
 	for (auto v : symbolTable.varMap)
 	{
 		if (!v.second.isUsed) {
 			string message =  "Variable " + v.first + " is not used";
-			eH.generateMessage(WARNING, message, v.second.varLine);
+			errorHandler.signal(WARNING, message, v.second.varLine);
 		}
 	}
+	
 	return 0;
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarEnd(ifccParser::VarEndContext *ctx) {
-	// Fetch info
+	if (errorHandler.hasError()) { return -1; }
+	
+	// Fetch return variable
 	string retVar = ctx->VAR()->getText();
+	// Check errors
+	if (!symbolTable.hasVar(retVar)) {
+		string message =  "Variable " + retVar + " has not been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return -1;
+	}
+	// Fetch variable's infos, mark it as used
 	int retVarOffset = symbolTable.getVar(retVar).memoryOffset;
 	symbolTable.getVar(retVar).isUsed = true;
+	
 	// Write assembly instructions
 	cout << "	movl	" << retVarOffset << "(%rbp), %eax" << endl;
 	cout << "	popq	%rbp\n" << "	ret" << endl;
-	// Static Analisys
+	
+	// Static Analysis
 	for (auto v : symbolTable.varMap)
 	{
 		if (!v.second.isUsed) {
 			string message =  "Variable " + v.first + " is not used";
-			eH.generateMessage(WARNING, message, v.second.varLine);
+			errorHandler.signal(WARNING, message, v.second.varLine);
 		}
 	}
+	
 	return 0;
+	
 }

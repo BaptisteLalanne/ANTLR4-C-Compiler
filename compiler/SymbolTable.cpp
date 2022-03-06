@@ -42,8 +42,3 @@ void SymbolTable::addFunc(string name, string rT, int nbP, list<string> pT, stri
 	s.isCalled = false;
 	funcMap[name] = s;
 }
-
-string ErrorHandler::errorValues[2] = {"ERROR", "WARNING"};
-void ErrorHandler::generateMessage(int severity, string message, int lineNumber) {
-    cerr << errorValues[severity] << " : " << message << " at line " << lineNumber << "." << endl;
-}
