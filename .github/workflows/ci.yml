@@ -11,21 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Check folder 
-      run: ls
-    - name: Checkout makefile
-      run: cd compiler
-    - name: Check folder 
-      run: ls
     - name: make
-      run: make
+      run: compiler/make
   test: 
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
-    - name: Checkout test folder
-      run: cd tests
     - name: Execute python test script
       continue-on-error: true
-      run: python ifcc-test.py testfiles
+      run: python tests/ifcc-test.py tests/testfiles
