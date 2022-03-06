@@ -1,5 +1,5 @@
 # PLD-Compilateur
-
+[![CI PLD Compilateur](https://github.com/BaptisteLalanne/PLD-Compilateur/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/BaptisteLalanne/PLD-Compilateur/actions/workflows/ci.yml)
 ## Description
 
 A C-like compiler, programmed in C++ with ANTLR4. The compiler only generates x86 ASM code.
