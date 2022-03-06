@@ -1,0 +1,27 @@
+name: CI PLD Compilateur
+
+on:
+  push:
+    branches: [ master, CI-Actions ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Checkout makefile
+      run: cd compiler
+    - name: make
+      run: make
+  test: 
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+    - name: Checkout test folder
+      run: cd tests
+    - name: Execute python test script
+      continue-on-error: true
+      run: python ifcc-test.py testfiles
