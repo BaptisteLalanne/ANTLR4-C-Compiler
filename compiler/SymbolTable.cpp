@@ -30,6 +30,14 @@ funcStruct& SymbolTable::getFunc(string name) {
 	return funcMap[name];
 }
 
+unordered_map<string, varStruct> SymbolTable::getVarMap() {
+	return varMap;
+
+}
+unordered_map<string, funcStruct> SymbolTable::getFuncMap() {
+	return funcMap;
+}
+
 void SymbolTable::addVar(string name, string vT, string vS, int vL) {
 	struct varStruct s;
 	stackPointer -= typeSizes[vT];

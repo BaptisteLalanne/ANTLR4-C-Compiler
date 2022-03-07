@@ -12,7 +12,6 @@
 //--------------------------------------------------- Called interfaces
 #include <unordered_map>
 #include <list>
-#include <string>
 using namespace std;
 
 //------------------------------------------------------------------ Types
@@ -56,6 +55,12 @@ class SymbolTable {
 
 		// Get the function corresponding to the input function name if it was found
 		funcStruct& getFunc(string name);
+		
+		// Get the variable table
+		unordered_map<string, varStruct> getVarMap();
+		
+		// Get the function table
+		unordered_map<string, funcStruct> getFuncMap();
 
 		// Add a variable to the table of symbols
 		void addVar(string name, string vT, string vS, int vL);
