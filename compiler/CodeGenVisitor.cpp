@@ -13,19 +13,35 @@ antlrcpp:: Any CodeGenVisitor::visitMainHeader(ifccParser::MainHeaderContext *ct
 antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 	if (errorHandler.hasError()) { return -1; }
 	
-	// Add variable to symbol table
+	// Fetch variable
 	string dVarName = ctx->VAR()->getText();
 	string dVarType = ctx->TYPE()->getText();
+	// Check errors
+	if (symbolTable.hasVar(dVarName)) {
+		string message =  "Variable " + dVarName + " has already been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return -1;
+	}
+	// Add variable to symbol table
 	symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
+	int dVarOffset = symbolTable.getVar(dVarName).memoryOffset;
+	
 	return 0;
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclrConstAffect(ifccParser::VarDeclrConstAffectContext *ctx) {
 	if (errorHandler.hasError()) { return -1; }
 	
-	// Add variable to symbol table
+	// Fetch variable
 	string dVarName = ctx->VAR()->getText();
 	string dVarType = ctx->TYPE()->getText();
+	// Check errors
+	if (symbolTable.hasVar(dVarName)) {
+		string message =  "Variable " + dVarName + " has already been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return -1;
+	}
+	// Add variable to symbol table
 	symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
 	int dVarOffset = symbolTable.getVar(dVarName).memoryOffset;
 	
@@ -42,9 +58,16 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrConstAffect(ifccParser::VarDeclrConst
 antlrcpp::Any CodeGenVisitor::visitVarDeclrVarAffect(ifccParser::VarDeclrVarAffectContext *ctx) {
 	if (errorHandler.hasError()) { return -1; }
 	
-	// Add variable to symbol table
+	// Fetch variable
 	string dVarName = ctx->VAR(0)->getText();
 	string dVarType = ctx->TYPE()->getText();
+	// Check errors
+	if (symbolTable.hasVar(dVarName)) {
+		string message =  "Variable " + dVarName + " has already been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return -1;
+	}
+	// Add variable to symbol table
 	symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
 	int dVarOffset = symbolTable.getVar(dVarName).memoryOffset;
 	
