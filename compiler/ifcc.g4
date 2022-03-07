@@ -3,7 +3,7 @@ grammar ifcc;
 axiom : prog ;
 
 prog : 
-	mainHeader '{' body end '}'
+	mainHeader '{' body '}'
 ;
 mainHeader :
 	'int' 'main' '(' ')'
@@ -12,6 +12,8 @@ body :
 	varDeclr body 
 	| varDeclrAndAffect body 
 	| affect body 
+	| expr ';' body
+	| end body
 	| 
 ;
 
@@ -37,7 +39,8 @@ affect :
 ;
 
 end :
-	RETURN expr ';' 
+	RETURN expr ';'	#exprEnd	
+	| RETURN ';'	#emptyEnd
 ;
 
 WS : [ \t\r\n] -> channel(HIDDEN);

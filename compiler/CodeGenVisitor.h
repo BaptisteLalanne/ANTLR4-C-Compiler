@@ -24,7 +24,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 	
 	public:
 		// Constructor of CodeGenVisitor
-		CodeGenVisitor(SymbolTable& sT, ErrorHandler& eH) : symbolTable(sT), errorHandler(eH) { }
+		CodeGenVisitor(SymbolTable& sT, ErrorHandler& eH) : symbolTable(sT), errorHandler(eH), returned(false) { }
 		virtual antlrcpp::Any visitMainHeader(ifccParser::MainHeaderContext *ctx);
 		virtual antlrcpp::Any visitAddExpr(ifccParser::AddExprContext *ctx) ;
 		virtual antlrcpp::Any visitSubExpr(ifccParser::SubExprContext *ctx) ;
@@ -35,11 +35,16 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitVarDeclr(ifccParser::VarDeclrContext *ctx) ;
 		virtual antlrcpp::Any visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffectContext *ctx) ;
 		virtual antlrcpp::Any visitAffect(ifccParser::AffectContext *ctx) ;
-		virtual antlrcpp::Any visitEnd(ifccParser::EndContext *ctx) ;
+		virtual antlrcpp::Any visitExprEnd(ifccParser::ExprEndContext *ctx) ;
+		virtual antlrcpp::Any visitEmptyEnd(ifccParser::EmptyEndContext *ctx) ;
+		void returnZero();
+		//Tell whether the function has returned 
+		bool hasReturned();
 		
 	protected:
 		SymbolTable& symbolTable;
 		ErrorHandler& errorHandler;
+		bool returned;		//Whether the function has returned
 
 };
 
