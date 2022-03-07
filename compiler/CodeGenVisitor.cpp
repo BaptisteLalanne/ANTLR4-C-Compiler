@@ -41,7 +41,24 @@ antlrcpp::Any CodeGenVisitor::visitAddExpr(ifccParser::AddExprContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitSubExpr(ifccParser::SubExprContext *ctx) {
-	return visitChildren(ctx);
+	// Fetch variable
+	string expr1 = ctx->expr(0)->getText();
+	string expr2 = ctx->expr(1)->getText();
+
+	// Visit first expression
+	visit(ctx->expr(0));
+
+	// Move result of first expression into EDX register
+	cout << "	movl	%eax, %edx" << endl;
+
+	// Visit second expression
+	visit(ctx->expr(1));
+
+	// Do substraction
+	cout << "	subl	%eax, %edx" << endl;
+	cout << "	movl	%edx, %eax" << endl;
+	
+	return 0;
 }
 
 antlrcpp::Any CodeGenVisitor::visitMulExpr(ifccParser::MulExprContext *ctx) {
