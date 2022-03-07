@@ -1,30 +1,73 @@
+/*************************************************************************
+                          PLD Compiler : CodeGenVisitor
+                          ---------------------------
+    start   : 02/28/2022
+    authors : Bastien B. Laetitia D. Arthur D. Loann L.
+			  Baptiste L. Amine L. Tom P. David T.
+*************************************************************************/
+
+//---- Implementation of class <CodeGenVisitor> (file CodeGenVisitor.cpp) -----/
 #include "CodeGenVisitor.h"
 
 using namespace std;
 
-/*antlrcpp:: Any CodeGenVisitor::visitProg(ifccParser::ProgContext *ctx) {
-	cout <<".globl	main\n"
-		" main:" << endl;
-	visit(ctx->body());
-	return 0;
-}*/
+antlrcpp::Any CodeGenVisitor::visitMainHeader(ifccParser::MainHeaderContext *ctx) {
+	cout << ".globl	main" << endl;
+	cout << "main:" << endl;
+	cout << "	pushq	%rbp" << endl;
+	cout << "	movq	%rsp, %rbp" << endl;
+	return visitChildren(ctx);
+}
+
+antlrcpp::Any CodeGenVisitor::visitAddExpr(ifccParser::AddExprContext *ctx) {
+	return visitChildren(ctx);
+}
+antlrcpp::Any CodeGenVisitor::visitSubExpr(ifccParser::SubExprContext *ctx) {
+	return visitChildren(ctx);
+}
+antlrcpp::Any CodeGenVisitor::visitMulExpr(ifccParser::MulExprContext *ctx) {
+	return visitChildren(ctx);
+}
+antlrcpp::Any CodeGenVisitor::visitDivExpr(ifccParser::DivExprContext *ctx) {
+	return visitChildren(ctx);
+}
+antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) {
+	return visitChildren(ctx);
+}
+antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
+	return visitChildren(ctx);
+}
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
-	if (errorHandler.hasError()) { return -1; }
 	
-	// Add variable to symbol table
+	// Fetch variable
 	string dVarName = ctx->VAR()->getText();
 	string dVarType = ctx->TYPE()->getText();
+	// Check errors
+	if (symbolTable.hasVar(dVarName)) {
+		string message =  "Variable " + dVarName + " has already been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return -1;
+	}
+	// Add variable to symbol table
 	symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
+	int dVarOffset = symbolTable.getVar(dVarName).memoryOffset;
+	
 	return 0;
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclrConstAffect(ifccParser::VarDeclrConstAffectContext *ctx) {
-	if (errorHandler.hasError()) { return -1; }
 	
-	// Add variable to symbol table
+	// Fetch variable
 	string dVarName = ctx->VAR()->getText();
 	string dVarType = ctx->TYPE()->getText();
+	// Check errors
+	if (symbolTable.hasVar(dVarName)) {
+		string message =  "Variable " + dVarName + " has already been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return -1;
+	}
+	// Add variable to symbol table
 	symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
 	int dVarOffset = symbolTable.getVar(dVarName).memoryOffset;
 	
@@ -39,11 +82,17 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrConstAffect(ifccParser::VarDeclrConst
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclrVarAffect(ifccParser::VarDeclrVarAffectContext *ctx) {
-	if (errorHandler.hasError()) { return -1; }
 	
-	// Add variable to symbol table
+	// Fetch variable
 	string dVarName = ctx->VAR(0)->getText();
 	string dVarType = ctx->TYPE()->getText();
+	// Check errors
+	if (symbolTable.hasVar(dVarName)) {
+		string message =  "Variable " + dVarName + " has already been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return -1;
+	}
+	// Add variable to symbol table
 	symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
 	int dVarOffset = symbolTable.getVar(dVarName).memoryOffset;
 	
@@ -67,8 +116,11 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrVarAffect(ifccParser::VarDeclrVarAffe
 	
 }
 
+antlrcpp::Any CodeGenVisitor::visitVarDeclrExprAffect(ifccParser::VarDeclrExprAffectContext *ctx) {
+	return visitChildren(ctx);
+}
+
 antlrcpp::Any CodeGenVisitor::visitConstAffect(ifccParser::ConstAffectContext *ctx) {
-	if (errorHandler.hasError()) { return -1; }
 	
 	// Fetch variable
 	string varName = ctx->VAR()->getText();
@@ -91,7 +143,6 @@ antlrcpp::Any CodeGenVisitor::visitConstAffect(ifccParser::ConstAffectContext *c
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarAffect(ifccParser::VarAffectContext *ctx) {
-	if (errorHandler.hasError()) { return -1; }
 	
 	// Fetch first variable
 	string varName = ctx->VAR(0)->getText();
@@ -124,8 +175,11 @@ antlrcpp::Any CodeGenVisitor::visitVarAffect(ifccParser::VarAffectContext *ctx) 
 	
 }
 
+antlrcpp::Any CodeGenVisitor::visitExprAffect(ifccParser::ExprAffectContext *ctx) {
+	return visitChildren(ctx);
+}
+
 antlrcpp::Any CodeGenVisitor::visitConstEnd(ifccParser::ConstEndContext *ctx) {
-	if (errorHandler.hasError()) { return -1; }
 	
 	// Fetch constant's info
 	int retConst = stoi(ctx->CONST()->getText());
@@ -135,7 +189,8 @@ antlrcpp::Any CodeGenVisitor::visitConstEnd(ifccParser::ConstEndContext *ctx) {
 	cout << "	popq	%rbp\n" << "	ret" << endl;
 	
 	// Static Analysis
-	for (auto v : symbolTable.varMap)
+	unordered_map<string, varStruct> varMap = symbolTable.getVarMap();
+	for (auto v : varMap)
 	{
 		if (!v.second.isUsed) {
 			string message =  "Variable " + v.first + " is not used";
@@ -147,7 +202,6 @@ antlrcpp::Any CodeGenVisitor::visitConstEnd(ifccParser::ConstEndContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarEnd(ifccParser::VarEndContext *ctx) {
-	if (errorHandler.hasError()) { return -1; }
 	
 	// Fetch return variable
 	string retVar = ctx->VAR()->getText();
@@ -166,7 +220,8 @@ antlrcpp::Any CodeGenVisitor::visitVarEnd(ifccParser::VarEndContext *ctx) {
 	cout << "	popq	%rbp\n" << "	ret" << endl;
 	
 	// Static Analysis
-	for (auto v : symbolTable.varMap)
+	unordered_map<string, varStruct> varMap = symbolTable.getVarMap();
+	for (auto v : varMap)
 	{
 		if (!v.second.isUsed) {
 			string message =  "Variable " + v.first + " is not used";

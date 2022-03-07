@@ -3,7 +3,10 @@ grammar ifcc;
 axiom : prog ;
 
 prog : 
-	'int' 'main' '(' ')' OPENBRACKET body end CLOSEDBRACKET 
+	mainHeader OPENBRACKET body end CLOSEDBRACKET
+;
+mainHeader :
+	'int' 'main' '(' ')'
 ;
 body : 
 	varDeclr body | 
@@ -12,6 +15,17 @@ body :
 	constAffect body | 
 	varAffect body | 
 ;
+
+expr :
+	expr '+' expr 		#addExpr	
+	| expr '-' expr 	#subExpr
+	| expr '*' expr		#mulExpr 
+	| expr '/' expr 	#divExpr 
+	| '(' expr ')' 		#parExpr
+	| CONST 			#constExpr 
+	| VAR				#varExpr
+;
+
 varDeclr : 
 	TYPE VAR ';' 
 ;
@@ -21,12 +35,20 @@ varDeclrConstAffect :
 varDeclrVarAffect : 
 	TYPE VAR '=' VAR ';' 
 ;
+varDeclrExprAffect :
+	TYPE VAR '=' expr ';'
+;
+
 constAffect :
 	VAR '=' CONST ';' 
 ;
 varAffect : 
 	VAR '=' VAR ';' 
 ;
+exprAffect :
+	VAR '=' expr ';'
+;
+
 end :
 	constEnd | varEnd 
 ;
