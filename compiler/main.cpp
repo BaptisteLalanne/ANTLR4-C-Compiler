@@ -18,6 +18,10 @@ int main(int argn, const char **argv) {
     stringstream in;
     if(argn==2) {
         ifstream lecture(argv[1]);
+        if (lecture.fail()) {
+            cerr << argv[1] << " does not exist" << endl;
+            exit(1);
+        }
         in << lecture.rdbuf();
     }
     else {
