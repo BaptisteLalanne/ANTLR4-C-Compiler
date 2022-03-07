@@ -34,7 +34,7 @@ int main(int argn, const char **argv) {
     tree::ParseTree* tree = parser.axiom();
 
     if(parser.getNumberOfSyntaxErrors() != 0) {
-        cerr << "error: syntax error during parsing" << endl;
+        cerr << "ERROR : syntax error during parsing" << endl;
         exit(1);
     }
     
@@ -42,14 +42,8 @@ int main(int argn, const char **argv) {
     SymbolTable symbolTable;
     ErrorHandler errorHandler;
 
-    // Temporary solution waiting for the functions
-    cout << 
-        "	.text\n"
-        "	.globl	main\n"
-		"main:\n"
-        "	pushq	%rbp\n"
-        "	movq	%rsp, %rbp" 
-        << endl;
+    // Print header instruction
+    cout << ".text" << endl;
 
     // Visit tree and linearize
     CodeGenVisitor v(symbolTable, errorHandler);

@@ -1,3 +1,12 @@
+/*************************************************************************
+                          PLD Compiler : SymbolTable
+                          ---------------------------
+    start   : 02/28/2022
+    authors : Bastien B. Laetitia D. Arthur D. Loann L.
+			  Baptiste L. Amine L. Tom P. David T.
+*************************************************************************/
+
+//---- Implementation of class <SymbolTable> (file SymbolTable.cpp) ------/
 #include "SymbolTable.h"
 #include <iostream>
 
@@ -19,6 +28,14 @@ varStruct& SymbolTable::getVar(string name) {
 
 funcStruct& SymbolTable::getFunc(string name) {
 	return funcMap[name];
+}
+
+unordered_map<string, varStruct> SymbolTable::getVarMap() {
+	return varMap;
+
+}
+unordered_map<string, funcStruct> SymbolTable::getFuncMap() {
+	return funcMap;
 }
 
 void SymbolTable::addVar(string name, string vT, string vS, int vL) {
