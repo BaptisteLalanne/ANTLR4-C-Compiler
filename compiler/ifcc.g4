@@ -28,7 +28,7 @@ expr :
 ;
 
 varDeclr : 
-	TYPE VAR ';' 
+	TYPE VAR (',' VAR)* ';' 
 ;
 varDeclrAndAffect :
 	TYPE VAR '=' expr ';'
