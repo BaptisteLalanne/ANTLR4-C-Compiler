@@ -20,7 +20,6 @@ antlrcpp:: Any CodeGenVisitor::visitMainHeader(ifccParser::MainHeaderContext *ct
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
-	if (errorHandler.hasError()) { return -1; }
 	
 	// Fetch variable
 	string dVarName = ctx->VAR()->getText();
@@ -39,7 +38,6 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclrConstAffect(ifccParser::VarDeclrConstAffectContext *ctx) {
-	if (errorHandler.hasError()) { return -1; }
 	
 	// Fetch variable
 	string dVarName = ctx->VAR()->getText();
@@ -65,7 +63,6 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrConstAffect(ifccParser::VarDeclrConst
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclrVarAffect(ifccParser::VarDeclrVarAffectContext *ctx) {
-	if (errorHandler.hasError()) { return -1; }
 	
 	// Fetch variable
 	string dVarName = ctx->VAR(0)->getText();
@@ -101,7 +98,6 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrVarAffect(ifccParser::VarDeclrVarAffe
 }
 
 antlrcpp::Any CodeGenVisitor::visitConstAffect(ifccParser::ConstAffectContext *ctx) {
-	if (errorHandler.hasError()) { return -1; }
 	
 	// Fetch variable
 	string varName = ctx->VAR()->getText();
@@ -124,7 +120,6 @@ antlrcpp::Any CodeGenVisitor::visitConstAffect(ifccParser::ConstAffectContext *c
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarAffect(ifccParser::VarAffectContext *ctx) {
-	if (errorHandler.hasError()) { return -1; }
 	
 	// Fetch first variable
 	string varName = ctx->VAR(0)->getText();
@@ -158,7 +153,6 @@ antlrcpp::Any CodeGenVisitor::visitVarAffect(ifccParser::VarAffectContext *ctx) 
 }
 
 antlrcpp::Any CodeGenVisitor::visitConstEnd(ifccParser::ConstEndContext *ctx) {
-	if (errorHandler.hasError()) { return -1; }
 	
 	// Fetch constant's info
 	int retConst = stoi(ctx->CONST()->getText());
@@ -180,7 +174,6 @@ antlrcpp::Any CodeGenVisitor::visitConstEnd(ifccParser::ConstEndContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarEnd(ifccParser::VarEndContext *ctx) {
-	if (errorHandler.hasError()) { return -1; }
 	
 	// Fetch return variable
 	string retVar = ctx->VAR()->getText();

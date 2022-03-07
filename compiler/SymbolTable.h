@@ -19,7 +19,7 @@ using namespace std;
 struct varStruct {
 	int memoryOffset;	//Its offset (in memory) to the base pointer 
 	string varType;		//The type of the variable
-	string varScope;	//The variable scope (i.e. global, local, etc.)
+	string varScope;	//The variable scope (i.e. global, local, ou paramètre)
 	int varLine;		//The line of code where the variable is declared
 	bool isUsed;		//Whether the variable is used in the code
 };
@@ -65,14 +65,15 @@ class SymbolTable {
 		// Hashtable containing the size in bytes of the different types (typeName : size)
 		static unordered_map<string, int> typeSizes;
 		
+	protected:
+		int stackPointer;	// The current position of the memory stack pointer 
+		
+		// TODO: turn this into a MultiMap (or use a key containing the scope)
 		// Hashtable containing the encountered variables (varName : variable)
 		unordered_map<string, varStruct> varMap;
 
 		// Hashtable containing the encountered functions (funcName : function)
 		unordered_map<string, funcStruct> funcMap;
-		
-	protected:
-		int stackPointer;	// The current position of the memory stack pointer 
 
 };
 
