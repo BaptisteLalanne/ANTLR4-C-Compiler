@@ -10,8 +10,8 @@ mainHeader :
 ;
 body : 
 	varDeclr body 
-	| varDeclrExprAffect body 
-	| exprAffect body 
+	| varDeclrAndAffect body 
+	| affect body 
 	| 
 ;
 
@@ -28,11 +28,11 @@ expr :
 varDeclr : 
 	TYPE VAR ';' 
 ;
-varDeclrExprAffect :
+varDeclrAndAffect :
 	TYPE VAR '=' expr ';'
 ;
 
-exprAffect :
+affect :
 	VAR '=' expr ';'
 ;
 
