@@ -47,13 +47,7 @@ int main(int argn, const char **argv) {
     ErrorHandler errorHandler;
 
     // Temporary solution waiting for the functions
-    cout << 
-        "	.text\n"
-        "	.globl	main\n"
-		"main:\n"
-        "	pushq	%rbp\n"
-        "	movq	%rsp, %rbp" 
-        << endl;
+    cout << "	.text" << endl;
 
     // Visit tree and linearize
     CodeGenVisitor v(symbolTable, errorHandler);
