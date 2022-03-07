@@ -189,14 +189,7 @@ antlrcpp::Any CodeGenVisitor::visitConstEnd(ifccParser::ConstEndContext *ctx) {
 	cout << "	popq	%rbp\n" << "	ret" << endl;
 	
 	// Static Analysis
-	unordered_map<string, varStruct> varMap = symbolTable.getVarMap();
-	for (auto v : varMap)
-	{
-		if (!v.second.isUsed) {
-			string message =  "Variable " + v.first + " is not used";
-			errorHandler.signal(WARNING, message, v.second.varLine);
-		}
-	}
+	symbolTable.checkUsedVariables(errorHandler);
 	
 	return 0;
 }
@@ -220,15 +213,8 @@ antlrcpp::Any CodeGenVisitor::visitVarEnd(ifccParser::VarEndContext *ctx) {
 	cout << "	popq	%rbp\n" << "	ret" << endl;
 	
 	// Static Analysis
-	unordered_map<string, varStruct> varMap = symbolTable.getVarMap();
-	for (auto v : varMap)
-	{
-		if (!v.second.isUsed) {
-			string message =  "Variable " + v.first + " is not used";
-			errorHandler.signal(WARNING, message, v.second.varLine);
-		}
-	}
+	symbolTable.checkUsedVariables(errorHandler);
 	
 	return 0;
-	
+
 }

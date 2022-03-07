@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <list>
 #include <string>
+#include "ErrorHandler.h"
 using namespace std;
 
 struct varStruct {
@@ -32,11 +33,11 @@ class SymbolTable {
 		void addVar(string name, string vT, string vS, int vL);
 		void addFunc(string name, string rT, int nbP, list<string> pT, string c);
 		static unordered_map<string, int> typeSizes;
-		unordered_map<string, varStruct> varMap;
-		unordered_map<string, funcStruct> funcMap;
+		void checkUsedVariables(ErrorHandler& eH);
 		
 	protected:
 		int stackPointer;
-
+		unordered_map<string, varStruct> varMap;
+		unordered_map<string, funcStruct> funcMap;
 };
 

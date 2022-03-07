@@ -58,3 +58,14 @@ void SymbolTable::addFunc(string name, string rT, int nbP, list<string> pT, stri
 	s.isCalled = false;
 	funcMap[name] = s;
 }
+
+void SymbolTable::checkUsedVariables(ErrorHandler& eH) {
+	// Static Analysis
+	for (auto v : varMap)
+	{
+		if (!v.second.isUsed) {
+			string message =  "Variable " + v.first + " is not used";
+			eH.signal(WARNING, message, v.second.varLine);
+		}
+	}
+}
