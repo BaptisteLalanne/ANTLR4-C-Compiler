@@ -46,7 +46,6 @@ int main(int argn, const char **argv) {
     SymbolTable symbolTable;
     ErrorHandler errorHandler;
 
-    // Temporary solution waiting for the functions
     cout << "	.text" << endl;
 
     // Visit tree and linearize
