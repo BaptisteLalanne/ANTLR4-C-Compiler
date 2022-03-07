@@ -9,11 +9,10 @@ mainHeader :
 	'int' 'main' '(' ')'
 ;
 body : 
-	varDeclr body | 
-	varDeclrConstAffect body | 
-	varDeclrVarAffect body | 
-	constAffect body | 
-	varAffect body | 
+	varDeclr body 
+	| varDeclrExprAffect body 
+	| exprAffect body 
+	| 
 ;
 
 expr :

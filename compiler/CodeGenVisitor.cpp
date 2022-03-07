@@ -22,20 +22,51 @@ antlrcpp::Any CodeGenVisitor::visitMainHeader(ifccParser::MainHeaderContext *ctx
 antlrcpp::Any CodeGenVisitor::visitAddExpr(ifccParser::AddExprContext *ctx) {
 	return visitChildren(ctx);
 }
+
 antlrcpp::Any CodeGenVisitor::visitSubExpr(ifccParser::SubExprContext *ctx) {
 	return visitChildren(ctx);
 }
+
 antlrcpp::Any CodeGenVisitor::visitMulExpr(ifccParser::MulExprContext *ctx) {
 	return visitChildren(ctx);
 }
+
 antlrcpp::Any CodeGenVisitor::visitDivExpr(ifccParser::DivExprContext *ctx) {
 	return visitChildren(ctx);
 }
+
 antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) {
-	return visitChildren(ctx);
+	
+	// Fetch constant's info
+	int constValue = stoi(ctx->CONST()->getText());
+	
+	// Write assembly instructions
+	cout << "	movl	$" << constValue << ", %eax" << endl;
+	
+	return 0;
+	
 }
+
 antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
-	return visitChildren(ctx);
+	
+	// Fetch variable
+	string varName = ctx->VAR()->getText();
+	// Check errors
+	if (!symbolTable.hasVar(varName)) {
+		string message =  "Variable " + varName + " has not been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return -1;
+	}
+	// Fetch variable's infos, mark it as used
+	symbolTable.getVar(varName).isUsed = true;
+	int varOffset = symbolTable.getVar(varName).memoryOffset;
+	
+	// Write assembly instructions
+	cout << "	movl	" << varOffset << "(%rbp), %rax" << endl;
+	cout << "	movl	%rax, %eax" << endl;
+	
+	return 0;
+	
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
@@ -56,6 +87,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 	return 0;
 }
 
+/*
 antlrcpp::Any CodeGenVisitor::visitVarDeclrConstAffect(ifccParser::VarDeclrConstAffectContext *ctx) {
 	
 	// Fetch variable
@@ -109,17 +141,40 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrVarAffect(ifccParser::VarDeclrVarAffe
 	int oVarOffset = symbolTable.getVar(oVarName).memoryOffset;
 	
 	// Write assembly instructions
-	cout << "	movl	" << oVarOffset << "(%rbp), %eax" << endl;
+	cout << "	movl	" << oVarOffset << "(%rbp), %rax" << endl;
+	cout << "	movl	%rax, " << dVarOffset << "(%rbp)" << endl;
+	
+	return 0;
+	
+}
+*/
+
+antlrcpp::Any CodeGenVisitor::visitVarDeclrExprAffect(ifccParser::VarDeclrExprAffectContext *ctx) {
+	
+	// Fetch variable
+	string dVarName = ctx->VAR()->getText();
+	string dVarType = ctx->TYPE()->getText();
+	// Check errors
+	if (symbolTable.hasVar(dVarName)) {
+		string message =  "Variable " + dVarName + " has already been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return -1;
+	}
+	// Add variable to symbol table
+	symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
+	int dVarOffset = symbolTable.getVar(dVarName).memoryOffset;
+	
+	// Compute expression
+	visit(ctx->expr());
+	
+	// Write assembly instructions
 	cout << "	movl	%eax, " << dVarOffset << "(%rbp)" << endl;
 	
 	return 0;
 	
 }
 
-antlrcpp::Any CodeGenVisitor::visitVarDeclrExprAffect(ifccParser::VarDeclrExprAffectContext *ctx) {
-	return visitChildren(ctx);
-}
-
+/*
 antlrcpp::Any CodeGenVisitor::visitConstAffect(ifccParser::ConstAffectContext *ctx) {
 	
 	// Fetch variable
@@ -168,15 +223,35 @@ antlrcpp::Any CodeGenVisitor::visitVarAffect(ifccParser::VarAffectContext *ctx) 
 	symbolTable.getVar(oVarName).isUsed = true;
 	
 	// Write assembly instructions
-	cout << "	movl	" << oVarOffset << "(%rbp), %eax" << endl;
-	cout << "	movl	%eax, " << varOffset << "(%rbp)" << endl;
+	cout << "	movl	" << oVarOffset << "(%rbp), %rax" << endl;
+	cout << "	movl	%rax, " << varOffset << "(%rbp)" << endl;
 	
 	return 0;
 	
 }
+*/
 
 antlrcpp::Any CodeGenVisitor::visitExprAffect(ifccParser::ExprAffectContext *ctx) {
-	return visitChildren(ctx);
+	
+	// Fetch first variable
+	string varName = ctx->VAR()->getText();
+	// Check for errors
+	if (!symbolTable.hasVar(varName)) {
+		string message =  "Variable " + varName + " has not been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return -1;
+	}
+	// Fetch first variable's infos
+	int varOffset = symbolTable.getVar(varName).memoryOffset;
+	
+	// Compute expression
+	visit(ctx->expr());
+	
+	// Write assembly instructions
+	cout << "	movl	%eax, " << varOffset << "(%rbp)" << endl;
+	
+	return 0;
+	
 }
 
 antlrcpp::Any CodeGenVisitor::visitConstEnd(ifccParser::ConstEndContext *ctx) {

@@ -33,11 +33,11 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitConstExpr(ifccParser::ConstExprContext *ctx) ;
 		virtual antlrcpp::Any visitVarExpr(ifccParser::VarExprContext *ctx) ;
 		virtual antlrcpp::Any visitVarDeclr(ifccParser::VarDeclrContext *ctx) ;
-		virtual antlrcpp::Any visitVarDeclrConstAffect(ifccParser::VarDeclrConstAffectContext *ctx) ;
-		virtual antlrcpp::Any visitVarDeclrVarAffect(ifccParser::VarDeclrVarAffectContext *ctx) ;
+		//virtual antlrcpp::Any visitVarDeclrConstAffect(ifccParser::VarDeclrConstAffectContext *ctx) ;
+		//virtual antlrcpp::Any visitVarDeclrVarAffect(ifccParser::VarDeclrVarAffectContext *ctx) ;
 		virtual antlrcpp::Any visitVarDeclrExprAffect(ifccParser::VarDeclrExprAffectContext *ctx) ;
-		virtual antlrcpp::Any visitConstAffect(ifccParser::ConstAffectContext *ctx) ;
-		virtual antlrcpp::Any visitVarAffect(ifccParser::VarAffectContext *ctx) ;
+		//virtual antlrcpp::Any visitConstAffect(ifccParser::ConstAffectContext *ctx) ;
+		//virtual antlrcpp::Any visitVarAffect(ifccParser::VarAffectContext *ctx) ;
 		virtual antlrcpp::Any visitExprAffect(ifccParser::ExprAffectContext *ctx) ;
 		virtual antlrcpp::Any visitConstEnd(ifccParser::ConstEndContext *ctx) ;
 		virtual antlrcpp::Any visitVarEnd(ifccParser::VarEndContext *ctx) ;
