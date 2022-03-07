@@ -2,13 +2,6 @@
 
 using namespace std;
 
-/*antlrcpp:: Any CodeGenVisitor::visitProg(ifccParser::ProgContext *ctx) {
-	cout <<".globl	main\n"
-		" main:" << endl;
-	visit(ctx->body());
-	return 0;
-}*/
-
 antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 	if (errorHandler.hasError()) { return -1; }
 	
@@ -135,13 +128,7 @@ antlrcpp::Any CodeGenVisitor::visitConstEnd(ifccParser::ConstEndContext *ctx) {
 	cout << "	popq	%rbp\n" << "	ret" << endl;
 	
 	// Static Analysis
-	for (auto v : symbolTable.varMap)
-	{
-		if (!v.second.isUsed) {
-			string message =  "Variable " + v.first + " is not used";
-			errorHandler.signal(WARNING, message, v.second.varLine);
-		}
-	}
+	symbolTable.checkUsedVariables(errorHandler);
 	
 	return 0;
 }
@@ -166,14 +153,8 @@ antlrcpp::Any CodeGenVisitor::visitVarEnd(ifccParser::VarEndContext *ctx) {
 	cout << "	popq	%rbp\n" << "	ret" << endl;
 	
 	// Static Analysis
-	for (auto v : symbolTable.varMap)
-	{
-		if (!v.second.isUsed) {
-			string message =  "Variable " + v.first + " is not used";
-			errorHandler.signal(WARNING, message, v.second.varLine);
-		}
-	}
+	symbolTable.checkUsedVariables(errorHandler);
 	
 	return 0;
-	
+
 }
