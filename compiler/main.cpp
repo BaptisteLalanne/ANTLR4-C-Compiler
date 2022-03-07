@@ -47,7 +47,7 @@ int main(int argn, const char **argv) {
     ErrorHandler errorHandler;
 
     // Temporary solution waiting for the functions
-    cout << ".text" << endl;
+    cout << "	.text" << endl;
 
     // Visit tree and linearize
     CodeGenVisitor v(symbolTable, errorHandler);

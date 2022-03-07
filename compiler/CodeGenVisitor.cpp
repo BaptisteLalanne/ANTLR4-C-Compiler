@@ -12,7 +12,7 @@
 using namespace std;
 
 antlrcpp::Any CodeGenVisitor::visitMainHeader(ifccParser::MainHeaderContext *ctx) {
-	cout << ".globl	main" << endl;
+	cout << "	.globl	main" << endl;
 	cout << "main:" << endl;
 	cout << "	pushq	%rbp" << endl;
 	cout << "	movq	%rsp, %rbp" << endl;
@@ -141,8 +141,8 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrVarAffect(ifccParser::VarDeclrVarAffe
 	int oVarOffset = symbolTable.getVar(oVarName).memoryOffset;
 	
 	// Write assembly instructions
-	cout << "	movl	" << oVarOffset << "(%rbp), %rax" << endl;
-	cout << "	movl	%rax, " << dVarOffset << "(%rbp)" << endl;
+	cout << "	movl	" << oVarOffset << "(%rbp), %ebx" << endl;
+	cout << "	movl	%ebx, " << dVarOffset << "(%rbp)" << endl;
 	
 	return 0;
 	
@@ -223,8 +223,8 @@ antlrcpp::Any CodeGenVisitor::visitVarAffect(ifccParser::VarAffectContext *ctx) 
 	symbolTable.getVar(oVarName).isUsed = true;
 	
 	// Write assembly instructions
-	cout << "	movl	" << oVarOffset << "(%rbp), %rax" << endl;
-	cout << "	movl	%rax, " << varOffset << "(%rbp)" << endl;
+	cout << "	movl	" << oVarOffset << "(%rbp), %ebx" << endl;
+	cout << "	movl	%ebx, " << varOffset << "(%rbp)" << endl;
 	
 	return 0;
 	
