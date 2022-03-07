@@ -28,34 +28,16 @@ expr :
 varDeclr : 
 	TYPE VAR ';' 
 ;
-varDeclrConstAffect : 
-	TYPE VAR '=' CONST ';' 
-;
-varDeclrVarAffect : 
-	TYPE VAR '=' VAR ';' 
-;
 varDeclrExprAffect :
 	TYPE VAR '=' expr ';'
 ;
 
-constAffect :
-	VAR '=' CONST ';' 
-;
-varAffect : 
-	VAR '=' VAR ';' 
-;
 exprAffect :
 	VAR '=' expr ';'
 ;
 
 end :
-	constEnd | varEnd 
-;
-constEnd : 
-	RETURN CONST ';' 
-;
-varEnd :
-	RETURN VAR ';' 
+	RETURN expr ';' 
 ;
 
 WS : [ \t\r\n] -> channel(HIDDEN);

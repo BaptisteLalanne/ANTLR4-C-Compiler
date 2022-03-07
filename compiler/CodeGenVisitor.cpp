@@ -62,8 +62,8 @@ antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
 	int varOffset = symbolTable.getVar(varName).memoryOffset;
 	
 	// Write assembly instructions
-	cout << "	movl	" << varOffset << "(%rbp), %rax" << endl;
-	cout << "	movl	%rax, %eax" << endl;
+	cout << "	movl	" << varOffset << "(%rbp), %ebx" << endl;
+	cout << "	movl	%ebx, %eax" << endl;
 	
 	return 0;
 	
@@ -254,6 +254,7 @@ antlrcpp::Any CodeGenVisitor::visitExprAffect(ifccParser::ExprAffectContext *ctx
 	
 }
 
+/*
 antlrcpp::Any CodeGenVisitor::visitConstEnd(ifccParser::ConstEndContext *ctx) {
 	
 	// Fetch constant's info
@@ -292,4 +293,21 @@ antlrcpp::Any CodeGenVisitor::visitVarEnd(ifccParser::VarEndContext *ctx) {
 	
 	return 0;
 
+}
+*/
+
+antlrcpp::Any CodeGenVisitor::visitEnd(ifccParser::EndContext *ctx) {
+	
+	// Compute expression
+	visit(ctx->expr());
+	
+	// Write assembly instructions
+	cout << "	movl	%ebx, %eax" << endl;
+	cout << "	popq	%rbp\n" << "	ret" << endl;
+	
+	// Static Analysis
+	symbolTable.checkUsedVariables(errorHandler);
+	
+	return 0;
+	
 }
