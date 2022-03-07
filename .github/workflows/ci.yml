@@ -1,0 +1,31 @@
+# This is a basic workflow to build and run tests on our homemade compiler
+# This CI need to succeed in order to merge into master
+
+name: CI PLD Compilateur
+
+on:
+  push:
+    branches: '*'
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: make
+      working-directory: ./compiler
+      run: make
+  test: 
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+    - name: make
+      working-directory: ./compiler
+      run: make
+    - name: Execute python test script
+      working-directory: ./tests
+      run: python ifcc-test.py testfiles
