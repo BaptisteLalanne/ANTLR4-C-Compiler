@@ -104,19 +104,23 @@ antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 	
-	// Fetch variable
-	string dVarName = ctx->VAR()->getText();
+	// Number of variable to declare
+	int numVariable = ctx->VAR().size();
+	// Fetch type
 	string dVarType = ctx->TYPE()->getText();
-	// Check errors
-	if (symbolTable.hasVar(dVarName)) {
-		string message =  "Variable " + dVarName + " has already been declared";
-		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return -1;
+	for(int i = 0 ; i < numVariable ; i++) {
+		// Fetch variable
+		string dVarName = ctx->VAR(i)->getText();
+		// Check errors
+		if (symbolTable.hasVar(dVarName)) {
+			string message =  "Variable " + dVarName + " has already been declared";
+			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+			return -1;
+		}
+		// Add variable to symbol table
+		symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
+		int dVarOffset = symbolTable.getVar(dVarName).memoryOffset;
 	}
-	// Add variable to symbol table
-	symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
-	int dVarOffset = symbolTable.getVar(dVarName).memoryOffset;
-	
 	return 0;
 }
 
