@@ -51,6 +51,12 @@ int main(int argn, const char **argv) {
     // Visit tree and linearize
     CodeGenVisitor v(symbolTable, errorHandler);
     v.visit(tree);
+    // Static Analysis
+	symbolTable.checkUsedVariables(errorHandler);
+    //In case the function has not returned, return 0
+    if (!v.hasReturned()) {
+        v.returnZero();
+    }
 
     return 0;
 }

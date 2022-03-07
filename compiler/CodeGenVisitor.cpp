@@ -20,7 +20,6 @@ antlrcpp::Any CodeGenVisitor::visitMainHeader(ifccParser::MainHeaderContext *ctx
 }
 
 antlrcpp::Any CodeGenVisitor::visitAddExpr(ifccParser::AddExprContext *ctx) {
-
 	// Fetch variable
 	string expr1 = ctx->expr(0)->getText();
 	string expr2 = ctx->expr(1)->getText();
@@ -169,11 +168,13 @@ antlrcpp::Any CodeGenVisitor::visitAffect(ifccParser::AffectContext *ctx) {
 	
 }
 
-antlrcpp::Any CodeGenVisitor::visitEnd(ifccParser::EndContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 	
 	// Compute expression
 	visit(ctx->expr());
 	
+	returned = true;
+
 	// Write assembly instructions
 	cout << "	popq	%rbp\n" << "	ret" << endl;
 	
@@ -181,4 +182,29 @@ antlrcpp::Any CodeGenVisitor::visitEnd(ifccParser::EndContext *ctx) {
 	symbolTable.checkUsedVariables(errorHandler);
 	
 	return 0;
+	
+}
+
+antlrcpp::Any CodeGenVisitor::visitEmptyEnd(ifccParser::EmptyEndContext *ctx) {
+	
+	returned = true;
+
+	// Write assembly instructions
+	cout << "	movl	$0, %eax"<< endl;
+	cout << "	popq	%rbp\n" << "	ret" << endl;
+	
+	// Static Analysis
+	symbolTable.checkUsedVariables(errorHandler);
+	
+	return 0;
+
+}
+
+void CodeGenVisitor::returnZero() {
+	cout << "	movl	$0, %eax"<< endl;
+	cout << "	popq	%rbp\n" << "	ret" << endl;
+}
+
+bool CodeGenVisitor::hasReturned() {
+	return returned;
 }
