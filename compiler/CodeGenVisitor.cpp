@@ -1,3 +1,12 @@
+/*************************************************************************
+                          PLD Compiler : CodeGenVisitor
+                          ---------------------------
+    start   : 02/28/2022
+    authors : Bastien B. Laetitia D. Arthur D. Loann L.
+			  Baptiste L. Amine L. Tom P. David T.
+*************************************************************************/
+
+//---- Implementation of class <CodeGenVisitor> (file CodeGenVisitor.cpp) -----/
 #include "CodeGenVisitor.h"
 
 using namespace std;
