@@ -19,7 +19,9 @@ antlrcpp::Any CodeGenVisitor::visitMainHeader(ifccParser::MainHeaderContext *ctx
 	return visitChildren(ctx);
 }
 
+/*
 antlrcpp::Any CodeGenVisitor::visitAddExpr(ifccParser::AddExprContext *ctx) {
+
 	// Fetch variable
 	string expr1 = ctx->expr(0)->getText();
 	string expr2 = ctx->expr(1)->getText();
@@ -38,8 +40,13 @@ antlrcpp::Any CodeGenVisitor::visitAddExpr(ifccParser::AddExprContext *ctx) {
 	
 	return 0;
 }
+*/
 
+/*
 antlrcpp::Any CodeGenVisitor::visitSubExpr(ifccParser::SubExprContext *ctx) {
+
+	cout << "enterSubExpr" << endl;
+
 	// Fetch variable
 	string expr1 = ctx->expr(0)->getText();
 	string expr2 = ctx->expr(1)->getText();
@@ -59,7 +66,76 @@ antlrcpp::Any CodeGenVisitor::visitSubExpr(ifccParser::SubExprContext *ctx) {
 	
 	return 0;
 }
+*/
 
+antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx) {
+
+	cout << "#enter visitAddSubExpr: " << ctx->getText() << endl;
+
+	char op = ctx->OP2()->getText()[0];
+
+	// Fetch variable
+	string expr1 = ctx->expr(0)->getText();
+	string expr2 = ctx->expr(1)->getText();
+
+	// Visit first expression
+	visit(ctx->expr(0));
+
+	// Move result of first expression into EDX register
+	cout << "	movl	%eax, %edx" << endl;
+
+	// Visit second expression
+	visit(ctx->expr(1));
+
+	if (op == '+') {
+		// Do addition
+		cout << "	addl	%edx, %eax" << endl;
+	} else {
+		// Do substraction
+		cout << "	subl	%eax, %edx" << endl;
+		cout << "	movl	%edx, %eax" << endl;
+	}
+
+	return 0;
+}
+
+antlrcpp::Any CodeGenVisitor::visitMulDivExpr(ifccParser::MulDivExprContext *ctx) {
+
+	cout << "#enter visitMultDivExpr: "  << ctx->getText() << endl;
+
+	char op = ctx->OP1()->getText()[0];
+
+	// Fetch variable
+	string expr1 = ctx->expr(0)->getText();
+	string expr2 = ctx->expr(1)->getText();
+
+	// Visit first expression
+	visit(ctx->expr(0));
+
+	// Move result of first expression into EDX register
+	cout << "	movl	%eax, %edx" << endl;
+
+	// Visit second expression
+	visit(ctx->expr(1));
+
+	if (op == '*') {
+		// Do multiplication
+		cout << "	imull	%edx, %eax" << endl;
+	} else {
+		// Do division
+		// cout << "	cltd" << endl;
+		cout << "	movl	%eax, %ebx" << endl;
+		cout << "	movl	%edx, %eax" << endl;
+		cout << "	movl	%ebx, %edx" << endl;
+		cout << "	cltd" << endl;
+		cout << "	idivl	%ebx" << endl;
+		//cout << "	movl	%edx, %eax" << endl;
+	}
+	
+	return 0;
+}
+
+/*
 antlrcpp::Any CodeGenVisitor::visitMulExpr(ifccParser::MulExprContext *ctx) {
 	return visitChildren(ctx);
 }
@@ -67,9 +143,12 @@ antlrcpp::Any CodeGenVisitor::visitMulExpr(ifccParser::MulExprContext *ctx) {
 antlrcpp::Any CodeGenVisitor::visitDivExpr(ifccParser::DivExprContext *ctx) {
 	return visitChildren(ctx);
 }
+*/
 
 antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) {
 	
+	cout << "#enter visitConstExpr: "  << ctx->getText() << endl;
+
 	// Fetch constant's info
 	int constValue = stoi(ctx->CONST()->getText());
 	
@@ -82,6 +161,8 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 
 antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
 	
+	cout << "#enter visitVarExpr: "  << ctx->getText() << endl;
+
 	// Fetch variable
 	string varName = ctx->VAR()->getText();
 	// Check errors

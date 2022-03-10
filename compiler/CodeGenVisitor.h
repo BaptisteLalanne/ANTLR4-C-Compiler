@@ -26,10 +26,14 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		// Constructor of CodeGenVisitor
 		CodeGenVisitor(SymbolTable& sT, ErrorHandler& eH) : symbolTable(sT), errorHandler(eH), returned(false) { }
 		virtual antlrcpp::Any visitMainHeader(ifccParser::MainHeaderContext *ctx);
+		/*
 		virtual antlrcpp::Any visitAddExpr(ifccParser::AddExprContext *ctx) ;
 		virtual antlrcpp::Any visitSubExpr(ifccParser::SubExprContext *ctx) ;
 		virtual antlrcpp::Any visitMulExpr(ifccParser::MulExprContext *ctx) ;
 		virtual antlrcpp::Any visitDivExpr(ifccParser::DivExprContext *ctx) ;
+		*/
+		virtual antlrcpp::Any visitAddSubExpr(ifccParser::AddSubExprContext *ctx) ;
+		virtual antlrcpp::Any visitMulDivExpr(ifccParser::MulDivExprContext *ctx) ;
 		virtual antlrcpp::Any visitConstExpr(ifccParser::ConstExprContext *ctx) ;
 		virtual antlrcpp::Any visitVarExpr(ifccParser::VarExprContext *ctx) ;
 		virtual antlrcpp::Any visitVarDeclr(ifccParser::VarDeclrContext *ctx) ;

@@ -18,11 +18,9 @@ body :
 ;
 
 expr :
-	expr '+' expr 		#addExpr	
-	| expr '-' expr 	#subExpr
-	| expr '*' expr		#mulExpr 
-	| expr '/' expr 	#divExpr 
-	| '(' expr ')' 		#parExpr
+	'(' expr ')' 		#parExpr
+	| expr OP1 expr 	#mulDivExpr	
+	| expr OP2 expr 	#addSubExpr
 	| CONST 			#constExpr 
 	| VAR				#varExpr
 ;
@@ -43,10 +41,12 @@ end :
 	| RETURN ';'	#emptyEnd
 ;
 
+OP1 : ('*'|'/') ;
+OP2 : ('+'|'-') ;
 WS : [ \t\r\n] -> channel(HIDDEN);
 RETURN : 'return' ;
 TYPE : 'int';
-CONST : [0-9]+ ;
+CONST : [0-9]+ | '-'[0-9]+ ;
 VAR : [a-zA-Z_][a-zA-Z0-9_]* ;
 COMMENT : '/*' .*? '*/' -> skip ;
 DIRECTIVE : '#' .*? '\n' -> skip ;
