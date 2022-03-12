@@ -198,7 +198,8 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	tempVarCounter = 0;
 	
 	// Write assembly instructions
-	cout << "	movl	" << aVarOffset << "(%rbp), " << dVarOffset << "(%rbp)" << endl;
+	cout << "	movl	" << aVarOffset << "(%rbp), %eax" << endl;
+	cout << "	movl	%eax, " << dVarOffset << "(%rbp)" << endl;
 	
 	return 0;
 
@@ -230,7 +231,8 @@ antlrcpp::Any CodeGenVisitor::visitAffect(ifccParser::AffectContext *ctx) {
 	tempVarCounter = 0;
 	
 	// Write assembly instructions
-	cout << "	movl	" << aVarOffset << "(%rbp), " << varOffset << "(%rbp)" << endl;
+	cout << "	movl	" << aVarOffset << "(%rbp), %eax" << endl;
+	cout << "	movl	%eax, " << varOffset << "(%rbp)" << endl;
 	
 	return 0;
 
@@ -253,7 +255,7 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 	tempVarCounter = 0;
 
 	// Write assembly instructions
-	cout << "	movl	" << aVarOffset << "%(rbp), %eax"<< endl;
+	cout << "	movl	" << aVarOffset << "(%rbp), %eax"<< endl;
 	cout << "	popq	%rbp" << endl;
 	cout << "	ret" << endl;
 
