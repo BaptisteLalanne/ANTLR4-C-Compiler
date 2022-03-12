@@ -30,6 +30,14 @@ funcStruct& SymbolTable::getFunc(string name) {
 	return funcMap[name];
 }
 
+int SymbolTable::getStackPointer() {
+	return stackPointer;
+}
+
+void SymbolTable::setStackPointer(int s) {
+	stackPointer = s;
+}
+
 void SymbolTable::addVar(string name, string vT, string vS, int vL) {
 	struct varStruct s;
 	stackPointer -= typeSizes[vT];
@@ -58,6 +66,15 @@ void SymbolTable::checkUsedVariables(ErrorHandler& eH) {
 		if (!v.second.isUsed) {
 			string message =  "Variable " + v.first + " is not used";
 			eH.signal(WARNING, message, v.second.varLine);
+		}
+	}
+}
+
+void SymbolTable::cleanTempVars() {
+	for (auto v : varMap)
+	{
+		if (!v.first[0] == '!') {
+			varMap.erase(v.first);
 		}
 	}
 }

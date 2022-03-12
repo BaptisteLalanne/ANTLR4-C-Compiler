@@ -23,17 +23,15 @@
 class  CodeGenVisitor : public ifccBaseVisitor {
 	
 	public:
-		// Constructor of CodeGenVisitor
-		CodeGenVisitor(SymbolTable& sT, ErrorHandler& eH) : symbolTable(sT), errorHandler(eH), returned(false) { }
+
+		// Default constructor
+		CodeGenVisitor(SymbolTable& sT, ErrorHandler& eH) : symbolTable(sT), errorHandler(eH), returned(false), tempVarCounter(0) { }
+
+		// Linearising functions
 		virtual antlrcpp::Any visitMainHeader(ifccParser::MainHeaderContext *ctx);
-		/*
-		virtual antlrcpp::Any visitAddExpr(ifccParser::AddExprContext *ctx) ;
-		virtual antlrcpp::Any visitSubExpr(ifccParser::SubExprContext *ctx) ;
-		virtual antlrcpp::Any visitMulExpr(ifccParser::MulExprContext *ctx) ;
-		virtual antlrcpp::Any visitDivExpr(ifccParser::DivExprContext *ctx) ;
-		*/
 		virtual antlrcpp::Any visitAddSubExpr(ifccParser::AddSubExprContext *ctx) ;
 		virtual antlrcpp::Any visitMulDivExpr(ifccParser::MulDivExprContext *ctx) ;
+		virtual antlrcpp::Any visitParExpr(ifccParser::ParExprContext *ctx) ;
 		virtual antlrcpp::Any visitConstExpr(ifccParser::ConstExprContext *ctx) ;
 		virtual antlrcpp::Any visitVarExpr(ifccParser::VarExprContext *ctx) ;
 		virtual antlrcpp::Any visitVarDeclr(ifccParser::VarDeclrContext *ctx) ;
@@ -41,14 +39,26 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitAffect(ifccParser::AffectContext *ctx) ;
 		virtual antlrcpp::Any visitExprEnd(ifccParser::ExprEndContext *ctx) ;
 		virtual antlrcpp::Any visitEmptyEnd(ifccParser::EmptyEndContext *ctx) ;
-		void returnZero();
-		//Tell whether the function has returned 
+
+		// Return 0 by default
+		void returnDefault();
+
+		// Whether the program has returned or not
 		bool hasReturned();
 		
 	protected:
+
+		// The associated symbol table instance
 		SymbolTable& symbolTable;
+
+		// The associated error handler instance
 		ErrorHandler& errorHandler;
-		bool returned;		//Whether the function has returned
+
+		// Whether the function has returned
+		bool returned;		
+
+		// A temp variables counter for evaluating expressions
+		int tempVarCounter;
 
 };
 

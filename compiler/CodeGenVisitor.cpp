@@ -12,61 +12,14 @@
 using namespace std;
 
 antlrcpp::Any CodeGenVisitor::visitMainHeader(ifccParser::MainHeaderContext *ctx) {
+
 	cout << ".globl	main" << endl;
 	cout << "main:" << endl;
 	cout << "	pushq	%rbp" << endl;
 	cout << "	movq	%rsp, %rbp" << endl;
 	return visitChildren(ctx);
+
 }
-
-/*
-antlrcpp::Any CodeGenVisitor::visitAddExpr(ifccParser::AddExprContext *ctx) {
-
-	// Fetch variable
-	string expr1 = ctx->expr(0)->getText();
-	string expr2 = ctx->expr(1)->getText();
-
-	// Visit first expression
-	visit(ctx->expr(0));
-
-	// Move result of first expression into EDX register
-	cout << "	movl	%eax, %edx" << endl;
-
-	// Visit second expression
-	visit(ctx->expr(1));
-
-	// Do addition
-	cout << "	addl	%edx, %eax" << endl;
-	
-	return 0;
-}
-*/
-
-/*
-antlrcpp::Any CodeGenVisitor::visitSubExpr(ifccParser::SubExprContext *ctx) {
-
-	cout << "enterSubExpr" << endl;
-
-	// Fetch variable
-	string expr1 = ctx->expr(0)->getText();
-	string expr2 = ctx->expr(1)->getText();
-
-	// Visit first expression
-	visit(ctx->expr(0));
-
-	// Move result of first expression into EDX register
-	cout << "	movl	%eax, %edx" << endl;
-
-	// Visit second expression
-	visit(ctx->expr(1));
-
-	// Do substraction
-	cout << "	subl	%eax, %edx" << endl;
-	cout << "	movl	%edx, %eax" << endl;
-	
-	return 0;
-}
-*/
 
 antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx) {
 
@@ -74,29 +27,37 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 
 	char op = ctx->OP2()->getText()[0];
 
-	// Fetch variable
-	string expr1 = ctx->expr(0)->getText();
-	string expr2 = ctx->expr(1)->getText();
+	// Fetch sub-expressions
+	varStruct var1 = visit(ctx->expr(0));
+	varStruct var2 = visit(ctx->expr(1));
+	int var1Offset = var1.memoryOffset;
+	int var2Offset = var2.memoryOffset;
 
-	// Visit first expression
-	visit(ctx->expr(0));
-
-	// Move result of first expression into EDX register
-	cout << "	movl	%eax, %edx" << endl;
-
-	// Visit second expression
-	visit(ctx->expr(1));
-
+	// Do addition
 	if (op == '+') {
-		// Do addition
-		cout << "	addl	%edx, %eax" << endl;
-	} else {
-		// Do substraction
-		cout << "	subl	%eax, %edx" << endl;
-		cout << "	movl	%edx, %eax" << endl;
+		cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
+		cout << "	addl	" << var2Offset << "(%rbp), %eax" << endl;
+	} 
+	// Do substraction
+	else {
+		cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
+		cout << "	subl	" << var2Offset << "(%rbp), %eax" << endl;
 	}
 
-	return 0;
+	// Create temporary variable with the intermediary result
+	tempVarCounter++;
+	string newVar = "!tmp" + to_string(tempVarCounter);
+	string newVarType = "int";
+	symbolTable.addVar(newVar, newVarType, "temporary", ctx->getStart()->getLine());
+	symbolTable.getVar(newVar).isUsed = true;
+	int newVarOffset = symbolTable.getVar(newVar).memoryOffset;
+ 	
+	// Write expression result (which is in %eax) in new var
+	cout << "	movl	%eax, " << newVarOffset << "(%rbp)" << endl;
+	
+	// Return the temporary variable
+	return symbolTable.getVar(newVar);
+
 }
 
 antlrcpp::Any CodeGenVisitor::visitMulDivExpr(ifccParser::MulDivExprContext *ctx) {
@@ -105,45 +66,43 @@ antlrcpp::Any CodeGenVisitor::visitMulDivExpr(ifccParser::MulDivExprContext *ctx
 
 	char op = ctx->OP1()->getText()[0];
 
-	// Fetch variable
-	string expr1 = ctx->expr(0)->getText();
-	string expr2 = ctx->expr(1)->getText();
+	// Fetch sub-expressions
+	varStruct var1 = visit(ctx->expr(0));
+	varStruct var2 = visit(ctx->expr(1));
+	int var1Offset = var1.memoryOffset;
+	int var2Offset = var2.memoryOffset;
 
-	// Visit first expression
-	visit(ctx->expr(0));
-
-	// Move result of first expression into EDX register
-	cout << "	movl	%eax, %edx" << endl;
-
-	// Visit second expression
-	visit(ctx->expr(1));
-
+	// Do multiplication
 	if (op == '*') {
-		// Do multiplication
-		cout << "	imull	%edx, %eax" << endl;
-	} else {
-		// Do division
-		// cout << "	cltd" << endl;
-		cout << "	movl	%eax, %ebx" << endl;
-		cout << "	movl	%edx, %eax" << endl;
-		cout << "	movl	%ebx, %edx" << endl;
+		cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
+		cout << "	imull	" << var2Offset << "(%rbp), %eax" << endl;
+	} 
+	// Do division
+	else {
+		cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
 		cout << "	cltd" << endl;
-		cout << "	idivl	%ebx" << endl;
-		//cout << "	movl	%edx, %eax" << endl;
+		cout << "	idivl	" << var2Offset << "(%rbp)" << endl; 
 	}
+
+	// Create temporary variable with the intermediary result
+	tempVarCounter++;
+	string newVar = "!tmp" + to_string(tempVarCounter);
+	string newVarType = "int";
+	symbolTable.addVar(newVar, newVarType, "temporary", ctx->getStart()->getLine());
+	symbolTable.getVar(newVar).isUsed = true;
+	int newVarOffset = symbolTable.getVar(newVar).memoryOffset;
+ 	
+	// Write expression result (which is in %eax) in new var
+	cout << "	movl	%eax, " << newVarOffset << "(%rbp)" << endl;
 	
-	return 0;
+	// Return the temporary variable
+	return symbolTable.getVar(newVar);
+	
 }
 
-/*
-antlrcpp::Any CodeGenVisitor::visitMulExpr(ifccParser::MulExprContext *ctx) {
-	return visitChildren(ctx);
+antlrcpp::Any CodeGenVisitor::visitParExpr(ifccParser::ParExprContext *ctx) {
+	return visit(ctx->expr());
 }
-
-antlrcpp::Any CodeGenVisitor::visitDivExpr(ifccParser::DivExprContext *ctx) {
-	return visitChildren(ctx);
-}
-*/
 
 antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) {
 	
@@ -151,11 +110,20 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 
 	// Fetch constant's info
 	int constValue = stoi(ctx->CONST()->getText());
-	
+
+	// Create temporary variable with it
+	tempVarCounter++;
+	string newVar = "!tmp" + to_string(tempVarCounter);
+	string newVarType = "int";
+	symbolTable.addVar(newVar, newVarType, "temporary", ctx->getStart()->getLine());
+	symbolTable.getVar(newVar).isUsed = true;
+	int newVarOffset = symbolTable.getVar(newVar).memoryOffset;
+ 	
 	// Write assembly instructions
-	cout << "	movl	$" << constValue << ", %eax" << endl;
+	cout << "	movl	$" << constValue << ", " << newVarOffset << "(%rbp)" << endl;
 	
-	return 0;
+	// Return the temporary variable
+	return symbolTable.getVar(newVar);
 	
 }
 
@@ -171,15 +139,11 @@ antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 		return -1;
 	}
-	// Fetch variable's infos, mark it as used
+	// Mark it as used
 	symbolTable.getVar(varName).isUsed = true;
-	int varOffset = symbolTable.getVar(varName).memoryOffset;
 	
-	// Write assembly instructions
-	cout << "	movl	" << varOffset << "(%rbp), %ebx" << endl;
-	cout << "	movl	%ebx, %eax" << endl;
-	
-	return 0;
+	// Return the variable
+	return symbolTable.getVar(varName);
 	
 }
 
@@ -200,9 +164,10 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 		}
 		// Add variable to symbol table
 		symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
-		int dVarOffset = symbolTable.getVar(dVarName).memoryOffset;
 	}
+
 	return 0;
+
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffectContext *ctx) {
@@ -219,15 +184,24 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	// Add variable to symbol table
 	symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
 	int dVarOffset = symbolTable.getVar(dVarName).memoryOffset;
-	
+
+	// Save current stack pointer
+	int currStackPointer = symbolTable.getStackPointer();
+
 	// Compute expression
-	visit(ctx->expr());
+	varStruct result = visit(ctx->expr());
+	int aVarOffset = result.memoryOffset;
+	
+	// Reset the stack pointer and temp variable counter after having evaluated the expression
+	symbolTable.setStackPointer(currStackPointer);
+	symbolTable.cleanTempVars();
+	tempVarCounter = 0;
 	
 	// Write assembly instructions
-	cout << "	movl	%eax, " << dVarOffset << "(%rbp)" << endl;
+	cout << "	movl	" << aVarOffset << "(%rbp), " << dVarOffset << "(%rbp)" << endl;
 	
 	return 0;
-	
+
 }
 
 antlrcpp::Any CodeGenVisitor::visitAffect(ifccParser::AffectContext *ctx) {
@@ -243,51 +217,62 @@ antlrcpp::Any CodeGenVisitor::visitAffect(ifccParser::AffectContext *ctx) {
 	// Fetch first variable's infos
 	int varOffset = symbolTable.getVar(varName).memoryOffset;
 	
+	// Save current stack pointer
+	int currStackPointer = symbolTable.getStackPointer();
+
 	// Compute expression
-	visit(ctx->expr());
+	varStruct result = visit(ctx->expr());
+	int aVarOffset = result.memoryOffset;
+
+	// Reset the stack pointer and temp variable counter after having evaluated the expression
+	symbolTable.setStackPointer(currStackPointer);
+	symbolTable.cleanTempVars();
+	tempVarCounter = 0;
 	
 	// Write assembly instructions
-	cout << "	movl	%eax, " << varOffset << "(%rbp)" << endl;
+	cout << "	movl	" << aVarOffset << "(%rbp), " << varOffset << "(%rbp)" << endl;
 	
 	return 0;
-	
+
 }
 
 antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 	
-	// Compute expression
-	visit(ctx->expr());
-	
 	returned = true;
 
+	// Save current stack pointer
+	int currStackPointer = symbolTable.getStackPointer();
+
+	// Compute expression
+	varStruct result = visit(ctx->expr());
+	int aVarOffset = result.memoryOffset;
+	
+	// Reset the stack pointer and temp variable counter after having evaluated the expression
+	symbolTable.setStackPointer(currStackPointer);
+	symbolTable.cleanTempVars();
+	tempVarCounter = 0;
+
 	// Write assembly instructions
-	cout << "	popq	%rbp\n" << "	ret" << endl;
-	
-	// Static Analysis
-	symbolTable.checkUsedVariables(errorHandler);
-	
+	cout << "	movl	" << aVarOffset << "%(rbp), %eax"<< endl;
+	cout << "	popq	%rbp" << endl;
+	cout << "	ret" << endl;
+
 	return 0;
 	
 }
 
 antlrcpp::Any CodeGenVisitor::visitEmptyEnd(ifccParser::EmptyEndContext *ctx) {
-	
-	returned = true;
 
-	// Write assembly instructions
-	cout << "	movl	$0, %eax"<< endl;
-	cout << "	popq	%rbp\n" << "	ret" << endl;
-	
-	// Static Analysis
-	symbolTable.checkUsedVariables(errorHandler);
-	
+	returnDefault();
 	return 0;
 
 }
 
-void CodeGenVisitor::returnZero() {
+void CodeGenVisitor::returnDefault() {
+	returned = true;
 	cout << "	movl	$0, %eax"<< endl;
-	cout << "	popq	%rbp\n" << "	ret" << endl;
+	cout << "	popq	%rbp" << endl;
+	cout << "	ret" << endl;
 }
 
 bool CodeGenVisitor::hasReturned() {
