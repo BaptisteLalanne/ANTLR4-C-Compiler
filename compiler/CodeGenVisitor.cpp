@@ -100,6 +100,36 @@ antlrcpp::Any CodeGenVisitor::visitMulDivExpr(ifccParser::MulDivExprContext *ctx
 	
 }
 
+antlrcpp::Any CodeGenVisitor::visitCmpEqualExpr(ifccParser::CmpEqualExprContext *ctx) {
+	cout << "#enter visitCmpEqualExpr: " << ctx->getText() << endl;
+	
+	// Fetch sub-expressions
+	varStruct var1 = visit(ctx->expr(0));
+	varStruct var2 = visit(ctx->expr(1));
+	int var1Offset = var1.memoryOffset;
+	int var2Offset = var2.memoryOffset;
+
+	// Do equal comparaison
+	cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
+	cout << "	cmpl	" << var2Offset << "(%rbp), %eax" << endl;
+	cout << "	sete	%al" << endl;
+	cout << "	movzbl	%al, %eax" << endl;
+	
+	// Create temporary variable with the intermediary result
+	tempVarCounter++;
+	string newVar = "!tmp" + to_string(tempVarCounter);
+	string newVarType = "int";
+	symbolTable.addVar(newVar, newVarType, "temporary", ctx->getStart()->getLine());
+	symbolTable.getVar(newVar).isUsed = true;
+	int newVarOffset = symbolTable.getVar(newVar).memoryOffset;
+ 	
+	// Write expression result (which is in %eax) in new var
+	cout << "	movl	%eax, " << newVarOffset << "(%rbp)" << endl;
+	
+	// Return the temporary variable
+	return symbolTable.getVar(newVar);
+}
+
 antlrcpp::Any CodeGenVisitor::visitParExpr(ifccParser::ParExprContext *ctx) {
 	return visit(ctx->expr());
 }
