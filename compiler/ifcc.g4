@@ -21,6 +21,7 @@ expr :
 	'(' expr ')' 		#parExpr
 	| expr OP1 expr 	#mulDivExpr	
 	| expr OP2 expr 	#addSubExpr
+	| expr CMP expr		#cmpLessOrGreaterExpr
 	| expr EQ expr		#cmpEqualityExpr
 	| CONST 			#constExpr 
 	| VAR				#varExpr
@@ -44,6 +45,7 @@ end :
 
 OP1 : ('*'|'/') ;
 OP2 : ('+'|'-') ;
+CMP : ('<' | '>') ;
 EQ : ('=='|'!=') ;
 WS : [ \t\r\n] -> channel(HIDDEN);
 RETURN : 'return' ;
