@@ -63,4 +63,3 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		int tempVarCounter;
 
 };
-

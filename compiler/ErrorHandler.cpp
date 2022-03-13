@@ -1,3 +1,13 @@
+/*************************************************************************
+                          PLD Compiler : ErrorHandler
+                          ---------------------------
+    start   : 02/28/2022
+    authors : Bastien B. Laetitia D. Arthur D. Loann L.
+			  Baptiste L. Amine L. Tom P. David T.
+*************************************************************************/
+
+//---- Implementation of class <ErrorHandler> (file ErrorHandler.cpp) ------/
+
 #include "ErrorHandler.h"
 #include <iostream>
 

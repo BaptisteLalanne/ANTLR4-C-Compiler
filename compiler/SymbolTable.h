@@ -75,7 +75,7 @@ class SymbolTable {
 
 		// Clean temporary variables
 		void cleanTempVars();
-		
+
 		// Hashtable containing the size in bytes of the different types (typeName : size)
 		static unordered_map<string, int> typeSizes;
 		
