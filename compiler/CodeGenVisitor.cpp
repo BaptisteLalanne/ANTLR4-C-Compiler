@@ -100,19 +100,29 @@ antlrcpp::Any CodeGenVisitor::visitMulDivExpr(ifccParser::MulDivExprContext *ctx
 	
 }
 
-antlrcpp::Any CodeGenVisitor::visitCmpEqualExpr(ifccParser::CmpEqualExprContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprContext *ctx) {
+	
 	cout << "#enter visitCmpEqualExpr: " << ctx->getText() << endl;
 	
+	char op = ctx->EQ()->getText()[0];
+
 	// Fetch sub-expressions
 	varStruct var1 = visit(ctx->expr(0));
 	varStruct var2 = visit(ctx->expr(1));
 	int var1Offset = var1.memoryOffset;
 	int var2Offset = var2.memoryOffset;
 
-	// Do equal comparaison
+	// Do an equality comparaison
 	cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
 	cout << "	cmpl	" << var2Offset << "(%rbp), %eax" << endl;
-	cout << "	sete	%al" << endl;
+	// Equal comparaison
+	if (op == '=') {
+		cout << "	sete	%al" << endl;
+	}
+	// Not equal comparaison
+	else {
+		cout << "	setne	%al" << endl;
+	}
 	cout << "	movzbl	%al, %eax" << endl;
 	
 	// Create temporary variable with the intermediary result
