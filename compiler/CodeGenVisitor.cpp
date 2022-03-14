@@ -21,6 +21,35 @@ antlrcpp::Any CodeGenVisitor::visitMainHeader(ifccParser::MainHeaderContext *ctx
 
 }
 
+antlrcpp::Any CodeGenVisitor::visitUnaryExpr(ifccParser::UnaryExprContext *ctx) {
+
+	cout << "#enter visitUnaryExpr: " << ctx->getText() << endl;
+
+	// Fetch sub-expressions
+	varStruct var = visit(ctx->expr());
+	int varOffset = var.memoryOffset;
+
+	// Apply the ! operator
+	cout << "	cmpl	$0, " << varOffset << "(%rbp)" << endl;
+	cout << "	sete	%al" << endl;
+	cout << "	movzbl	%al, %eax" << endl;
+	
+	// Create temporary variable with the intermediary result
+	tempVarCounter++;
+	string newVar = "!tmp" + to_string(tempVarCounter);
+	string newVarType = "int";
+	symbolTable.addVar(newVar, newVarType, "temporary", ctx->getStart()->getLine());
+	symbolTable.getVar(newVar).isUsed = true;
+	int newVarOffset = symbolTable.getVar(newVar).memoryOffset;
+ 	
+	// Write expression result (which is in %eax) in new var
+	cout << "	movl	%eax, " << newVarOffset << "(%rbp)" << endl;
+	
+	// Return the temporary variable
+	return symbolTable.getVar(newVar);
+
+}
+
 antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx) {
 
 	cout << "#enter visitAddSubExpr: " << ctx->getText() << endl;
