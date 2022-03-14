@@ -53,6 +53,11 @@ int main(int argn, const char **argv) {
     CodeGenVisitor v(symbolTable, errorHandler);
     v.visit(tree);
     
+    if(errorHandler.hasError()) {
+        cout.flush();
+        exit(1);
+    }
+
     // Static Analysis
 	symbolTable.checkUsedVariables(errorHandler);
 
