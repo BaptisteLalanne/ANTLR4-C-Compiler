@@ -42,6 +42,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitAffect(ifccParser::AffectContext *ctx) ;
 		virtual antlrcpp::Any visitExprEnd(ifccParser::ExprEndContext *ctx) ;
 		virtual antlrcpp::Any visitEmptyEnd(ifccParser::EmptyEndContext *ctx) ;
+		virtual antlrcpp::Any visitBwExpr(ifccParser::BwExprContext *ctx) ;
 
 		// Return 0 by default
 		void returnDefault();
@@ -49,6 +50,8 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		// Whether the program has returned or not
 		bool hasReturned();
 		
+		// Return offset temp variable after created it
+		varStruct createTempVar(antlr4::ParserRuleContext *ctx);
 	protected:
 
 		// The associated symbol table instance
