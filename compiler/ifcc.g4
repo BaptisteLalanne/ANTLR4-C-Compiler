@@ -19,6 +19,7 @@ body :
 
 expr :
 	'(' expr ')' 		#parExpr
+	| UNARY expr 		#unaryExpr	
 	| expr OP1 expr 	#mulDivExpr	
 	| expr OP2 expr 	#addSubExpr
 	| expr CMP expr		#cmpLessOrGreaterExpr
@@ -44,6 +45,7 @@ end :
 	| RETURN ';'	#emptyEnd
 ;
 
+UNARY : '!' ;
 OP1 : ('*'|'/') ;
 OP2 : ('+'|'-') ;
 CMP : ('<' | '>') ;
