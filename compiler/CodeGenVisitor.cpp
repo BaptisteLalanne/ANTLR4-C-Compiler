@@ -320,8 +320,10 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitEmptyEnd(ifccParser::EmptyEndContext *ctx) {
-
-	returnDefault();
+	returned = true;
+	cout << "	movl	$41, %eax"<< endl;
+	cout << "	popq	%rbp" << endl;
+	cout << "	ret" << endl;
 	return 0;
 
 }
