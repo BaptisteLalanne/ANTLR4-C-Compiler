@@ -42,7 +42,10 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffectContext *ctx) ;
 		virtual antlrcpp::Any visitExprEnd(ifccParser::ExprEndContext *ctx) ;
 		virtual antlrcpp::Any visitEmptyEnd(ifccParser::EmptyEndContext *ctx) ;
-		virtual antlrcpp::Any visitBwExpr(ifccParser::BwExprContext *ctx) ;
+		// virtual antlrcpp::Any visitBwExpr(ifccParser::BwExprContext *ctx) ;
+		virtual antlrcpp::Any visitAndExpr(ifccParser::AndExprContext *ctx) ;
+		virtual antlrcpp::Any visitXorExpr(ifccParser::XorExprContext *ctx) ;
+		virtual antlrcpp::Any visitOrExpr(ifccParser::OrExprContext *ctx) ;
 
 		// Return 0 by default
 		void returnDefault();
