@@ -21,6 +21,42 @@ antlrcpp::Any CodeGenVisitor::visitMainHeader(ifccParser::MainHeaderContext *ctx
 
 }
 
+antlrcpp::Any CodeGenVisitor::visitBwExpr(ifccParser::BwExprContext *ctx) {
+	
+	cout << "#enter visitBWExpr: " << ctx->getText() << endl;
+	char bw = ctx->BW()->getText()[0];
+
+	//Fetch expressions
+	varStruct var1 = visit(ctx->expr(0));
+	varStruct var2 = visit(ctx->expr(1));
+	int var1Offset = var1.memoryOffset;
+	int var2Offset = var2.memoryOffset;
+
+	if (bw == '&') {
+		// and
+		cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
+		cout << "	andl	" << var2Offset << "(%rbp), %eax" << endl;
+	} else if (bw == '|') {
+		// or
+		cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
+		cout << "	orl	" << var2Offset << "(%rbp), %eax" << endl;
+	} else {
+		// xor
+		cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
+		cout << "	xorl	" << var2Offset << "(%rbp), %eax" << endl;
+	}
+
+	// Create temporary variable with the intermediary result
+	varStruct tmp = createTempVar(ctx);
+ 	
+	// Write expression result (which is in %eax) in new var
+	cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
+	
+	// Return the temporary variable
+	return tmp;
+}
+
+
 antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx) {
 
 	cout << "#enter visitAddSubExpr: " << ctx->getText() << endl;
@@ -37,7 +73,7 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 	if (op == '+') {
 		cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
 		cout << "	addl	" << var2Offset << "(%rbp), %eax" << endl;
-	} 
+	}
 	// Do substraction
 	else {
 		cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
