@@ -15,6 +15,15 @@
 #include "SymbolTable.h"
 #include "ErrorHandler.h"
 
+//------------------------------------------------------------------ Types
+// Store all informations relvent for a temp variable 
+struct tmpVarStruct {
+	int newVarOffset;	// Its offset (in memory) to the base pointer 
+	string newVar;		// The name of the temporary variable
+	string newVarType;	    // The type of the variable
+};
+
+
 //------------------------------------------------------------------------
 // Goal of class <CodeGenVisitor>
 // The goal of this class is to define the visitors for the different
@@ -49,7 +58,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		bool hasReturned();
 		
 		// Return offset temp variable after created it
-		int createTempVar(antlr4::ParserRuleContext *ctx, string& newVar, string& newVarType);
+		tmpVarStruct createTempVar(antlr4::ParserRuleContext *ctx);
 	protected:
 
 		// The associated symbol table instance
