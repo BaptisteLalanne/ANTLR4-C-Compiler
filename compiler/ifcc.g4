@@ -23,7 +23,6 @@ expr :
 	| expr CMP expr		#cmpLessOrGreaterExpr
 	| expr EQ expr		#cmpEqualityExpr
 	| VAR '=' expr 		#affExpr
-	| expr BW expr		#bwExpr	
 	| expr '&' expr		#andExpr
 	| expr '^' expr		#xorExpr
 	| expr '|' expr		#orExpr
