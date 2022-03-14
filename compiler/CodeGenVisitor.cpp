@@ -44,13 +44,9 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 		cout << "	subl	" << var2Offset << "(%rbp), %eax" << endl;
 	}
 
-	// Create temporary variable with the intermediary result
-	tempVarCounter++;
-	string newVar = "!tmp" + to_string(tempVarCounter);
-	string newVarType = "int";
-	symbolTable.addVar(newVar, newVarType, "temporary", ctx->getStart()->getLine());
-	symbolTable.getVar(newVar).isUsed = true;
-	int newVarOffset = symbolTable.getVar(newVar).memoryOffset;
+	string newVar;
+	string newVarType;
+	int newVarOffset = createTempVar(ctx, newVar, newVarType);
  	
 	// Write expression result (which is in %eax) in new var
 	cout << "	movl	%eax, " << newVarOffset << "(%rbp)" << endl;
@@ -84,13 +80,9 @@ antlrcpp::Any CodeGenVisitor::visitMulDivExpr(ifccParser::MulDivExprContext *ctx
 		cout << "	idivl	" << var2Offset << "(%rbp)" << endl; 
 	}
 
-	// Create temporary variable with the intermediary result
-	tempVarCounter++;
-	string newVar = "!tmp" + to_string(tempVarCounter);
-	string newVarType = "int";
-	symbolTable.addVar(newVar, newVarType, "temporary", ctx->getStart()->getLine());
-	symbolTable.getVar(newVar).isUsed = true;
-	int newVarOffset = symbolTable.getVar(newVar).memoryOffset;
+	string newVar;
+	string newVarType;
+	int newVarOffset = createTempVar(ctx, newVar, newVarType);
  	
 	// Write expression result (which is in %eax) in new var
 	cout << "	movl	%eax, " << newVarOffset << "(%rbp)" << endl;
@@ -125,13 +117,9 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 	}
 	cout << "	movzbl	%al, %eax" << endl;
 	
-	// Create temporary variable with the intermediary result
-	tempVarCounter++;
-	string newVar = "!tmp" + to_string(tempVarCounter);
-	string newVarType = "int";
-	symbolTable.addVar(newVar, newVarType, "temporary", ctx->getStart()->getLine());
-	symbolTable.getVar(newVar).isUsed = true;
-	int newVarOffset = symbolTable.getVar(newVar).memoryOffset;
+	string newVar;
+	string newVarType;
+	int newVarOffset = createTempVar(ctx, newVar, newVarType);
  	
 	// Write expression result (which is in %eax) in new var
 	cout << "	movl	%eax, " << newVarOffset << "(%rbp)" << endl;
@@ -165,13 +153,9 @@ antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprCo
 	}
 	cout << "	movzbl	%al, %eax" << endl;
 	
-	// Create temporary variable with the intermediary result
-	tempVarCounter++;
-	string newVar = "!tmp" + to_string(tempVarCounter);
-	string newVarType = "int";
-	symbolTable.addVar(newVar, newVarType, "temporary", ctx->getStart()->getLine());
-	symbolTable.getVar(newVar).isUsed = true;
-	int newVarOffset = symbolTable.getVar(newVar).memoryOffset;
+	string newVar;
+	string newVarType;
+	int newVarOffset = createTempVar(ctx, newVar, newVarType);
  	
 	// Write expression result (which is in %eax) in new var
 	cout << "	movl	%eax, " << newVarOffset << "(%rbp)" << endl;
@@ -191,13 +175,9 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 	// Fetch constant's info
 	int constValue = stoi(ctx->CONST()->getText());
 
-	// Create temporary variable with it
-	tempVarCounter++;
-	string newVar = "!tmp" + to_string(tempVarCounter);
-	string newVarType = "int";
-	symbolTable.addVar(newVar, newVarType, "temporary", ctx->getStart()->getLine());
-	symbolTable.getVar(newVar).isUsed = true;
-	int newVarOffset = symbolTable.getVar(newVar).memoryOffset;
+	string newVar;
+	string newVarType;
+	int newVarOffset = createTempVar(ctx, newVar, newVarType);
  	
 	// Write assembly instructions
 	cout << "	movl	$" << constValue << ", " << newVarOffset << "(%rbp)" << endl;
@@ -359,4 +339,15 @@ void CodeGenVisitor::returnDefault() {
 
 bool CodeGenVisitor::hasReturned() {
 	return returned;
+}
+
+int CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx, string& newVar, string& newVarType) {
+	// Create temporary variable with the intermediary result
+	tempVarCounter++;
+	newVar = "!tmp" + to_string(tempVarCounter);
+	newVarType = "int";
+	symbolTable.addVar(newVar, newVarType, "temporary", ctx->getStart()->getLine());
+	symbolTable.getVar(newVar).isUsed = true;
+	int newVarOffset = symbolTable.getVar(newVar).memoryOffset;
+	return newVarOffset;
 }
