@@ -24,7 +24,9 @@ expr :
 	| expr OP2 expr 	#addSubExpr
 	| expr CMP expr		#cmpLessOrGreaterExpr
 	| expr EQ expr		#cmpEqualityExpr
-	| expr BW expr		#bwExpr	
+	| expr '&' expr		#andExpr
+	| expr '^' expr		#xorExpr
+	| expr '|' expr		#orExpr
 	| CONST 			#constExpr 
 	| VAR				#varExpr
 ;
@@ -49,7 +51,6 @@ UNARY : '!' ;
 OP1 : ('*'|'/') ;
 OP2 : ('+'|'-') ;
 CMP : ('<' | '>') ;
-BW : ('&' | '|' | '^') ;
 EQ : ('=='|'!=') ;
 WS : [ \t\r\n] -> channel(HIDDEN);
 RETURN : 'return' ;
