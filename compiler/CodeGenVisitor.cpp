@@ -25,15 +25,21 @@ antlrcpp::Any CodeGenVisitor::visitUnaryExpr(ifccParser::UnaryExprContext *ctx) 
 
 	cout << "#enter visitUnaryExpr: " << ctx->getText() << endl;
 
+	char op = ctx->UNARY()->getText()[0];
+
 	// Fetch sub-expressions
 	varStruct var = visit(ctx->expr());
 	int varOffset = var.memoryOffset;
 
 	// Apply the ! operator
-	cout << "	cmpl	$0, " << varOffset << "(%rbp)" << endl;
-	cout << "	sete	%al" << endl;
-	cout << "	movzbl	%al, %eax" << endl;
-	
+	if (op == '!') {
+		cout << "	cmpl	$0, " << varOffset << "(%rbp)" << endl;
+		cout << "	sete	%al" << endl;
+		cout << "	movzbl	%al, %eax" << endl;
+	} else {
+		cout << "	movl	" << varOffset << "(%rbp), %eax" << endl;
+		cout << "	negl	%eax" << endl;
+	}
 	// Create temporary variable with the intermediary result
 	varStruct tmp = createTempVar(ctx);
  	

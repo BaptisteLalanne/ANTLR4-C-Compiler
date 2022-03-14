@@ -45,7 +45,7 @@ end :
 	| RETURN ';'	#emptyEnd
 ;
 
-UNARY : '!' ;
+UNARY : ('-'|'!') ;
 OP1 : ('*'|'/') ;
 OP2 : ('+'|'-') ;
 CMP : ('<' | '>') ;
@@ -54,7 +54,7 @@ EQ : ('=='|'!=') ;
 WS : [ \t\r\n] -> channel(HIDDEN);
 RETURN : 'return' ;
 TYPE : 'int';
-CONST : '-'?[0-9]+;
+CONST : [0-9]+;
 VAR : [a-zA-Z_][a-zA-Z0-9_]* ;
 COMMENT : '/*' .*? '*/' -> skip ;
 DIRECTIVE : '#' .*? '\n' -> skip ;
