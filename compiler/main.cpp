@@ -39,6 +39,11 @@ int main(int argn, const char **argv) {
 
     if(parser.getNumberOfSyntaxErrors() != 0) {
         cerr << "ERROR : syntax error during parsing" << endl;
+        cout.flush();
+        exit(1);
+    }
+    if(lexer.getNumberOfSyntaxErrors() != 0) {
+        cout.flush();
         exit(1);
     }
     
@@ -53,6 +58,11 @@ int main(int argn, const char **argv) {
     CodeGenVisitor v(symbolTable, errorHandler);
     v.visit(tree);
     
+    if(errorHandler.hasError()) {
+        cout.flush();
+        exit(1);
+    }
+
     // Static Analysis
 	symbolTable.checkUsedVariables(errorHandler);
 

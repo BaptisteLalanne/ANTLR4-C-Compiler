@@ -277,6 +277,45 @@ antlrcpp::Any CodeGenVisitor::visitParExpr(ifccParser::ParExprContext *ctx) {
 	return visit(ctx->expr());
 }
 
+antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
+	
+	// Fetch first variable
+	string varName = ctx->VAR()->getText();
+	// Check for errors
+	if (!symbolTable.hasVar(varName)) {
+		string message =  "Variable " + varName + " has not been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return symbolTable.dummyVarStruct;
+	}
+	// Fetch first variable's infos
+	int varOffset = symbolTable.getVar(varName).memoryOffset;
+	
+	// Save current stack pointer
+	int currStackPointer = symbolTable.getStackPointer();
+
+	// Compute expression
+	varStruct result = visit(ctx->expr());
+	int aVarOffset = result.memoryOffset;
+
+	// Reset the stack pointer and temp variable counter after having evaluated the expression
+	symbolTable.setStackPointer(currStackPointer);
+	symbolTable.cleanTempVars();
+	tempVarCounter = 0;
+	
+	// Write assembly instructions to save expression in variable 
+	cout << "	movl	" << aVarOffset << "(%rbp), %eax" << endl;
+	cout << "	movl	%eax, " << varOffset << "(%rbp)" << endl;
+
+	// Create new temporary variable holding the result
+	varStruct tmp = createTempVar(ctx);
+ 	
+	// Write expression result (which is in %eax) in new var
+	cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
+	
+	return tmp;
+
+}
+
 antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) {
 	
 	cout << "#enter visitConstExpr: "  << ctx->getText() << endl;
@@ -372,39 +411,6 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 
 }
 
-antlrcpp::Any CodeGenVisitor::visitAffect(ifccParser::AffectContext *ctx) {
-	
-	// Fetch first variable
-	string varName = ctx->VAR()->getText();
-	// Check for errors
-	if (!symbolTable.hasVar(varName)) {
-		string message =  "Variable " + varName + " has not been declared";
-		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return 1;
-	}
-	// Fetch first variable's infos
-	int varOffset = symbolTable.getVar(varName).memoryOffset;
-	
-	// Save current stack pointer
-	int currStackPointer = symbolTable.getStackPointer();
-
-	// Compute expression
-	varStruct result = visit(ctx->expr());
-	int aVarOffset = result.memoryOffset;
-
-	// Reset the stack pointer and temp variable counter after having evaluated the expression
-	symbolTable.setStackPointer(currStackPointer);
-	symbolTable.cleanTempVars();
-	tempVarCounter = 0;
-	
-	// Write assembly instructions
-	cout << "	movl	" << aVarOffset << "(%rbp), %eax" << endl;
-	cout << "	movl	%eax, " << varOffset << "(%rbp)" << endl;
-	
-	return 0;
-
-}
-
 antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 	
 	returned = true;
@@ -438,8 +444,10 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitEmptyEnd(ifccParser::EmptyEndContext *ctx) {
-
-	returnDefault();
+	returned = true;
+	cout << "	movl	$41, %eax"<< endl;
+	cout << "	popq	%rbp" << endl;
+	cout << "	ret" << endl;
 	return 0;
 
 }
@@ -456,12 +464,13 @@ bool CodeGenVisitor::hasReturned() {
 }
 
 varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx) {
+
 	// Create temporary variable with the intermediary result
 	tempVarCounter++;
 	string newVar = "!tmp" + to_string(tempVarCounter);
 	string newVarType = "int";
 	symbolTable.addVar(newVar, newVarType, "temporary", ctx->getStart()->getLine());
 	symbolTable.getVar(newVar).isUsed = true;
-	int newVarOffset = symbolTable.getVar(newVar).memoryOffset;
 	return symbolTable.getVar(newVar);
+
 }
