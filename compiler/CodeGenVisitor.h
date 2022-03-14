@@ -48,6 +48,8 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		// Whether the program has returned or not
 		bool hasReturned();
 		
+		// Return offset temp variable after created it
+		varStruct createTempVar(antlr4::ParserRuleContext *ctx);
 	protected:
 
 		// The associated symbol table instance
