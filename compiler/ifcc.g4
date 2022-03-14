@@ -17,11 +17,13 @@ body :
 
 expr :
 	'(' expr ')' 		#parExpr
+	| UNARY expr 		#unaryExpr	
 	| expr OP1 expr 	#mulDivExpr	
 	| expr OP2 expr 	#addSubExpr
 	| expr CMP expr		#cmpLessOrGreaterExpr
 	| expr EQ expr		#cmpEqualityExpr
 	| VAR '=' expr 		#affExpr
+	| expr BW expr		#bwExpr	
 	| CONST 			#constExpr 
 	| VAR				#varExpr
 ;
@@ -42,9 +44,11 @@ end :
 	| RETURN 			#emptyEnd
 ;
 
+UNARY : '!' ;
 OP1 : ('*'|'/') ;
 OP2 : ('+'|'-') ;
 CMP : ('<' | '>') ;
+BW : ('&' | '|' | '^') ;
 EQ : ('=='|'!=') ;
 WS : [ \t\r\n] -> channel(HIDDEN) ;
 RETURN : 'return' ;
