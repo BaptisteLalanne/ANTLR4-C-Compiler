@@ -19,10 +19,12 @@ body :
 
 expr :
 	'(' expr ')' 		#parExpr
+	| UNARY expr 		#unaryExpr	
 	| expr OP1 expr 	#mulDivExpr	
 	| expr OP2 expr 	#addSubExpr
 	| expr CMP expr		#cmpLessOrGreaterExpr
 	| expr EQ expr		#cmpEqualityExpr
+	| expr BW expr		#bwExpr	
 	| CONST 			#constExpr 
 	| VAR				#varExpr
 ;
@@ -43,14 +45,16 @@ end :
 	| RETURN ';'	#emptyEnd
 ;
 
+UNARY : '!' ;
 OP1 : ('*'|'/') ;
 OP2 : ('+'|'-') ;
 CMP : ('<' | '>') ;
+BW : ('&' | '|' | '^') ;
 EQ : ('=='|'!=') ;
 WS : [ \t\r\n] -> channel(HIDDEN);
 RETURN : 'return' ;
 TYPE : 'int';
-CONST : [0-9]+ | '-'[0-9]+ ;
+CONST : '-'?[0-9]+;
 VAR : [a-zA-Z_][a-zA-Z0-9_]* ;
 COMMENT : '/*' .*? '*/' -> skip ;
 DIRECTIVE : '#' .*? '\n' -> skip ;

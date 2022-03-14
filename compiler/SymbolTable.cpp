@@ -39,25 +39,25 @@ void SymbolTable::setStackPointer(int s) {
 }
 
 void SymbolTable::addVar(string name, string vT, string vS, int vL) {
-	struct varStruct s;
 	stackPointer -= typeSizes[vT];
-	s.memoryOffset = stackPointer;
-	s.varType = vT;
-	s.varScope = vS;
-	s.isUsed = false;
-    s.isCorrect = true;
-	s.varLine = vL;
+	struct varStruct s = {
+		stackPointer,
+		vT,
+		vS,
+		vL,
+		false,
+	};
 	varMap[name] = s;
 }
 
 void SymbolTable::addFunc(string name, string rT, int nbP, list<string> pT, string c) {
-	struct funcStruct s;
-	stackPointer = 0;
-	s.returnType = rT;
-	s.nbParameters = nbP;
-	s.parameterTypes = pT;
-	s.code = c;
-	s.isCalled = false;
+	struct funcStruct s = {
+		rT,
+		nbP,
+		pT,
+		c,
+		false,
+	};
 	funcMap[name] = s;
 }
 
