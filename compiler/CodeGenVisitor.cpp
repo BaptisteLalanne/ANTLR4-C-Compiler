@@ -248,7 +248,7 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	if (!symbolTable.hasVar(varName)) {
 		string message =  "Variable " + varName + " has not been declared";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return -1;
+		return symbolTable.dummyVarStruct;
 	}
 	// Fetch first variable's infos
 	int varOffset = symbolTable.getVar(varName).memoryOffset;

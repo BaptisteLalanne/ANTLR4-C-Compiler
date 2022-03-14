@@ -46,6 +46,7 @@ void SymbolTable::addVar(string name, string vT, string vS, int vL) {
 		vS,
 		vL,
 		false,
+		true,
 	};
 	varMap[name] = s;
 }
