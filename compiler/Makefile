@@ -10,6 +10,8 @@ LDFLAGS=-g
 default: all
 all: ifcc
 
+-include build/*.d
+
 ##########################################
 # link together all pieces of our compiler 
 OBJECTS=build/main.o build/CodeGenVisitor.o build/SymbolTable.o build/ErrorHandler.o  build/ifccBaseVisitor.o build/ifccLexer.o build/ifccVisitor.o build/ifccParser.o 
@@ -22,13 +24,13 @@ ifcc: $(OBJECTS)
 # compile our hand-writen C++ code: main(), CodeGenVisitor, etc.
 build/%.o: %.cpp generated/ifccParser.cpp
 	@mkdir -p build
-	$(CC) $(CCFLAGS) -o $@ $< 
+	$(CC) $(CCFLAGS) -MMD -o $@ $< 
 
 ##########################################
 # compile all the antlr-generated C++
 build/%.o: generated/%.cpp
 	@mkdir -p build
-	$(CC) $(CCFLAGS) -o $@ $< 
+	$(CC) $(CCFLAGS) -MMD -o $@ $< 
 
 ##########################################
 # generate the C++ implementation of our Lexer/Parser/Visitor

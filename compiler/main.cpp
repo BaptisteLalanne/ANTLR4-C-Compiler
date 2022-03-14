@@ -18,6 +18,10 @@ int main(int argn, const char **argv) {
     stringstream in;
     if(argn==2) {
         ifstream lecture(argv[1]);
+        if (lecture.fail()) {
+            cerr << argv[1] << " does not exist" << endl;
+            exit(1);
+        }
         in << lecture.rdbuf();
     }
     else {
@@ -43,11 +47,19 @@ int main(int argn, const char **argv) {
     ErrorHandler errorHandler;
 
     // Print header instruction
-    cout << ".text" << endl;
+    cout << " .text" << endl;
 
     // Visit tree and linearize
     CodeGenVisitor v(symbolTable, errorHandler);
     v.visit(tree);
+    
+    // Static Analysis
+	symbolTable.checkUsedVariables(errorHandler);
+
+    //In case the function has not returned, return 0 by default
+    if (!v.hasReturned()) {
+        v.returnDefault();
+    }
 
     return 0;
 }

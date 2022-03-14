@@ -3,49 +3,54 @@ grammar ifcc;
 axiom : prog ;
 
 prog : 
-	mainHeader OPENBRACKET body end CLOSEDBRACKET
+	mainHeader '{' body '}'
 ;
 mainHeader :
 	'int' 'main' '(' ')'
 ;
 body : 
-	varDeclr body | 
-	varDeclrConstAffect body | 
-	varDeclrVarAffect body | 
-	constAffect body | 
-	varAffect body | 
-;
-varDeclr : 
-	TYPE VAR ';' 
-;
-varDeclrConstAffect : 
-	TYPE VAR '=' CONST ';' 
-;
-varDeclrVarAffect : 
-	TYPE VAR '=' VAR ';' 
-;
-constAffect :
-	VAR '=' CONST ';' 
-;
-varAffect : 
-	VAR '=' VAR ';' 
-;
-end :
-	constEnd | varEnd 
-;
-constEnd : 
-	RETURN CONST ';' 
-;
-varEnd :
-	RETURN VAR ';' 
+	varDeclr body 
+	| varDeclrAndAffect body 
+	| affect body 
+	| expr ';' body
+	| end body
+	| 
 ;
 
+expr :
+	'(' expr ')' 		#parExpr
+	| expr OP1 expr 	#mulDivExpr	
+	| expr OP2 expr 	#addSubExpr
+	| expr CMP expr		#cmpLessOrGreaterExpr
+	| expr EQ expr		#cmpEqualityExpr
+	| CONST 			#constExpr 
+	| VAR				#varExpr
+;
+
+varDeclr : 
+	TYPE VAR (',' VAR)* ';' 
+;
+varDeclrAndAffect :
+	TYPE VAR '=' expr ';'
+;
+
+affect :
+	VAR '=' expr ';'
+;
+
+end :
+	RETURN expr ';'	#exprEnd	
+	| RETURN ';'	#emptyEnd
+;
+
+OP1 : ('*'|'/') ;
+OP2 : ('+'|'-') ;
+CMP : ('<' | '>') ;
+EQ : ('=='|'!=') ;
+WS : [ \t\r\n] -> channel(HIDDEN);
 RETURN : 'return' ;
 TYPE : 'int';
-CONST : [0-9]+ ;
+CONST : [0-9]+ | '-'[0-9]+ ;
 VAR : [a-zA-Z_][a-zA-Z0-9_]* ;
-OPENBRACKET : ('\n'|) '{' ('\n'|) ;
-CLOSEDBRACKET : ('\n'|) '}' ('\n'|) ;
 COMMENT : '/*' .*? '*/' -> skip ;
 DIRECTIVE : '#' .*? '\n' -> skip ;
-WS : [ \t\r\n] -> channel(HIDDEN);

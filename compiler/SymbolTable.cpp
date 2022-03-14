@@ -30,12 +30,12 @@ funcStruct& SymbolTable::getFunc(string name) {
 	return funcMap[name];
 }
 
-unordered_map<string, varStruct> SymbolTable::getVarMap() {
-	return varMap;
-
+int SymbolTable::getStackPointer() {
+	return stackPointer;
 }
-unordered_map<string, funcStruct> SymbolTable::getFuncMap() {
-	return funcMap;
+
+void SymbolTable::setStackPointer(int s) {
+	stackPointer = s;
 }
 
 void SymbolTable::addVar(string name, string vT, string vS, int vL) {
@@ -58,4 +58,23 @@ void SymbolTable::addFunc(string name, string rT, int nbP, list<string> pT, stri
 	s.code = c;
 	s.isCalled = false;
 	funcMap[name] = s;
+}
+
+void SymbolTable::checkUsedVariables(ErrorHandler& eH) {
+	for (auto v : varMap)
+	{
+		if (!v.second.isUsed) {
+			string message =  "Variable " + v.first + " is not used";
+			eH.signal(WARNING, message, v.second.varLine);
+		}
+	}
+}
+
+void SymbolTable::cleanTempVars() {
+	for (auto v : varMap)
+	{
+		if (!v.first[0] == '!') {
+			varMap.erase(v.first);
+		}
+	}
 }

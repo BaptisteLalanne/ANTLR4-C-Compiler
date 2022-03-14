@@ -12,7 +12,7 @@
 //--------------------------------------------------- Called interfaces
 #include <unordered_map>
 #include <list>
-#include <string>
+#include "ErrorHandler.h"
 using namespace std;
 
 //------------------------------------------------------------------ Types
@@ -42,6 +42,7 @@ struct funcStruct {
 class SymbolTable {
 	
 	public:
+
 		// Constructor of SymbolTable
 		SymbolTable() : stackPointer(0) { }
 
@@ -56,12 +57,12 @@ class SymbolTable {
 
 		// Get the function corresponding to the input function name if it was found
 		funcStruct& getFunc(string name);
-		
-		// Get the variable table
-		unordered_map<string, varStruct> getVarMap();
-		
-		// Get the function table
-		unordered_map<string, funcStruct> getFuncMap();
+
+		// Get the stack pointer 
+		int getStackPointer();
+
+		// Set the stack pointer
+		void setStackPointer(int s);
 
 		// Add a variable to the table of symbols
 		void addVar(string name, string vT, string vS, int vL);
@@ -69,11 +70,19 @@ class SymbolTable {
 		// Add a function to the table of symbols
 		void addFunc(string name, string rT, int nbP, list<string> pT, string c);
 		
+		// Perform static analysis
+		void checkUsedVariables(ErrorHandler& eH);
+
+		// Clean temporary variables
+		void cleanTempVars();
+
 		// Hashtable containing the size in bytes of the different types (typeName : size)
 		static unordered_map<string, int> typeSizes;
 		
 	protected:
-		int stackPointer;	// The current position of the memory stack pointer 
+
+		// The current position of the memory stack pointer 
+		int stackPointer;	
 		
 		// TODO: turn this into a MultiMap (or use a key containing the scope)
 		// Hashtable containing the encountered variables (varName : variable)

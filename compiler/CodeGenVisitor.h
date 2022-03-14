@@ -23,20 +23,43 @@
 class  CodeGenVisitor : public ifccBaseVisitor {
 	
 	public:
-		// Constructor of CodeGenVisitor
-		CodeGenVisitor(SymbolTable& sT, ErrorHandler& eH) : symbolTable(sT), errorHandler(eH) { }
-		virtual antlrcpp::Any visitMainHeader(ifccParser::MainHeaderContext *ctx);
-		virtual antlrcpp::Any visitVarDeclr(ifccParser::VarDeclrContext *ctx) ;
-		virtual antlrcpp::Any visitVarDeclrConstAffect(ifccParser::VarDeclrConstAffectContext *ctx) ;
-		virtual antlrcpp::Any visitVarDeclrVarAffect(ifccParser::VarDeclrVarAffectContext *ctx) ;
-		virtual antlrcpp::Any visitConstAffect(ifccParser::ConstAffectContext *ctx) ;
-		virtual antlrcpp::Any visitVarAffect(ifccParser::VarAffectContext *ctx) ;
-		virtual antlrcpp::Any visitConstEnd(ifccParser::ConstEndContext *ctx) ;
-		virtual antlrcpp::Any visitVarEnd(ifccParser::VarEndContext *ctx) ;
 
+		// Default constructor
+		CodeGenVisitor(SymbolTable& sT, ErrorHandler& eH) : symbolTable(sT), errorHandler(eH), returned(false), tempVarCounter(0) { }
+
+		// Linearising functions
+		virtual antlrcpp::Any visitMainHeader(ifccParser::MainHeaderContext *ctx);
+		virtual antlrcpp::Any visitAddSubExpr(ifccParser::AddSubExprContext *ctx) ;
+		virtual antlrcpp::Any visitMulDivExpr(ifccParser::MulDivExprContext *ctx) ;
+		virtual antlrcpp::Any visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGreaterExprContext *ctx) ;
+		virtual antlrcpp::Any visitCmpEqualityExpr(ifccParser::CmpEqualityExprContext *ctx) ;
+		virtual antlrcpp::Any visitParExpr(ifccParser::ParExprContext *ctx) ;
+		virtual antlrcpp::Any visitConstExpr(ifccParser::ConstExprContext *ctx) ;
+		virtual antlrcpp::Any visitVarExpr(ifccParser::VarExprContext *ctx) ;
+		virtual antlrcpp::Any visitVarDeclr(ifccParser::VarDeclrContext *ctx) ;
+		virtual antlrcpp::Any visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffectContext *ctx) ;
+		virtual antlrcpp::Any visitAffect(ifccParser::AffectContext *ctx) ;
+		virtual antlrcpp::Any visitExprEnd(ifccParser::ExprEndContext *ctx) ;
+		virtual antlrcpp::Any visitEmptyEnd(ifccParser::EmptyEndContext *ctx) ;
+
+		// Return 0 by default
+		void returnDefault();
+
+		// Whether the program has returned or not
+		bool hasReturned();
+		
 	protected:
+
+		// The associated symbol table instance
 		SymbolTable& symbolTable;
+
+		// The associated error handler instance
 		ErrorHandler& errorHandler;
 
-};
+		// Whether the function has returned
+		bool returned;		
 
+		// A temp variables counter for evaluating expressions
+		int tempVarCounter;
+
+};
