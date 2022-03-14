@@ -9,11 +9,9 @@ mainHeader :
 	'int' 'main' '(' ')'
 ;
 body : 
-	varDeclr body 
-	| varDeclrAndAffect body 
-	| affect body 
+	| declr ';' body 
 	| expr ';' body
-	| end body
+	| end ';' body
 	| 
 ;
 
@@ -24,25 +22,27 @@ expr :
 	| expr OP2=('+'|'-') expr 		#addSubExpr
 	| expr CMP=('<' | '>') expr		#cmpLessOrGreaterExpr
 	| expr EQ=('=='|'!=') expr		#cmpEqualityExpr
-	| expr BW=('&'|'|'|'^') expr	#bwExpr	
+	| expr '&' expr					#andExpr
+	| expr '^' expr					#xorExpr
+	| expr '|' expr					#orExpr
 	| CONST 						#constExpr 
 	| VAR							#varExpr
 ;
 
+declr :
+	varDeclr 
+	| varDeclrAndAffect
+;
 varDeclr : 
-	TYPE VAR (',' VAR)* ';' 
+	TYPE VAR (',' VAR)*
 ;
 varDeclrAndAffect :
-	TYPE VAR '=' expr ';'
-;
-
-affect :
-	VAR '=' expr ';'
+	TYPE VAR '=' expr 
 ;
 
 end :
-	RETURN expr ';'	#exprEnd	
-	| RETURN ';'	#emptyEnd
+	RETURN expr			#exprEnd	
+	| RETURN 			#emptyEnd
 ;
 
 WS : [ \t\r\n] -> channel(HIDDEN);

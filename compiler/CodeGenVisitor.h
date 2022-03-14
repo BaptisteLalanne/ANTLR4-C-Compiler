@@ -31,18 +31,21 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitMainHeader(ifccParser::MainHeaderContext *ctx);
 		virtual antlrcpp::Any visitUnaryExpr(ifccParser::UnaryExprContext *ctx) ;
 		virtual antlrcpp::Any visitAddSubExpr(ifccParser::AddSubExprContext *ctx) ;
-		virtual antlrcpp::Any visitMulDivExpr(ifccParser::MulDivExprContext *ctx) ;
+		virtual antlrcpp::Any visitMulDivModExpr(ifccParser::MulDivModExprContext *ctx) ;
 		virtual antlrcpp::Any visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGreaterExprContext *ctx) ;
 		virtual antlrcpp::Any visitCmpEqualityExpr(ifccParser::CmpEqualityExprContext *ctx) ;
 		virtual antlrcpp::Any visitParExpr(ifccParser::ParExprContext *ctx) ;
+		virtual antlrcpp::Any visitAffExpr(ifccParser::AffExprContext *ctx) ;
 		virtual antlrcpp::Any visitConstExpr(ifccParser::ConstExprContext *ctx) ;
 		virtual antlrcpp::Any visitVarExpr(ifccParser::VarExprContext *ctx) ;
 		virtual antlrcpp::Any visitVarDeclr(ifccParser::VarDeclrContext *ctx) ;
 		virtual antlrcpp::Any visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffectContext *ctx) ;
-		virtual antlrcpp::Any visitAffect(ifccParser::AffectContext *ctx) ;
 		virtual antlrcpp::Any visitExprEnd(ifccParser::ExprEndContext *ctx) ;
 		virtual antlrcpp::Any visitEmptyEnd(ifccParser::EmptyEndContext *ctx) ;
-		virtual antlrcpp::Any visitBwExpr(ifccParser::BwExprContext *ctx) ;
+		// virtual antlrcpp::Any visitBwExpr(ifccParser::BwExprContext *ctx) ;
+		virtual antlrcpp::Any visitAndExpr(ifccParser::AndExprContext *ctx) ;
+		virtual antlrcpp::Any visitXorExpr(ifccParser::XorExprContext *ctx) ;
+		virtual antlrcpp::Any visitOrExpr(ifccParser::OrExprContext *ctx) ;
 
 		// Return 0 by default
 		void returnDefault();
@@ -52,6 +55,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		
 		// Return offset temp variable after created it
 		varStruct createTempVar(antlr4::ParserRuleContext *ctx);
+		
 	protected:
 
 		// The associated symbol table instance
