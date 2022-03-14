@@ -184,6 +184,46 @@ antlrcpp::Any CodeGenVisitor::visitParExpr(ifccParser::ParExprContext *ctx) {
 	return visit(ctx->expr());
 }
 
+antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
+	
+	// Fetch first variable
+	string varName = ctx->VAR()->getText();
+	// Check for errors
+	if (!symbolTable.hasVar(varName)) {
+		string message =  "Variable " + varName + " has not been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return -1;
+	}
+	// Fetch first variable's infos
+	int varOffset = symbolTable.getVar(varName).memoryOffset;
+	
+	// Save current stack pointer
+	int currStackPointer = symbolTable.getStackPointer();
+
+	// Compute expression
+	varStruct result = visit(ctx->expr());
+	int aVarOffset = result.memoryOffset;
+
+	// Reset the stack pointer and temp variable counter after having evaluated the expression
+	symbolTable.setStackPointer(currStackPointer);
+	symbolTable.cleanTempVars();
+	tempVarCounter = 0;
+	
+	// Write assembly instructions to save expression in variable 
+	cout << "	movl	" << aVarOffset << "(%rbp), %eax" << endl;
+	cout << "	movl	%eax, " << varOffset << "(%rbp)" << endl;
+
+	// Create new temporary variable holding the result
+	varStruct newVar = createTempVar(ctx);
+	int newVarOffset = newVar.memoryOffset;
+ 	
+	// Write expression result (which is in %eax) in new var
+	cout << "	movl	%eax, " << newVarOffset << "(%rbp)" << endl;
+	
+	return newVar;
+
+}
+
 antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) {
 	
 	cout << "#enter visitConstExpr: "  << ctx->getText() << endl;
@@ -280,39 +320,6 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	// Write assembly instructions
 	cout << "	movl	" << aVarOffset << "(%rbp), %eax" << endl;
 	cout << "	movl	%eax, " << dVarOffset << "(%rbp)" << endl;
-	
-	return 0;
-
-}
-
-antlrcpp::Any CodeGenVisitor::visitAffect(ifccParser::AffectContext *ctx) {
-	
-	// Fetch first variable
-	string varName = ctx->VAR()->getText();
-	// Check for errors
-	if (!symbolTable.hasVar(varName)) {
-		string message =  "Variable " + varName + " has not been declared";
-		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return -1;
-	}
-	// Fetch first variable's infos
-	int varOffset = symbolTable.getVar(varName).memoryOffset;
-	
-	// Save current stack pointer
-	int currStackPointer = symbolTable.getStackPointer();
-
-	// Compute expression
-	varStruct result = visit(ctx->expr());
-	int aVarOffset = result.memoryOffset;
-
-	// Reset the stack pointer and temp variable counter after having evaluated the expression
-	symbolTable.setStackPointer(currStackPointer);
-	symbolTable.cleanTempVars();
-	tempVarCounter = 0;
-	
-	// Write assembly instructions
-	cout << "	movl	" << aVarOffset << "(%rbp), %eax" << endl;
-	cout << "	movl	%eax, " << varOffset << "(%rbp)" << endl;
 	
 	return 0;
 
