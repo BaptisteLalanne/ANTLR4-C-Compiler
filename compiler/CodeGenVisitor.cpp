@@ -193,7 +193,7 @@ antlrcpp::Any CodeGenVisitor::visitMulDivModExpr(ifccParser::MulDivModExprContex
 	// Write expression result (which is in %eax) in new var
 	if(op == '%')
 	{
-		cout << "	movl	%ah, " << tmp.memoryOffset << "(%rbp)" << endl;
+		cout << "	movl	%edx, " << tmp.memoryOffset << "(%rbp)" << endl;
 	}else {
 		cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
 	}
