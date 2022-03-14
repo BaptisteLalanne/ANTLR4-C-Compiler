@@ -18,13 +18,13 @@ body :
 ;
 
 expr :
-	'(' expr ')' 		#parExpr
-	| UNARY expr 		#unaryExpr	
-	| expr OP1 expr 	#mulDivExpr	
+	expr OP1 expr 	#mulDivExpr	
 	| expr OP2 expr 	#addSubExpr
 	| expr CMP expr		#cmpLessOrGreaterExpr
 	| expr EQ expr		#cmpEqualityExpr
 	| expr BW expr		#bwExpr	
+	| '(' expr ')' 		#parExpr
+	| UNARY expr 		#unaryExpr	
 	| CONST 			#constExpr 
 	| VAR				#varExpr
 ;
