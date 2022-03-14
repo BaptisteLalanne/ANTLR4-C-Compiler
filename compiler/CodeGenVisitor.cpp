@@ -47,18 +47,13 @@ antlrcpp::Any CodeGenVisitor::visitBwExpr(ifccParser::BwExprContext *ctx) {
 	}
 
 	// Create temporary variable with the intermediary result
-	tempVarCounter++;
-	string newVar = "!tmp" + to_string(tempVarCounter);
-	string newVarType = "int";
-	symbolTable.addVar(newVar, newVarType, "temporary", ctx->getStart()->getLine());
-	symbolTable.getVar(newVar).isUsed = true;
-	int newVarOffset = symbolTable.getVar(newVar).memoryOffset;
+	varStruct tmp = createTempVar(ctx);
  	
 	// Write expression result (which is in %eax) in new var
-	cout << "	movl	%eax, " << newVarOffset << "(%rbp)" << endl;
+	cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
 	
 	// Return the temporary variable
-	return symbolTable.getVar(newVar);
+	return tmp;
 }
 
 
