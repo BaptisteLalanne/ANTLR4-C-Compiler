@@ -129,6 +129,7 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 	varStruct var2 = visit(ctx->expr(1));
 
     if(!var1.isCorrect || !var2.isCorrect) {
+		
         return symbolTable.dummyVarStruct;
     }
 
@@ -156,9 +157,9 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 
 }
 
-antlrcpp::Any CodeGenVisitor::visitMulDivExpr(ifccParser::MulDivExprContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitMulDivModExpr(ifccParser::MulDivModExprContext *ctx) {
 
-	cout << "#enter visitMultDivExpr: "  << ctx->getText() << endl;
+	cout << "#enter visitMultDivModExpr: "  << ctx->getText() << endl;
 
 	char op = ctx->OP1()->getText()[0];
 
@@ -175,20 +176,27 @@ antlrcpp::Any CodeGenVisitor::visitMulDivExpr(ifccParser::MulDivExprContext *ctx
 
 	// Do multiplication
 	if (op == '*') {
+		cout << "#enter * case" << endl;
 		cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
 		cout << "	imull	" << var2Offset << "(%rbp), %eax" << endl;
 	} 
 	// Do division
 	else {
+		cout << "#enter / or \% case" << endl;
 		cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
 		cout << "	cltd" << endl;
 		cout << "	idivl	" << var2Offset << "(%rbp)" << endl; 
 	}
 
 	varStruct tmp = createTempVar(ctx);
- 	
+
 	// Write expression result (which is in %eax) in new var
-	cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
+	if(op == '%')
+	{
+		cout << "	movl	%ah, " << tmp.memoryOffset << "(%rbp)" << endl;
+	}else {
+		cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
+	}
 	
 	// Return the temporary variable
 	return tmp;
