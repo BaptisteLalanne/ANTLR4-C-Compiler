@@ -25,15 +25,21 @@ antlrcpp::Any CodeGenVisitor::visitUnaryExpr(ifccParser::UnaryExprContext *ctx) 
 
 	cout << "#enter visitUnaryExpr: " << ctx->getText() << endl;
 
+	char op = ctx->UNARY->getText()[0];
+
 	// Fetch sub-expressions
 	varStruct var = visit(ctx->expr());
 	int varOffset = var.memoryOffset;
 
 	// Apply the ! operator
-	cout << "	cmpl	$0, " << varOffset << "(%rbp)" << endl;
-	cout << "	sete	%al" << endl;
-	cout << "	movzbl	%al, %eax" << endl;
-	
+	if (op == '!') {
+		cout << "	cmpl	$0, " << varOffset << "(%rbp)" << endl;
+		cout << "	sete	%al" << endl;
+		cout << "	movzbl	%al, %eax" << endl;
+	} else {
+		cout << "	movl	" << varOffset << "(%rbp), %eax" << endl;
+		cout << "	negl	%eax" << endl;
+	}
 	// Create temporary variable with the intermediary result
 	varStruct tmp = createTempVar(ctx);
  	
@@ -122,7 +128,7 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 
 	cout << "#enter visitAddSubExpr: " << ctx->getText() << endl;
 
-	char op = ctx->OP2()->getText()[0];
+	char op = ctx->OP2->getText()[0];
 
 	// Fetch sub-expressions
 	varStruct var1 = visit(ctx->expr(0));
@@ -161,7 +167,7 @@ antlrcpp::Any CodeGenVisitor::visitMulDivModExpr(ifccParser::MulDivModExprContex
 
 	cout << "#enter visitMultDivModExpr: "  << ctx->getText() << endl;
 
-	char op = ctx->OP1()->getText()[0];
+	char op = ctx->OP1->getText()[0];
 
 	// Fetch sub-expressions
 	varStruct var1 = visit(ctx->expr(0));
@@ -207,7 +213,7 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 
 	cout << "#enter visitCmpLessOrGreaterExpr: " << ctx->getText() << endl;
 	
-	char op = ctx->CMP()->getText()[0];
+	char op = ctx->CMP->getText()[0];
 
 	// Fetch sub-expressions
 	varStruct var1 = visit(ctx->expr(0));
@@ -246,7 +252,7 @@ antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprCo
 	
 	cout << "#enter visitCmpEqualExpr: " << ctx->getText() << endl;
 	
-	char op = ctx->EQ()->getText()[0];
+	char op = ctx->EQ->getText()[0];
 
 	// Fetch sub-expressions
 	varStruct var1 = visit(ctx->expr(0));

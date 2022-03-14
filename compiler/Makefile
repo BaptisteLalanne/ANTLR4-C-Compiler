@@ -47,7 +47,7 @@ generated/ifcc%.cpp: ifcc.g4
 # view the parse tree in a graphical window
 
 # Usage: `make gui FILE=path/to/your/file.c`
-FILE ?= ../tests/testfiles/1_return42.c
+FILE ?= ../tests/testfiles/4_15_04_operator-_substract.c
 
 gui:
 	@mkdir -p generated build
