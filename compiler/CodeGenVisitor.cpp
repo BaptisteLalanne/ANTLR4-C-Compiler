@@ -25,7 +25,7 @@ antlrcpp::Any CodeGenVisitor::visitUnaryExpr(ifccParser::UnaryExprContext *ctx) 
 
 	cout << "#enter visitUnaryExpr: " << ctx->getText() << endl;
 
-	char op = ctx->UNARY()->getText()[0];
+	char op = ctx->UNARY->getText()[0];
 
 	// Fetch sub-expressions
 	varStruct var = visit(ctx->expr());
@@ -54,7 +54,7 @@ antlrcpp::Any CodeGenVisitor::visitUnaryExpr(ifccParser::UnaryExprContext *ctx) 
 antlrcpp::Any CodeGenVisitor::visitBwExpr(ifccParser::BwExprContext *ctx) {
 	
 	cout << "#enter visitBWExpr: " << ctx->getText() << endl;
-	char bw = ctx->BW()->getText()[0];
+	char bw = ctx->BW->getText()[0];
 
 	//Fetch expressions
 	varStruct var1 = visit(ctx->expr(0));
@@ -91,7 +91,7 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 
 	cout << "#enter visitAddSubExpr: " << ctx->getText() << endl;
 
-	char op = ctx->OP2()->getText()[0];
+	char op = ctx->OP2->getText()[0];
 
 	// Fetch sub-expressions
 	varStruct var1 = visit(ctx->expr(0));
@@ -124,7 +124,7 @@ antlrcpp::Any CodeGenVisitor::visitMulDivExpr(ifccParser::MulDivExprContext *ctx
 
 	cout << "#enter visitMultDivExpr: "  << ctx->getText() << endl;
 
-	char op = ctx->OP1()->getText()[0];
+	char op = ctx->OP1->getText()[0];
 
 	// Fetch sub-expressions
 	varStruct var1 = visit(ctx->expr(0));
@@ -158,7 +158,7 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 
 	cout << "#enter visitCmpLessOrGreaterExpr: " << ctx->getText() << endl;
 	
-	char op = ctx->CMP()->getText()[0];
+	char op = ctx->CMP->getText()[0];
 
 	// Fetch sub-expressions
 	varStruct var1 = visit(ctx->expr(0));
@@ -192,7 +192,7 @@ antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprCo
 	
 	cout << "#enter visitCmpEqualExpr: " << ctx->getText() << endl;
 	
-	char op = ctx->EQ()->getText()[0];
+	char op = ctx->EQ->getText()[0];
 
 	// Fetch sub-expressions
 	varStruct var1 = visit(ctx->expr(0));

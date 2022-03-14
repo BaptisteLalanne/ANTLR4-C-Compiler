@@ -18,15 +18,15 @@ body :
 ;
 
 expr :
-	expr OP1 expr 	#mulDivExpr	
-	| expr OP2 expr 	#addSubExpr
-	| expr CMP expr		#cmpLessOrGreaterExpr
-	| expr EQ expr		#cmpEqualityExpr
-	| expr BW expr		#bwExpr	
-	| '(' expr ')' 		#parExpr
-	| UNARY expr 		#unaryExpr	
-	| CONST 			#constExpr 
-	| VAR				#varExpr
+	'(' expr ')' 					#parExpr
+	| UNARY=('-'|'!') expr 		    #unaryExpr	
+	| expr OP1=('*'|'/') expr 	 	#mulDivExpr	
+	| expr OP2=('+'|'-') expr 		#addSubExpr
+	| expr CMP=('<' | '>') expr		#cmpLessOrGreaterExpr
+	| expr EQ=('=='|'!=') expr		#cmpEqualityExpr
+	| expr BW=('&'|'|'|'^') expr	#bwExpr	
+	| CONST 						#constExpr 
+	| VAR							#varExpr
 ;
 
 varDeclr : 
@@ -45,12 +45,6 @@ end :
 	| RETURN ';'	#emptyEnd
 ;
 
-UNARY : ('-'|'!') ;
-OP1 : ('*'|'/') ;
-OP2 : ('+'|'-') ;
-CMP : ('<' | '>') ;
-BW : ('&' | '|' | '^') ;
-EQ : ('=='|'!=') ;
 WS : [ \t\r\n] -> channel(HIDDEN);
 RETURN : 'return' ;
 TYPE : 'int';
