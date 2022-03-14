@@ -23,7 +23,7 @@ struct varStruct {
 	string varScope;	//The variable scope (i.e. global, local, ou paramètre)
 	int varLine;		//The line of code where the variable is declared
 	bool isUsed;		//Whether the variable is used in the code
-    bool isCorrect; // False when a dummy struct is returned to avoid bad cast
+    bool isCorrect; 	// False when a dummy struct is returned to avoid bad cast
 };
 
 // Store all informations relvent for a function
@@ -82,7 +82,7 @@ class SymbolTable {
 
         // Dummy varStruct to handle parsing errors
         varStruct dummyVarStruct = {0,"","",0,false,false};
-		
+			
 	protected:
 
 		// The current position of the memory stack pointer 
