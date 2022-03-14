@@ -30,6 +30,11 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 	// Fetch sub-expressions
 	varStruct var1 = visit(ctx->expr(0));
 	varStruct var2 = visit(ctx->expr(1));
+
+    if(!var1.isCorrect || !var2.isCorrect) {
+        return symbolTable.dummyVarStruct;
+    }
+
 	int var1Offset = var1.memoryOffset;
 	int var2Offset = var2.memoryOffset;
 
@@ -69,6 +74,11 @@ antlrcpp::Any CodeGenVisitor::visitMulDivExpr(ifccParser::MulDivExprContext *ctx
 	// Fetch sub-expressions
 	varStruct var1 = visit(ctx->expr(0));
 	varStruct var2 = visit(ctx->expr(1));
+
+    if(!var1.isCorrect || !var2.isCorrect) {
+        return symbolTable.dummyVarStruct;
+    }
+
 	int var1Offset = var1.memoryOffset;
 	int var2Offset = var2.memoryOffset;
 
@@ -109,6 +119,11 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 	// Fetch sub-expressions
 	varStruct var1 = visit(ctx->expr(0));
 	varStruct var2 = visit(ctx->expr(1));
+
+    if(!var1.isCorrect || !var2.isCorrect) {
+        return symbolTable.dummyVarStruct;
+    }
+
 	int var1Offset = var1.memoryOffset;
 	int var2Offset = var2.memoryOffset;
 
@@ -149,6 +164,11 @@ antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprCo
 	// Fetch sub-expressions
 	varStruct var1 = visit(ctx->expr(0));
 	varStruct var2 = visit(ctx->expr(1));
+
+    if(!var1.isCorrect || !var2.isCorrect) {
+        return symbolTable.dummyVarStruct;
+    }
+
 	int var1Offset = var1.memoryOffset;
 	int var2Offset = var2.memoryOffset;
 
@@ -217,7 +237,7 @@ antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
 	if (!symbolTable.hasVar(varName)) {
 		string message =  "Variable " + varName + " has not been declared";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return -1;
+		return symbolTable.dummyVarStruct;
 	}
 	// Mark it as used
 	symbolTable.getVar(varName).isUsed = true;
@@ -240,7 +260,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 		if (symbolTable.hasVar(dVarName)) {
 			string message =  "Variable " + dVarName + " has already been declared";
 			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-			return -1;
+			return 1;
 		}
 		// Add variable to symbol table
 		symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
@@ -259,7 +279,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	if (symbolTable.hasVar(dVarName)) {
 		string message =  "Variable " + dVarName + " has already been declared";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return -1;
+        return 1;
 	}
 	// Add variable to symbol table
 	symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
@@ -293,7 +313,7 @@ antlrcpp::Any CodeGenVisitor::visitAffect(ifccParser::AffectContext *ctx) {
 	if (!symbolTable.hasVar(varName)) {
 		string message =  "Variable " + varName + " has not been declared";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return -1;
+		return 1;
 	}
 	// Fetch first variable's infos
 	int varOffset = symbolTable.getVar(varName).memoryOffset;
@@ -327,6 +347,13 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 
 	// Compute expression
 	varStruct result = visit(ctx->expr());
+
+    if (!result.isCorrect) {
+        cout << "	popq	%rbp" << endl;
+        cout << "	ret" << endl;
+        return 1;
+    }
+
 	int aVarOffset = result.memoryOffset;
 	
 	// Reset the stack pointer and temp variable counter after having evaluated the expression

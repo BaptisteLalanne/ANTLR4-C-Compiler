@@ -45,6 +45,7 @@ void SymbolTable::addVar(string name, string vT, string vS, int vL) {
 	s.varType = vT;
 	s.varScope = vS;
 	s.isUsed = false;
+    s.isCorrect = true;
 	s.varLine = vL;
 	varMap[name] = s;
 }
