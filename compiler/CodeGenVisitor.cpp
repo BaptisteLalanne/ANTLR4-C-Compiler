@@ -339,39 +339,66 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 	// Size of INT
 	long intSize = (long)INT_MAX - (long)INT_MIN + 1;
 
-	//deal with std::out_of_range
-	try{ 
-		// Fetch constant's info as ull
-		unsigned long long ullConstValue = stoull(ctx->CONST()->getText());
-		
-		// make it a int
-		ullConstValue = ullConstValue % intSize;
-		if(ullConstValue>INT_MAX) constValue = ullConstValue-intSize;
-		else constValue = ullConstValue;
+	// Fetch constant's info
+	string constStr = ctx->CONST()->getText();
+ 
+	if (constStr.length() == 3 && constStr[0] == '\'' && constStr[2] == '\'') {
 
-	} catch(std::out_of_range& e){ //if ctx->CONST()->getText() is too big for uul
+		constValue = constStr[1];
 
-		// Fetch constant's info as ull
-		string constStr = ctx->CONST()->getText();
-		
-		long lConstValue = 0;
-		int currentDigit;
-		//iterate through each char in string (left to right)
-		for ( string::iterator it=constStr.begin(); it!=constStr.end(); ++it){	
-			currentDigit = *it - '0';
-			if(currentDigit >= 0 && currentDigit < 10){
-				lConstValue = lConstValue*10 + currentDigit;
-				if(lConstValue > INT_MAX){
-					lConstValue -= intSize;
-				}
-			}
-		}
-		//should be already good, but it makes gcc happy
-		constValue = (int)lConstValue;
+	} else if (constStr.length() > 3 && constStr[0] == '\'' && constStr[constStr.length()-1] == '\'') {
 
 		//warning
-		string message =  "Integer constant is too large for its type.\nOverflow in conversion to ‘int’ changes value from ‘" + constStr + "’ to ‘" + to_string(constValue) + "’";
+		string message =  "Multi-character character constant";
 		errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
+		
+		//calculate value
+		constValue = 0;
+		for (int i=1 ; i<constStr.length()-1 ; i++){
+			constValue = constValue*256 + constStr[i];
+		}
+	
+	} else {
+
+		//deal with std::out_of_range and std::invalid_argument
+		try{ 
+			// transform constant's info as ull
+			unsigned long long ullConstValue = stoull(constStr);
+			
+			// make it an int
+			ullConstValue = ullConstValue % intSize;
+			if(ullConstValue>INT_MAX) constValue = ullConstValue-intSize;
+			else constValue = ullConstValue;
+
+		} catch(std::out_of_range& e){ //if ctx->CONST()->getText() is too big for uul
+			
+			long lConstValue = 0;
+			int currentDigit;
+
+			//iterate through each char in string (left to right)
+			for ( string::iterator it=constStr.begin(); it!=constStr.end(); ++it){	
+				currentDigit = *it - '0';
+				if(currentDigit >= 0 && currentDigit < 10){
+					lConstValue = lConstValue*10 + currentDigit;
+					if(lConstValue > INT_MAX){
+						lConstValue -= intSize;
+					}
+				}
+			}
+
+			//should be already good, but it makes gcc happy
+			constValue = (int)lConstValue;
+
+			//warning
+			string message =  "Integer constant is too large for its type.\nOverflow in conversion to ‘int’ changes value from ‘" + constStr + "’ to ‘" + to_string(constValue) + "’";
+			errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
+		} catch(std::invalid_argument& e){
+			
+			//error
+			string message =  "Integer constant threw invalid argument exception : " + constStr;
+			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		}
+
 	}
 
 	varStruct tmp = createTempVar(ctx);
