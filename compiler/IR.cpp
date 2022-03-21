@@ -144,6 +144,27 @@ void Instr::generateASM(ostream &o) {
 		case mul:
 		
 			break;
+		case op_or:
+
+			// get param
+			string param1 = params.at(0);
+			string param2 = params.at(1);
+			string param3 = params.at(2);
+
+			// get variables
+			varStruct var1 = getSymbol(param1);
+			varStruct var2 = getSymbol(param2);
+			varStruct tmp = getSymbol(param3);
+
+			int var1Offset = var1.memoryOffset;
+			int var2Offset = var2.memoryOffset;
+			//Do Or
+			cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
+			cout << "	orl	" << var2Offset << "(%rbp), %eax" << endl;
+			
+			cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
+			
+			break;
 		case rmem: // read memory
 			//TODO : implement
 			break;
