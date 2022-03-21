@@ -57,6 +57,11 @@ int main(int argn, const char **argv) {
     CodeGenVisitor v(symbolTable, errorHandler, controlFlowGraph);
     v.visit(tree);
     
+    //In case the function has not returned, return 0 by default
+    if (!v.hasReturned()) {
+        v.returnDefault();
+    }
+
     if(errorHandler.hasError()) {
         cout.flush();
         exit(1);
@@ -67,11 +72,6 @@ int main(int argn, const char **argv) {
 
     // Generate ASM instructions
     controlFlowGraph.generateASM(cout);
-
-    //In case the function has not returned, return 0 by default
-    if (!v.hasReturned()) {
-        v.returnDefault();
-    }
 
     return 0;
 }
