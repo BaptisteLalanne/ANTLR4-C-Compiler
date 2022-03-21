@@ -53,9 +53,6 @@ int main(int argn, const char **argv) {
     ErrorHandler errorHandler;
     CFG controlFlowGraph(symbolTable);
 
-    // Print header instruction
-    cout << " .text" << endl;
-
     // Visit tree and linearize
     CodeGenVisitor v(symbolTable, errorHandler, controlFlowGraph);
     v.visit(tree);
@@ -67,6 +64,9 @@ int main(int argn, const char **argv) {
 
     // Static Analysis
 	symbolTable.checkUsedVariables(errorHandler);
+
+    // Generate ASM instructions
+    controlFlowGraph.generateASM(cout);
 
     //In case the function has not returned, return 0 by default
     if (!v.hasReturned()) {

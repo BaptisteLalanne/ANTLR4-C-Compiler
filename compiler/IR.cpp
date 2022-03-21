@@ -25,13 +25,19 @@ void BasicBlock::addInstr(Instr::Operation op, vector<string> params) {
 
 }
 
-/* --------------------------------------------------------------------- */
-CFG::CFG(SymbolTable& st) : symbolTable(st) {
-	createBB();
+void BasicBlock::generateASM(ostream &o) {
+	for (Instr* i : instrList) {
+		i->generateASM(o);
+	}
 }
 
 BasicBlock* CFG::getCurrentBB() {
 	return currentBB;
+}
+
+/* --------------------------------------------------------------------- */
+CFG::CFG(SymbolTable& st) : symbolTable(st) {
+	createBB();
 }
 
 void CFG::createBB() {
@@ -45,7 +51,28 @@ void CFG::createBB() {
 
 }
 
+void CFG::generateASM(ostream& o) {
+	gen_asm_prologue(o);
+	for (BasicBlock* bb : bbList) {
+		bb->generateASM(o);
+	}
+	gen_asm_epilogue(o);
+}
+
+void CFG::gen_asm_prologue(ostream& o) {
+	o << ".text" << endl;
+}
+
+void CFG::gen_asm_epilogue(ostream& o) {
+}
+
 /* --------------------------------------------------------------------- */
+Instr::Instr(BasicBlock* bb, Instr::Operation op, vector<string> params) : bb(bb), op(op), params(params) {}
+
+varStruct Instr::getSymbol(string name) {
+	return this->bb->getCFG()->getSymbolTable().getVar(name);
+}
+
 bool Instr::hasSymbol(string name) {
 	return this->bb->getCFG()->getSymbolTable().hasVar(name);
 }
@@ -439,32 +466,4 @@ void Instr::generateASM(ostream &o) {
 
 	}
 	
-}
-
-void BasicBlock::generateASM(ostream &o) {
-	// TODO: parse instructions, generate ASM for each instruction
-	for (vector<Instr*>::iterator i = instrList.begin(); i != instrList.end(); ++i) {
-		//i.gen
-	}
-}
-
-void CFG::generateASM(ostream& o) {
-	gen_asm_prologue(o);
-
-	// TODO: parse blocks, generate ASM for each block
-	
-
-	gen_asm_epilogue(o);
-}
-
-varStruct Instr::getSymbol(string name) {
-	return this->bb->getCFG()->getSymbolTable().getVar(name);
-}
-int voiture = 10;
-
-void CFG::gen_asm_prologue(ostream& o) {
-	o << ".text" << endl;
-}
-
-void CFG::gen_asm_epilogue(ostream& o) {
 }
