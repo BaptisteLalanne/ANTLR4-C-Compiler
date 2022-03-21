@@ -77,11 +77,14 @@ void Instr::generateASM(ostream &o) {
 			// get variables
 			varStruct firstVar = getSymbol(param1);
 			// varStruct secondVar = getSymbol(param2);
-
+			
 			if (param2[0] == '\'') {
 				char tmp = param2[1];
 			} else if (param2[0] == '$') {
-				int tmp = param2[1];
+				for (int i = 0; i<param2.size();i++){
+					 = param2[i];
+				}
+					
 			} else {
 				// error
 			}
