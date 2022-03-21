@@ -25,7 +25,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 	public:
 
 		// Default constructor
-		CodeGenVisitor(SymbolTable& sT, ErrorHandler& eH) : symbolTable(sT), errorHandler(eH), returned(false), tempVarCounter(0) { }
+		CodeGenVisitor(SymbolTable& sT, ErrorHandler& eH, CFG& cfg) : symbolTable(sT), errorHandler(eH), controlFlowGraph(cfg), returned(false), tempVarCounter(0) { }
 
 		// Linearising functions
 		virtual antlrcpp::Any visitMainHeader(ifccParser::MainHeaderContext *ctx);
@@ -42,7 +42,6 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffectContext *ctx) ;
 		virtual antlrcpp::Any visitExprEnd(ifccParser::ExprEndContext *ctx) ;
 		virtual antlrcpp::Any visitEmptyEnd(ifccParser::EmptyEndContext *ctx) ;
-		// virtual antlrcpp::Any visitBwExpr(ifccParser::BwExprContext *ctx) ;
 		virtual antlrcpp::Any visitAndExpr(ifccParser::AndExprContext *ctx) ;
 		virtual antlrcpp::Any visitXorExpr(ifccParser::XorExprContext *ctx) ;
 		virtual antlrcpp::Any visitOrExpr(ifccParser::OrExprContext *ctx) ;
@@ -63,6 +62,9 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 
 		// The associated error handler instance
 		ErrorHandler& errorHandler;
+
+		// The associated IR instance
+		CFG& controlFlowGraph;
 
 		// Whether the function has returned
 		bool returned;		

@@ -50,12 +50,13 @@ int main(int argn, const char **argv) {
     // Create symbol table and error handler
     SymbolTable symbolTable;
     ErrorHandler errorHandler;
+    CFG controlFlowGraph;
 
     // Print header instruction
     cout << " .text" << endl;
 
     // Visit tree and linearize
-    CodeGenVisitor v(symbolTable, errorHandler);
+    CodeGenVisitor v(symbolTable, errorHandler, controlFlowGraph);
     v.visit(tree);
     
     if(errorHandler.hasError()) {
