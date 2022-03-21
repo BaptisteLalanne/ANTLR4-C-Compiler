@@ -66,8 +66,6 @@ void Instr::generateASM(ostream &o) {
 		copy var1 'a
 	*/
 
-
-
 	switch (op) {
 		case ldconst:
 			// get param
@@ -76,20 +74,22 @@ void Instr::generateASM(ostream &o) {
 
 			// get variables
 			varStruct firstVar = getSymbol(param1);
-			// varStruct secondVar = getSymbol(param2);
 			
+			int constValue;
 			if (param2[0] == '\'') {
-				char tmp = param2[1];
+				constValue = int(param2[1]);
 			} else if (param2[0] == '$') {
-				for (int i = 0; i<param2.size();i++){
-					 = param2[i];
-				}
-					
+				constValue = stoi(param2.substr(1,param2.size()-1));	
 			} else {
 				// error
 			}
 
-			
+			int var1Offset = firstVar.memoryOffset;
+
+			// Write assembly instructions
+			o << "	movl	$" << constValue << ", %eax" << endl;
+			o << "	movl	%eax, " << var1Offset << "(%rbp)" << endl;
+
 			break;
 		case copy:
 
@@ -110,38 +110,52 @@ void Instr::generateASM(ostream &o) {
 			o << "	movl	%eax, " << var1Offset << "(%rbp)" << endl;
 	
 			break;
-		case add:
+		case op_add:
 
 			// get param
 			string param1 = params.at(0);
 			string param2 = params.at(1);
 			string param3 = params.at(2);
 
-			// check if second param is a const
-			if (param3[0] == '\'') {
-				// const char
-			} else if (param2[0] == '$') {
-				// const int
-			} else {
-				// not a const
+			// get variables
+			varStruct firstVar = getSymbol(param1);
+			varStruct secondVar = getSymbol(param2);
+			varStruct thirdVar = getSymbol(param3);
 
-				// get variables
-				varStruct firstVar = getSymbol(param1);
-				varStruct secondVar = getSymbol(param2);
+			// get offsets
+			int var1Offset = firstVar.memoryOffset;
+			int var2Offset = secondVar.memoryOffset;
+			int var3Offset = thirdVar.memoryOffset;
 
-				// get offsets
-				int var1Offset = firstVar.memoryOffset;
-				int var2Offset = secondVar.memoryOffset;
-
-				o << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
-				o << "	addl	" << var2Offset << "(%rbp), %eax" << endl;
-			}
+			o << "	movl	" << var2Offset << "(%rbp), %eax" << endl;
+			o << "	addl	" << var3Offset << "(%rbp), %eax" << endl;
+			o << "	movl	%eax, " << var1Offset << "(%rbp)" << endl;
 			
 			break;
-		case sub:
-		
+
+		case op_sub:
+			// get param
+			string param1 = params.at(0);
+			string param2 = params.at(1);
+			string param3 = params.at(2);
+
+			// get variables
+			varStruct firstVar = getSymbol(param1);
+			varStruct secondVar = getSymbol(param2);
+			varStruct thirdVar = getSymbol(param3);
+
+			// get offsets
+			int var1Offset = firstVar.memoryOffset;
+			int var2Offset = secondVar.memoryOffset;
+			int var3Offset = thirdVar.memoryOffset;
+
+			o << "	movl	" << var2Offset << "(%rbp), %eax" << endl;
+			o << "	subl	" << var3Offset << "(%rbp), %eax" << endl;
+			o << "	movl	%eax, " << var1Offset << "(%rbp)" << endl;
+
 			break;
-		case mul:
+
+		case op_mul:
 		
 			break;
 		case rmem: // read memory
@@ -169,6 +183,9 @@ void Instr::generateASM(ostream &o) {
 
 void BasicBlock::generateASM(ostream &o) {
 	// TODO: parse instructions, generate ASM for each instruction
+	for (vector<Instr*>::iterator i = instrList.begin(); i != instrList.end(); ++i) {
+		//i.gen
+	}
 }
 
 void CFG::generateASM(ostream& o) {
