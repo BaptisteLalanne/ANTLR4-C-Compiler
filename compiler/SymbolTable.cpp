@@ -41,6 +41,7 @@ void SymbolTable::setStackPointer(int s) {
 void SymbolTable::addVar(string name, string vT, string vS, int vL) {
 	stackPointer -= typeSizes[vT];
 	struct varStruct s = {
+		name,
 		stackPointer,
 		vT,
 		vS,

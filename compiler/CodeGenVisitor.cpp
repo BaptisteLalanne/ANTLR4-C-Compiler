@@ -13,10 +13,11 @@ using namespace std;
 
 antlrcpp::Any CodeGenVisitor::visitMainHeader(ifccParser::MainHeaderContext *ctx) {
 
-	cout << ".globl	main" << endl;
-	cout << "main:" << endl;
-	cout << "	pushq	%rbp" << endl;
-	cout << "	movq	%rsp, %rbp" << endl;
+	//cout << ".globl	main" << endl;
+	//cout << "main:" << endl;
+	//cout << "	pushq	%rbp" << endl;
+	//cout << "	movq	%rsp, %rbp" << endl;
+	cfg.getCurrentBB()->addInstr(call, {"main"});
 	return visitChildren(ctx);
 
 }
@@ -30,21 +31,21 @@ antlrcpp::Any CodeGenVisitor::visitUnaryExpr(ifccParser::UnaryExprContext *ctx) 
 	// Fetch sub-expressions
 	varStruct var = visit(ctx->expr());
 	int varOffset = var.memoryOffset;
+	varStruct tmp = createTempVar(ctx);
 
 	// Apply the ! operator
 	if (op == '!') {
-		cout << "	cmpl	$0, " << varOffset << "(%rbp)" << endl;
-		cout << "	sete	%al" << endl;
-		cout << "	movzbl	%al, %eax" << endl;
+		//cout << "	cmpl	$0, " << varOffset << "(%rbp)" << endl;
+		//cout << "	sete	%al" << endl;
+		//cout << "	movzbl	%al, %eax" << endl;
+		cfg.getCurrentBB()->addInstr(op_not, {var.varName, tmp.varName});
 	} else {
-		cout << "	movl	" << varOffset << "(%rbp), %eax" << endl;
-		cout << "	negl	%eax" << endl;
+		//cout << "	movl	" << varOffset << "(%rbp), %eax" << endl;
+		//cout << "	negl	%eax" << endl;
+		cfg.getCurrentBB()->addInstr(op_minus, {var.varName, tmp.varName});
 	}
-	// Create temporary variable with the intermediary result
-	varStruct tmp = createTempVar(ctx);
- 	
 	// Write expression result (which is in %eax) in new var
-	cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
+	//cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
 	
 	// Return the temporary variable
 	return tmp;
@@ -58,18 +59,17 @@ antlrcpp::Any CodeGenVisitor::visitAndExpr(ifccParser::AndExprContext *ctx) {
 	//Fetch expressions
 	varStruct var1 = visit(ctx->expr(0));
 	varStruct var2 = visit(ctx->expr(1));
-	int var1Offset = var1.memoryOffset;
-	int var2Offset = var2.memoryOffset;
+	//int var1Offset = var1.memoryOffset;
+	//int var2Offset = var2.memoryOffset;
+	varStruct tmp = createTempVar(ctx);
 
 	//Do And
-	cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
-	cout << "	andl	" << var2Offset << "(%rbp), %eax" << endl;
-	
-	// Create temporary variable with the intermediary result
-	varStruct tmp = createTempVar(ctx);
- 	
+	//cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
+	//cout << "	andl	" << var2Offset << "(%rbp), %eax" << endl;
 	// Write expression result (which is in %eax) in new var
-	cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
+	//cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
+
+	cfg.getCurrentBB()->addInstr(op_and, {var1.varName, var2.varName, tmp.varName});
 	
 	// Return the temporary variable
 	return tmp;
@@ -82,18 +82,17 @@ antlrcpp::Any CodeGenVisitor::visitXorExpr(ifccParser::XorExprContext *ctx) {
 	//Fetch expressions
 	varStruct var1 = visit(ctx->expr(0));
 	varStruct var2 = visit(ctx->expr(1));
-	int var1Offset = var1.memoryOffset;
-	int var2Offset = var2.memoryOffset;
+	//int var1Offset = var1.memoryOffset;
+	//int var2Offset = var2.memoryOffset;
+	varStruct tmp = createTempVar(ctx);
 
 	//Do Xor
-	cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
-	cout << "	xorl	" << var2Offset << "(%rbp), %eax" << endl;
-
-	// Create temporary variable with the intermediary result
-	varStruct tmp = createTempVar(ctx);
- 	
+	//cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
+	//cout << "	xorl	" << var2Offset << "(%rbp), %eax" << endl;
 	// Write expression result (which is in %eax) in new var
-	cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
+	//cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
+
+	cfg.getCurrentBB()->addInstr(op_xor, {var1.varName, var2.varName, tmp.varName});
 	
 	// Return the temporary variable
 	return tmp;
@@ -107,18 +106,16 @@ antlrcpp::Any CodeGenVisitor::visitOrExpr(ifccParser::OrExprContext *ctx) {
 	//Fetch expressions
 	varStruct var1 = visit(ctx->expr(0));
 	varStruct var2 = visit(ctx->expr(1));
-	int var1Offset = var1.memoryOffset;
-	int var2Offset = var2.memoryOffset;
+	//int var1Offset = var1.memoryOffset;
+	//int var2Offset = var2.memoryOffset;
+	varStruct tmp = createTempVar(ctx);
 	
 	//Do Or
-	cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
-	cout << "	orl	" << var2Offset << "(%rbp), %eax" << endl;
-
-	// Create temporary variable with the intermediary result
-	varStruct tmp = createTempVar(ctx);
- 	
+	//cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
+	//cout << "	orl	" << var2Offset << "(%rbp), %eax" << endl;
 	// Write expression result (which is in %eax) in new var
-	cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
+	//cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
+	cfg.getCurrentBB()->addInstr(op_or, {var1.varName, var2.varName, tmp.varName});
 	
 	// Return the temporary variable
 	return tmp;
@@ -141,8 +138,10 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 
 	int var1Offset = var1.memoryOffset;
 	int var2Offset = var2.memoryOffset;
+	varStruct tmp = createTempVar(ctx);
 
 	// Do addition
+	/*
 	if (op == '+') {
 		cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
 		cout << "	addl	" << var2Offset << "(%rbp), %eax" << endl;
@@ -152,12 +151,23 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 		cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
 		cout << "	subl	" << var2Offset << "(%rbp), %eax" << endl;
 	}
-
-	varStruct tmp = createTempVar(ctx);
+	*/
  	
 	// Write expression result (which is in %eax) in new var
-	cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
+	//cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
 	
+	switch (op) {
+
+		case '+':
+			cfg.getCurrentBB()->addInstr(op_add, {var1.varName, var2.varName, tmp.varName});
+			break;
+
+		case '-':
+			cfg.getCurrentBB()->addInstr(op_sub, {var1.varName, var2.varName, tmp.varName});
+			break;
+
+	}
+
 	// Return the temporary variable
 	return tmp;
 
@@ -177,33 +187,50 @@ antlrcpp::Any CodeGenVisitor::visitMulDivModExpr(ifccParser::MulDivModExprContex
         return symbolTable.dummyVarStruct;
     }
 
-	int var1Offset = var1.memoryOffset;
-	int var2Offset = var2.memoryOffset;
+	//int var1Offset = var1.memoryOffset;
+	//int var2Offset = var2.memoryOffset;
+	varStruct tmp = createTempVar(ctx);
 
 	// Do multiplication
+	/*
 	if (op == '*') {
 		cout << "#enter * case" << endl;
 		cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
 		cout << "	imull	" << var2Offset << "(%rbp), %eax" << endl;
 	} 
-	// Do division
+	// Do division or modulo
 	else {
 		cout << "#enter / or \% case" << endl;
 		cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
 		cout << "	cltd" << endl;
 		cout << "	idivl	" << var2Offset << "(%rbp)" << endl; 
 	}
-
-	varStruct tmp = createTempVar(ctx);
-
-	// Write expression result (which is in %eax) in new var
+	// Do modulo
 	if(op == '%')
 	{
 		cout << "	movl	%edx, " << tmp.memoryOffset << "(%rbp)" << endl;
-	}else {
+	}
+	else {
 		cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
 	}
-	
+	*/
+	switch (op) {
+
+		case '*':
+			cfg.getCurrentBB()->addInstr(op_mul, {var1.varName, var2.varName, tmp.varName});
+			break;
+
+		case '/':
+			cfg.getCurrentBB()->addInstr(op_div, {var1.varName, var2.varName, tmp.varName});
+			break;
+
+		case '%':
+			cfg.getCurrentBB()->addInstr(op_mod, {var1.varName, var2.varName, tmp.varName});
+			break;
+
+	}
+
+
 	// Return the temporary variable
 	return tmp;
 	
@@ -223,26 +250,27 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
         return symbolTable.dummyVarStruct;
     }
 
-	int var1Offset = var1.memoryOffset;
-	int var2Offset = var2.memoryOffset;
+	//int var1Offset = var1.memoryOffset;
+	//int var2Offset = var2.memoryOffset;
+	varStruct tmp = createTempVar(ctx);
 
 	// Do comparaison
-	cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
-	cout << "	cmpl	" << var2Offset << "(%rbp), %eax" << endl;
+	//cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
+	//cout << "	cmpl	" << var2Offset << "(%rbp), %eax" << endl;
 	// Less than comparaison
 	if (op == '<') {
-		cout << "	setl	%al" << endl;
+		//cout << "	setl	%al" << endl;
+		cfg.getCurrentBB()->addInstr(cmp_lt, {var1.varName, var2.varName, tmp.varName});
 	}
 	// Greater than comparaison
 	else {
-		cout << "	setg	%al" << endl;
+		//cout << "	setg	%al" << endl;
+		cfg.getCurrentBB()->addInstr(cmp_gt, {var1.varName, var2.varName, tmp.varName});
 	}
-	cout << "	movzbl	%al, %eax" << endl;
-	
-	varStruct tmp = createTempVar(ctx);
+	//cout << "	movzbl	%al, %eax" << endl;
  	
 	// Write expression result (which is in %eax) in new var
-	cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
+	//cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
 	
 	// Return the temporary variable
 	return tmp;
@@ -262,26 +290,27 @@ antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprCo
         return symbolTable.dummyVarStruct;
     }
 
-	int var1Offset = var1.memoryOffset;
-	int var2Offset = var2.memoryOffset;
+	//int var1Offset = var1.memoryOffset;
+	//int var2Offset = var2.memoryOffset;
+	varStruct tmp = createTempVar(ctx);
 
 	// Do an equality comparaison
-	cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
-	cout << "	cmpl	" << var2Offset << "(%rbp), %eax" << endl;
+	//cout << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
+	//cout << "	cmpl	" << var2Offset << "(%rbp), %eax" << endl;
 	// Equal comparaison
 	if (op == '=') {
-		cout << "	sete	%al" << endl;
+		cfg.getCurrentBB()->addInstr(cmp_eq, {var1.varName, var2.varName, tmp.varName});
+		//cout << "	sete	%al" << endl;
 	}
 	// Not equal comparaison
 	else {
-		cout << "	setne	%al" << endl;
+		cfg.getCurrentBB()->addInstr(cmp_neq, {var1.varName, var2.varName, tmp.varName});
+		//cout << "	setne	%al" << endl;
 	}
-	cout << "	movzbl	%al, %eax" << endl;
+	//cout << "	movzbl	%al, %eax" << endl;
 	
-	varStruct tmp = createTempVar(ctx);
- 	
 	// Write expression result (which is in %eax) in new var
-	cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
+	//cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
 	
 	// Return the temporary variable
 	return tmp;
@@ -317,14 +346,16 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	tempVarCounter = 0;
 	
 	// Write assembly instructions to save expression in variable 
-	cout << "	movl	" << aVarOffset << "(%rbp), %eax" << endl;
-	cout << "	movl	%eax, " << varOffset << "(%rbp)" << endl;
+	cfg.getCurrentBB()->addInstr(copy, {aVarOffset, result.varName, tmp.varName});
+	//cout << "	movl	" << aVarOffset << "(%rbp), %eax" << endl;
+	//cout << "	movl	%eax, " << varOffset << "(%rbp)" << endl;
 
 	// Create new temporary variable holding the result
 	varStruct tmp = createTempVar(ctx);
  	
 	// Write expression result (which is in %eax) in new var
-	cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
+	//cfg.getCurrentBB()->addInstr(copy, {tmp.varName, result.varName});
+	//cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
 	
 	return tmp;
 
@@ -362,6 +393,7 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 
 		//deal with std::out_of_range and std::invalid_argument
 		try{ 
+
 			// transform constant's info as ull
 			unsigned long long ullConstValue = stoull(constStr);
 			
@@ -390,8 +422,9 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 			constValue = (int)lConstValue;
 
 			//warning
-			string message =  "Integer constant is too large for its type.\nOverflow in conversion to ‘int’ changes value from ‘" + constStr + "’ to ‘" + to_string(constValue) + "’";
+			string message =  "Integer constant is too large for its type.\nOverflow in conversion to 'int' changes value from '" + constStr + "' to '" + to_string(constValue) + "'";
 			errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
+
 		} catch(std::invalid_argument& e){
 			
 			//error
@@ -404,7 +437,8 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 	varStruct tmp = createTempVar(ctx);
  	
 	// Write assembly instructions
-	cout << "	movl	$" << constValue << ", " << tmp.memoryOffset << "(%rbp)" << endl;
+	cfg.getCurrentBB()->addInstr(ldconst, {tmp.varName, "$" + to_string(constValue)});
+	//cout << "	movl	$" << constValue << ", " << tmp.memoryOffset << "(%rbp)" << endl;
 	
 	// Return the temporary variable
 	return tmp;
@@ -482,8 +516,9 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	tempVarCounter = 0;
 	
 	// Write assembly instructions
-	cout << "	movl	" << aVarOffset << "(%rbp), %eax" << endl;
-	cout << "	movl	%eax, " << dVarOffset << "(%rbp)" << endl;
+	cfg.getCurrentBB()->addInstr(copy, {dVarName, result.varName});
+	//cout << "	movl	" << aVarOffset << "(%rbp), %eax" << endl;
+	//cout << "	movl	%eax, " << dVarOffset << "(%rbp)" << endl;
 	
 	return 0;
 
@@ -500,12 +535,13 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 	varStruct result = visit(ctx->expr());
 
     if (!result.isCorrect) {
-        cout << "	popq	%rbp" << endl;
-        cout << "	ret" << endl;
+		cfg.getCurrentBB()->addInstr(ret, {});
+        //cout << "	popq	%rbp" << endl;
+        //cout << "	ret" << endl;
         return 1;
     }
 
-	int aVarOffset = result.memoryOffset;
+	//int aVarOffset = result.memoryOffset;
 	
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
 	symbolTable.setStackPointer(currStackPointer);
@@ -513,9 +549,10 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 	tempVarCounter = 0;
 
 	// Write assembly instructions
-	cout << "	movl	" << aVarOffset << "(%rbp), %eax"<< endl;
-	cout << "	popq	%rbp" << endl;
-	cout << "	ret" << endl;
+	cfg.getCurrentBB()->addInstr(ret, {result.varName});
+	//cout << "	movl	" << aVarOffset << "(%rbp), %eax"<< endl;
+	//cout << "	popq	%rbp" << endl;
+	//cout << "	ret" << endl;
 
 	return 0;
 	
@@ -523,18 +560,19 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 
 antlrcpp::Any CodeGenVisitor::visitEmptyEnd(ifccParser::EmptyEndContext *ctx) {
 	returned = true;
-	cout << "	movl	$41, %eax"<< endl;
-	cout << "	popq	%rbp" << endl;
-	cout << "	ret" << endl;
+	cfg.getCurrentBB()->addInstr(ret, {"$41"});
+	//cout << "	movl	$41, %eax"<< endl;
+	//cout << "	popq	%rbp" << endl;
+	//cout << "	ret" << endl;
 	return 0;
-
 }
 
 void CodeGenVisitor::returnDefault() {
 	returned = true;
-	cout << "	movl	$0, %eax"<< endl;
-	cout << "	popq	%rbp" << endl;
-	cout << "	ret" << endl;
+	cfg.getCurrentBB()->addInstr(ret, {"$0"});
+	//cout << "	movl	$0, %eax"<< endl;
+	//cout << "	popq	%rbp" << endl;
+	//cout << "	ret" << endl;
 }
 
 bool CodeGenVisitor::hasReturned() {
