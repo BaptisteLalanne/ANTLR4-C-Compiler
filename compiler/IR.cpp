@@ -69,8 +69,10 @@ void Instr::generateASM(ostream &o) {
 
 
 	switch (op) {
+
 		case ldconst:
-			// get param
+
+			// Get params
 			string param1 = params.at(0);
 			string param2 = params.at(1);
 
@@ -91,6 +93,7 @@ void Instr::generateASM(ostream &o) {
 
 			
 			break;
+
 		case copy:
 
 			// get param
@@ -110,7 +113,8 @@ void Instr::generateASM(ostream &o) {
 			o << "	movl	%eax, " << var1Offset << "(%rbp)" << endl;
 	
 			break;
-		case add:
+
+		case op_add:
 
 			// get param
 			string param1 = params.at(0);
@@ -138,27 +142,126 @@ void Instr::generateASM(ostream &o) {
 			}
 			
 			break;
-		case sub:
-		
+
+		case op_xor:
+
+			// Get params
+			string var1 = params.at(0);
+			string var2 = params.at(1);
+			string tmp = params.at(2);
+
+			// Write ASM
+			o << "	movl	" << getSymbol(var1).memoryOffset << "(%rbp), %eax" << endl;
+			o << "	xorl	" <<  getSymbol(var2).memoryOffset << "(%rbp), %eax" << endl;
+			o << "	movl	%eax, " << getSymbol(tmp).memoryOffset << "(%rbp)" << endl;
+
 			break;
-		case mul:
-		
+
+		case op_and:
+
+			// Get params
+			string var1 = params.at(0);
+			string var2 = params.at(1);
+			string tmp = params.at(2);
+
+			// Write ASM
+			o << "	movl	" << getSymbol(var1).memoryOffset << "(%rbp), %eax" << endl;
+			o << "	andl	" <<  getSymbol(var2).memoryOffset << "(%rbp), %eax" << endl;
+			o << "	movl	%eax, " << getSymbol(tmp).memoryOffset << "(%rbp)" << endl;
+
 			break;
-		case rmem: // read memory
-			
+
+		case op_mul:
+
+			// Get params
+			string var1 = params.at(0);
+			string var2 = params.at(1);
+			string tmp = params.at(2);
+
+			// Write ASM
+			o << "	movl	" << getSymbol(var1).memoryOffset << "(%rbp), %eax" << endl;
+			o << "	imull	" << getSymbol(var2).memoryOffset << "(%rbp), %eax" << endl;
+			o << "	movl	%eax, " << getSymbol(tmp).memoryOffset << "(%rbp)" << endl;
+
 			break;
-		case wmem: // write memory
-		
+
+		case op_div:
+
+			// Get params
+			string var1 = params.at(0);
+			string var2 = params.at(1);
+			string tmp = params.at(2);
+
+			// Write ASM
+			o << "	movl	" << getSymbol(var1).memoryOffset << "(%rbp), %eax" << endl;
+			o << "	cltd" << endl;
+			o << "	idivl	" << getSymbol(var2).memoryOffset << "(%rbp)" << endl; 
+			o << "	movl	%eax, " << getSymbol(tmp).memoryOffset << "(%rbp)" << endl;
+
 			break;
+
+		case op_mod:
+
+			// Get params
+			string var1 = params.at(0);
+			string var2 = params.at(1);
+			string tmp = params.at(2);
+
+			// Write ASM
+			o << "	movl	" << getSymbol(var1).memoryOffset << "(%rbp), %eax" << endl;
+			o << "	cltd" << endl;
+			o << "	idivl	" << getSymbol(var2).memoryOffset << "(%rbp)" << endl; 
+			o << "	movl	%edx, " << getSymbol(tmp).memoryOffset << "(%rbp)" << endl;
+
+			break;
+
+		case op_not:
+
+			// Get params
+			string var = params.at(0);
+			string tmp = params.at(1);
+
+			// Write ASM
+			o << "	cmpl	$0, " << getSymbol(var).memoryOffset << "(%rbp)" << endl;
+			o << "	sete	%al" << endl;
+			o << "	movzbl	%al, %eax" << endl;
+			o << "	movl	%eax, " << getSymbol(tmp).memoryOffset << "(%rbp)" << endl;
+
+			break;
+
+		case op_minus:
+
+			// Get params
+			string var = params.at(0);
+			string tmp = params.at(1);
+
+			// Write ASM
+			o << "	movl	" << getSymbol(var).memoryOffset << "(%rbp), %eax" << endl;
+			o << "	negl	%eax" << endl;
+			o << "	movl	%eax, " << getSymbol(tmp).memoryOffset << "(%rbp)" << endl;
+
+			break;
+
+		case rmem: 
+			// not yet implemented
+			break;
+
+		case wmem: 
+			// not yet implemented
+			break;
+
 		case call:
 			// not yet implemented
 			break;
+
 		case cmp_eq:
 
 			break;
+
 		case cmp_lt:
 
 			break;
+
 		case cmp_le:
 
 			break;

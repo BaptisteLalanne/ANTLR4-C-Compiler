@@ -346,12 +346,13 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	tempVarCounter = 0;
 	
 	// Write assembly instructions to save expression in variable 
-	cfg.getCurrentBB()->addInstr(copy, {aVarOffset, result.varName, tmp.varName});
+	cfg.getCurrentBB()->addInstr(copy, {aVarOffset, result.varName});
 	//cout << "	movl	" << aVarOffset << "(%rbp), %eax" << endl;
 	//cout << "	movl	%eax, " << varOffset << "(%rbp)" << endl;
 
 	// Create new temporary variable holding the result
 	varStruct tmp = createTempVar(ctx);
+	cfg.getCurrentBB()->addInstr(copy, {aVarOffset, tmp.varName});
  	
 	// Write expression result (which is in %eax) in new var
 	//cfg.getCurrentBB()->addInstr(copy, {tmp.varName, result.varName});
