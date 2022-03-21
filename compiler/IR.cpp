@@ -45,28 +45,56 @@ void CFG::createBB() {
 
 }
 
+/* --------------------------------------------------------------------- */
+bool Instr::hasSymbol(string name) {
+	return this->bb->getCFG()->getSymbolTable().hasVar(name);
+}
+
 void Instr::generateASM(ostream &o) {
-	// TODO: generate ASM for one instruction
-
-	/*
-		ldconst,
-		copy,
-		add,
-		sub,
-		mul,
-		rmem,
-		wmem,
-		call, 
-		cmp_eq,
-		cmp_lt,
-		cmp_le
-
-		copy var1 var2
-		copy var1 $3
-		copy var1 'a
-	*/
 
 	switch (op) {
+
+		case Instr::call:
+		{
+			string param1 = params.at(0);
+
+			o << ".globl " << param1 << endl;
+			o << param1 << ":" << endl;
+			o << "pushq	%rbp" << endl;
+			o << "movq	%rsp, %rbp" << endl;
+
+			break;
+		}
+
+		case Instr::ret:
+		{
+
+			// Get params
+			string param1 = params.at(0);
+
+			// if var exists
+			if (hasSymbol(param1)) {
+				varStruct var = getSymbol(param1);
+				o << "	movl	" << var.memoryOffset << "(%rbp), %eax"<< endl;
+			}
+			// if it is a const
+			else {
+				int constValue;
+				if (param1[0] == '\'') {
+					constValue = int(param1[1]);
+				} else if (param1[0] == '$') {
+					constValue = stoi(param1.substr(1,param1.size()-1));	
+				} else {
+					// error
+				}
+				o << "	movl	$" << constValue << ", %eax" << endl;
+			}
+
+			o << "popq	%rbp"<<endl;
+			o << "ret"<<endl;
+
+			break;
+		}
 
 		case Instr::ldconst:
 		{
@@ -301,10 +329,6 @@ void Instr::generateASM(ostream &o) {
 			// not yet implemented
 			break;
 
-		case Instr::call:
-			// not yet implemented
-			break;
-
 		case Instr::cmp_eq:
 		{
 			// get param
@@ -435,4 +459,12 @@ void CFG::generateASM(ostream& o) {
 
 varStruct Instr::getSymbol(string name) {
 	return this->bb->getCFG()->getSymbolTable().getVar(name);
+}
+int voiture = 10;
+
+void CFG::gen_asm_prologue(ostream& o) {
+	o << ".text" << endl;
+}
+
+void CFG::gen_asm_epilogue(ostream& o) {
 }

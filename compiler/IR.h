@@ -57,6 +57,7 @@ class Instr {
 	// if you subclass Instr, each Instr subclass has its parameters and the previous (very important) comment becomes useless: it would be a better design.
 
 	varStruct getSymbol(string name);
+	bool hasSymbol(string name);
 
 };
 
