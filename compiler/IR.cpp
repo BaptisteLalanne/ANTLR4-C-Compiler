@@ -56,7 +56,8 @@ void Instr::generateASM(ostream &o) {
 		mul,
 		rmem,
 		wmem,
-		call, 
+		call,
+		ret,
 		cmp_eq,
 		cmp_lt,
 		cmp_le
@@ -67,8 +68,18 @@ void Instr::generateASM(ostream &o) {
 	*/
 
 
-
 	switch (op) {
+		case call:
+			string param1 = params.at(0);
+			o << ".globl " << param1 << endl;
+			o << param1 <<":"<<endl;
+			o << "pushq	%rbp"<<endl;
+			o << "movq	%rsp, %rbp"<<endl;
+			break;
+		case ret:
+			o << "popq	%rbp"<<endl;
+			o << "ret"<<endl;
+			break;
 		case ldconst:
 			// get param
 			string param1 = params.at(0);
@@ -182,4 +193,12 @@ void CFG::generateASM(ostream& o) {
 
 varStruct Instr::getSymbol(string name) {
 	return this->bb->getCFG()->getSymbolTable().getVar(name);
+}
+int voiture = 10;
+
+void CFG::gen_asm_prologue(ostream& o) {
+	o << ".text" << endl;
+}
+
+void CFG::gen_asm_epilogue(ostream& o) {
 }
