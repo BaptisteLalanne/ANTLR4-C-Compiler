@@ -22,15 +22,24 @@ class Instr {
 	typedef enum {
 		ldconst,
 		copy,
-		add,
-		sub,
-		mul,
 		rmem,
 		wmem,
-		call, 
+		call,
 		cmp_eq,
+		cmp_neq,
 		cmp_lt,
-		cmp_le
+		cmp_le,
+		op_or,
+		op_xor,
+		op_and,
+		op_add,
+		op_sub,
+		op_mul,
+		op_div,
+		op_mod,
+		op_not,
+		op_minus,
+		ret
 	} Operation;
 
 	/* Constructor */

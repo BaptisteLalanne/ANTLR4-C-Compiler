@@ -18,12 +18,13 @@ using namespace std;
 //------------------------------------------------------------------ Types
 // Store all informations relvent for a variable
 struct varStruct {
+	string varName; 	//Its name
 	int memoryOffset;	//Its offset (in memory) to the base pointer 
 	string varType;		//The type of the variable
 	string varScope;	//The variable scope (i.e. global, local, ou paramètre)
 	int varLine;		//The line of code where the variable is declared
 	bool isUsed;		//Whether the variable is used in the code
-    bool isCorrect; 	// False when a dummy struct is returned to avoid bad cast
+    bool isCorrect; 	// False when a dummy struct is returned to avoid bad cast	
 };
 
 // Store all informations relvent for a function
@@ -81,7 +82,7 @@ class SymbolTable {
 		static unordered_map<string, int> typeSizes;
 
         // Dummy varStruct to handle parsing errors
-        varStruct dummyVarStruct = {0,"","",0,false,false};
+        varStruct dummyVarStruct = {"", 0,"","",0,false,false};
 			
 	protected:
 

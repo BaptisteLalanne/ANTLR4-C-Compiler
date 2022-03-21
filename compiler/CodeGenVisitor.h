@@ -14,6 +14,7 @@
 #include "generated/ifccBaseVisitor.h"
 #include "SymbolTable.h"
 #include "ErrorHandler.h"
+#include "IR.h"
 
 //------------------------------------------------------------------------
 // Goal of class <CodeGenVisitor>
