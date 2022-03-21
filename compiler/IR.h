@@ -18,7 +18,7 @@ class Instr {
  
    public:
 
-	/** The instructions themselves -- feel free to subclass instead */
+   	/** The instructions themselves -- feel free to subclass instead */
 	typedef enum {
 		ldconst,
 		copy,
@@ -43,7 +43,7 @@ class Instr {
 	} Operation;
 
 	/* Constructor */
-	Instr(BasicBlock* bb, Operation op, vector<string> params);
+	Instr(BasicBlock* bb, Instr::Operation op, vector<string> params);
 	
 	/** Actual code generation */
 	void generateASM(ostream &o); /* x86 assembly code generation for this IR instruction */
@@ -127,17 +127,16 @@ class CFG {
 
 	public:
 
-		CFG(SymbolTable& st) : symbolTable(st) {};
-		void createBB(BasicBlock* bb); 
+		CFG(SymbolTable& st);
+		void createBB(); 
 
 		// x86 code generation: could be encapsulated in a processor class in a retargetable compiler
 		void generateASM(ostream& o);
 		string IR_reg_to_asm(string reg); /* helper method: inputs a IR reg or input variable, returns e.g. "-24(%rbp)" for the proper value of 24 */
 		void gen_asm_prologue(ostream& o); // TODO: we could include them in gen_asm()
 		void gen_asm_epilogue(ostream& o);
-		BasicBlock* getCurrentBB() const;
-		// Getter symbolTable
-		SymbolTable& getSymbolTable(){return symbolTable;};
+		BasicBlock* getCurrentBB();
+		SymbolTable& getSymbolTable() {return symbolTable;};
 
 	protected:
 

@@ -17,7 +17,7 @@ antlrcpp::Any CodeGenVisitor::visitMainHeader(ifccParser::MainHeaderContext *ctx
 	//cout << "main:" << endl;
 	//cout << "	pushq	%rbp" << endl;
 	//cout << "	movq	%rsp, %rbp" << endl;
-	cfg.getCurrentBB()->addInstr(call, {"main"});
+	cfg.getCurrentBB()->addInstr(Instr::call, {"main"});
 	return visitChildren(ctx);
 
 }
@@ -38,11 +38,11 @@ antlrcpp::Any CodeGenVisitor::visitUnaryExpr(ifccParser::UnaryExprContext *ctx) 
 		//cout << "	cmpl	$0, " << varOffset << "(%rbp)" << endl;
 		//cout << "	sete	%al" << endl;
 		//cout << "	movzbl	%al, %eax" << endl;
-		cfg.getCurrentBB()->addInstr(op_not, {var.varName, tmp.varName});
+		cfg.getCurrentBB()->addInstr(Instr::op_not, {var.varName, tmp.varName});
 	} else {
 		//cout << "	movl	" << varOffset << "(%rbp), %eax" << endl;
 		//cout << "	negl	%eax" << endl;
-		cfg.getCurrentBB()->addInstr(op_minus, {var.varName, tmp.varName});
+		cfg.getCurrentBB()->addInstr(Instr::op_minus, {var.varName, tmp.varName});
 	}
 	// Write expression result (which is in %eax) in new var
 	//cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
@@ -69,7 +69,7 @@ antlrcpp::Any CodeGenVisitor::visitAndExpr(ifccParser::AndExprContext *ctx) {
 	// Write expression result (which is in %eax) in new var
 	//cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
 
-	cfg.getCurrentBB()->addInstr(op_and, {var1.varName, var2.varName, tmp.varName});
+	cfg.getCurrentBB()->addInstr(Instr::op_and, {var1.varName, var2.varName, tmp.varName});
 	
 	// Return the temporary variable
 	return tmp;
@@ -92,7 +92,7 @@ antlrcpp::Any CodeGenVisitor::visitXorExpr(ifccParser::XorExprContext *ctx) {
 	// Write expression result (which is in %eax) in new var
 	//cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
 
-	cfg.getCurrentBB()->addInstr(op_xor, {var1.varName, var2.varName, tmp.varName});
+	cfg.getCurrentBB()->addInstr(Instr::op_xor, {var1.varName, var2.varName, tmp.varName});
 	
 	// Return the temporary variable
 	return tmp;
@@ -115,7 +115,7 @@ antlrcpp::Any CodeGenVisitor::visitOrExpr(ifccParser::OrExprContext *ctx) {
 	//cout << "	orl	" << var2Offset << "(%rbp), %eax" << endl;
 	// Write expression result (which is in %eax) in new var
 	//cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
-	cfg.getCurrentBB()->addInstr(op_or, {var1.varName, var2.varName, tmp.varName});
+	cfg.getCurrentBB()->addInstr(Instr::op_or, {var1.varName, var2.varName, tmp.varName});
 	
 	// Return the temporary variable
 	return tmp;
@@ -159,11 +159,11 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 	switch (op) {
 
 		case '+':
-			cfg.getCurrentBB()->addInstr(op_add, {var1.varName, var2.varName, tmp.varName});
+			cfg.getCurrentBB()->addInstr(Instr::op_add, {var1.varName, var2.varName, tmp.varName});
 			break;
 
 		case '-':
-			cfg.getCurrentBB()->addInstr(op_sub, {var1.varName, var2.varName, tmp.varName});
+			cfg.getCurrentBB()->addInstr(Instr::op_sub, {var1.varName, var2.varName, tmp.varName});
 			break;
 
 	}
@@ -217,15 +217,15 @@ antlrcpp::Any CodeGenVisitor::visitMulDivModExpr(ifccParser::MulDivModExprContex
 	switch (op) {
 
 		case '*':
-			cfg.getCurrentBB()->addInstr(op_mul, {var1.varName, var2.varName, tmp.varName});
+			cfg.getCurrentBB()->addInstr(Instr::op_mul, {var1.varName, var2.varName, tmp.varName});
 			break;
 
 		case '/':
-			cfg.getCurrentBB()->addInstr(op_div, {var1.varName, var2.varName, tmp.varName});
+			cfg.getCurrentBB()->addInstr(Instr::op_div, {var1.varName, var2.varName, tmp.varName});
 			break;
 
 		case '%':
-			cfg.getCurrentBB()->addInstr(op_mod, {var1.varName, var2.varName, tmp.varName});
+			cfg.getCurrentBB()->addInstr(Instr::op_mod, {var1.varName, var2.varName, tmp.varName});
 			break;
 
 	}
@@ -260,12 +260,12 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 	// Less than comparaison
 	if (op == '<') {
 		//cout << "	setl	%al" << endl;
-		cfg.getCurrentBB()->addInstr(cmp_lt, {var1.varName, var2.varName, tmp.varName});
+		cfg.getCurrentBB()->addInstr(Instr::cmp_lt, {var1.varName, var2.varName, tmp.varName});
 	}
 	// Greater than comparaison
 	else {
 		//cout << "	setg	%al" << endl;
-		cfg.getCurrentBB()->addInstr(cmp_gt, {var1.varName, var2.varName, tmp.varName});
+		cfg.getCurrentBB()->addInstr(Instr::cmp_gt, {var1.varName, var2.varName, tmp.varName});
 	}
 	//cout << "	movzbl	%al, %eax" << endl;
  	
@@ -299,12 +299,12 @@ antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprCo
 	//cout << "	cmpl	" << var2Offset << "(%rbp), %eax" << endl;
 	// Equal comparaison
 	if (op == '=') {
-		cfg.getCurrentBB()->addInstr(cmp_eq, {var1.varName, var2.varName, tmp.varName});
+		cfg.getCurrentBB()->addInstr(Instr::cmp_eq, {var1.varName, var2.varName, tmp.varName});
 		//cout << "	sete	%al" << endl;
 	}
 	// Not equal comparaison
 	else {
-		cfg.getCurrentBB()->addInstr(cmp_neq, {var1.varName, var2.varName, tmp.varName});
+		cfg.getCurrentBB()->addInstr(Instr::cmp_neq, {var1.varName, var2.varName, tmp.varName});
 		//cout << "	setne	%al" << endl;
 	}
 	//cout << "	movzbl	%al, %eax" << endl;
@@ -346,16 +346,16 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	tempVarCounter = 0;
 	
 	// Write assembly instructions to save expression in variable 
-	cfg.getCurrentBB()->addInstr(copy, {aVarOffset, result.varName});
+	cfg.getCurrentBB()->addInstr(Instr::copy, {aVarOffset, result.varName});
 	//cout << "	movl	" << aVarOffset << "(%rbp), %eax" << endl;
 	//cout << "	movl	%eax, " << varOffset << "(%rbp)" << endl;
 
 	// Create new temporary variable holding the result
 	varStruct tmp = createTempVar(ctx);
-	cfg.getCurrentBB()->addInstr(copy, {aVarOffset, tmp.varName});
+	cfg.getCurrentBB()->addInstr(Instr::copy, {aVarOffset, tmp.varName});
  	
 	// Write expression result (which is in %eax) in new var
-	//cfg.getCurrentBB()->addInstr(copy, {tmp.varName, result.varName});
+	//cfg.getCurrentBB()->addInstr(Instr::copy, {tmp.varName, result.varName});
 	//cout << "	movl	%eax, " << tmp.memoryOffset << "(%rbp)" << endl;
 	
 	return tmp;
@@ -438,7 +438,7 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 	varStruct tmp = createTempVar(ctx);
  	
 	// Write assembly instructions
-	cfg.getCurrentBB()->addInstr(ldconst, {tmp.varName, "$" + to_string(constValue)});
+	cfg.getCurrentBB()->addInstr(Instr::ldconst, {tmp.varName, "$" + to_string(constValue)});
 	//cout << "	movl	$" << constValue << ", " << tmp.memoryOffset << "(%rbp)" << endl;
 	
 	// Return the temporary variable
@@ -517,7 +517,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	tempVarCounter = 0;
 	
 	// Write assembly instructions
-	cfg.getCurrentBB()->addInstr(copy, {dVarName, result.varName});
+	cfg.getCurrentBB()->addInstr(Instr::copy, {dVarName, result.varName});
 	//cout << "	movl	" << aVarOffset << "(%rbp), %eax" << endl;
 	//cout << "	movl	%eax, " << dVarOffset << "(%rbp)" << endl;
 	
@@ -536,7 +536,7 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 	varStruct result = visit(ctx->expr());
 
     if (!result.isCorrect) {
-		cfg.getCurrentBB()->addInstr(ret, {});
+		cfg.getCurrentBB()->addInstr(Instr::ret, {});
         //cout << "	popq	%rbp" << endl;
         //cout << "	ret" << endl;
         return 1;
@@ -550,7 +550,7 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 	tempVarCounter = 0;
 
 	// Write assembly instructions
-	cfg.getCurrentBB()->addInstr(ret, {result.varName});
+	cfg.getCurrentBB()->addInstr(Instr::ret, {result.varName});
 	//cout << "	movl	" << aVarOffset << "(%rbp), %eax"<< endl;
 	//cout << "	popq	%rbp" << endl;
 	//cout << "	ret" << endl;
@@ -561,7 +561,7 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 
 antlrcpp::Any CodeGenVisitor::visitEmptyEnd(ifccParser::EmptyEndContext *ctx) {
 	returned = true;
-	cfg.getCurrentBB()->addInstr(ret, {"$41"});
+	cfg.getCurrentBB()->addInstr(Instr::ret, {"$41"});
 	//cout << "	movl	$41, %eax"<< endl;
 	//cout << "	popq	%rbp" << endl;
 	//cout << "	ret" << endl;
@@ -570,7 +570,7 @@ antlrcpp::Any CodeGenVisitor::visitEmptyEnd(ifccParser::EmptyEndContext *ctx) {
 
 void CodeGenVisitor::returnDefault() {
 	returned = true;
-	cfg.getCurrentBB()->addInstr(ret, {"$0"});
+	cfg.getCurrentBB()->addInstr(Instr::ret, {"$0"});
 	//cout << "	movl	$0, %eax"<< endl;
 	//cout << "	popq	%rbp" << endl;
 	//cout << "	ret" << endl;
