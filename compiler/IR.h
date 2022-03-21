@@ -28,7 +28,7 @@ class Instr {
 		cmp_eq,
 		cmp_neq,
 		cmp_lt,
-		cmp_le,
+		cmp_gt,
 		op_or,
 		op_xor,
 		op_and,
