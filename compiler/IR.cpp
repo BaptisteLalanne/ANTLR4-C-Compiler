@@ -34,7 +34,7 @@ BasicBlock* CFG::getCurrentBB() const {
 	return currentBB;
 }
 
-voic CFG::createBB() {
+void CFG::createBB() {
 
 	// Generate BB name
 	string bbName = "bb" + to_string(bbList.size());
@@ -43,4 +43,140 @@ voic CFG::createBB() {
 	BasicBlock* bb = new BasicBlock(this, bbName);
 	bbList.add(bb);
 
+}
+
+void Instr::generateASM(ostream &o) {
+	// TODO: generate ASM for one instruction
+
+	/*
+		ldconst,
+		copy,
+		add,
+		sub,
+		mul,
+		rmem,
+		wmem,
+		call, 
+		cmp_eq,
+		cmp_lt,
+		cmp_le
+
+		copy var1 var2
+		copy var1 $3
+		copy var1 'a
+	*/
+
+
+
+	switch (op) {
+		case ldconst:
+			// get param
+			string param1 = params.at(0);
+			string param2 = params.at(1);
+
+			// get variables
+			varStruct firstVar = getSymbol(param1);
+			// varStruct secondVar = getSymbol(param2);
+
+			if (param2[0] == '\'') {
+				char tmp = param2[1];
+			} else if (param2[0] == '$') {
+				int tmp = param2[1];
+			} else {
+				// error
+			}
+
+			
+			break;
+		case copy:
+
+			// get param
+			string param1 = params.at(0);
+			string param2 = params.at(1);
+
+			// get variables
+			varStruct firstVar = getSymbol(param1);
+			varStruct secondVar = getSymbol(param2);
+
+			// get offsets
+			int var1Offset = firstVar.memoryOffset;
+			int var2Offset = secondVar.memoryOffset;
+
+			// Write assembly instructions
+			o << "	movl	" << var2Offset << "(%rbp), %eax" << endl;
+			o << "	movl	%eax, " << var1Offset << "(%rbp)" << endl;
+	
+			break;
+		case add:
+
+			// get param
+			string param1 = params.at(0);
+			string param2 = params.at(1);
+			string param3 = params.at(2);
+
+			// check if second param is a const
+			if (param3[0] == '\'') {
+				// const char
+			} else if (param2[0] == '$') {
+				// const int
+			} else {
+				// not a const
+
+				// get variables
+				varStruct firstVar = getSymbol(param1);
+				varStruct secondVar = getSymbol(param2);
+
+				// get offsets
+				int var1Offset = firstVar.memoryOffset;
+				int var2Offset = secondVar.memoryOffset;
+
+				o << "	movl	" << var1Offset << "(%rbp), %eax" << endl;
+				o << "	addl	" << var2Offset << "(%rbp), %eax" << endl;
+			}
+			
+			break;
+		case sub:
+		
+			break;
+		case mul:
+		
+			break;
+		case rmem: // read memory
+			
+			break;
+		case wmem: // write memory
+		
+			break;
+		case call:
+			// not yet implemented
+			break;
+		case cmp_eq:
+
+			break;
+		case cmp_lt:
+
+			break;
+		case cmp_le:
+
+			break;
+
+	}
+	
+}
+
+void BasicBlock::generateASM(ostream &o) {
+	// TODO: parse instructions, generate ASM for each instruction
+}
+
+void CFG::generateASM(ostream& o) {
+	gen_asm_prologue();
+
+	// TODO: parse blocks, generate ASM for each block
+	
+
+	gen_asm_epilogue();
+}
+
+varStruct Instr::getSymbol(string name) {
+	return this->bb->getCFG()->getSymbolTable().getVar(name);
 }

@@ -8,6 +8,7 @@
 #include "generated/ifccParser.h"
 #include "generated/ifccBaseVisitor.h"
 #include "CodeGenVisitor.h"
+#include "IR.h"
 
 using namespace antlr4;
 using namespace std;
@@ -50,7 +51,7 @@ int main(int argn, const char **argv) {
     // Create symbol table and error handler
     SymbolTable symbolTable;
     ErrorHandler errorHandler;
-    CFG controlFlowGraph;
+    CFG controlFlowGraph(symbolTable);
 
     // Print header instruction
     cout << " .text" << endl;

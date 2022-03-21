@@ -61,4 +61,4 @@ clean:
 	rm -rf build generated
 	rm -f ifcc
 
-re: clean all
+re:	clean all

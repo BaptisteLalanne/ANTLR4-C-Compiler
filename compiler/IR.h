@@ -39,12 +39,15 @@ class Instr {
 	/** Actual code generation */
 	void generateASM(ostream &o); /* x86 assembly code generation for this IR instruction */
 	
+	
  private:
 
 	BasicBlock* bb; /**< The BB this instruction belongs to, which provides a pointer to the CFG this instruction belong to */
 	Operation op;
 	vector<string> params; /**< For 3-op instrs: d, x, y; for ldconst: d, c;  For call: label, d, params;  for wmem and rmem: choose yourself */
-	// if you subclass Instr, each Instr subclass has its parameters and the previous (very important) comment becomes useless: it would be a better design. 
+	// if you subclass Instr, each Instr subclass has its parameters and the previous (very important) comment becomes useless: it would be a better design.
+
+	varStruct getSymbol(string name);
 
 };
 
@@ -86,6 +89,9 @@ class BasicBlock {
 		void generateASM(ostream &o); /* x86 assembly code generation for this basic block (very simple) */
 		void addInstr(Instr::Operation op, vector<string> params);
 
+		// Getter CFG 
+		CFG* getCFG(){return cfg;};
+
 	protected:
 
 		// No encapsulation whatsoever here. Feel free to do better.
@@ -112,7 +118,7 @@ class CFG {
 
 	public:
 
-		CFG();
+		CFG(SymbolTable& st) : symbolTable(st) {};
 		void createBB(BasicBlock* bb); 
 
 		// x86 code generation: could be encapsulated in a processor class in a retargetable compiler
@@ -121,11 +127,14 @@ class CFG {
 		void gen_asm_prologue(ostream& o); // TODO: we could include them in gen_asm()
 		void gen_asm_epilogue(ostream& o);
 		BasicBlock* getCurrentBB() const;
+		// Getter symbolTable
+		SymbolTable& getSymbolTable(){return symbolTable;};
 
 	protected:
 
 		BasicBlock* currentBB;
 		vector<BasicBlock*> bbList; /* all the basic blocks of this CFG */
+		SymbolTable& symbolTable;
 
 		
 
