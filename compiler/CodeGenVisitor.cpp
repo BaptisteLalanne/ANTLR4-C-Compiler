@@ -403,8 +403,6 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 		cfg.getCurrentBB()->addInstr(Instr::ret, {});
         return 1;
     }
-
-	//int aVarOffset = result.memoryOffset;
 	
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
 	symbolTable.setStackPointer(currStackPointer);
@@ -424,6 +422,32 @@ antlrcpp::Any CodeGenVisitor::visitEmptyEnd(ifccParser::EmptyEndContext *ctx) {
 	return 0;
 }
 
+antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) {
+	// visit header
+	// visit body, generate BB(s) with it
+	// save body BB(s) in the function's symbol table struct (including prologue and epilogue!) ???
+}
+
+antlrcpp::Any CodeGenVisitor::visitFuncHeader(ifccParser::FuncHeaderContext *ctx) {
+	// visit parameter declaration, fetch parameter types and number of parameters
+	// fetch return type
+	// create function in symbol table (if doesn't exist, otherwise error)
+}
+
+antlrcpp::Any CodeGenVisitor::visitFuncParamsDeclr(ifccParser::FuncParamsDeclrContext *ctx) {
+	// return a struct containing parameter types
+}
+
+antlrcpp::Any CodeGenVisitor::visitFuncCall(ifccParser::FuncCallContext *ctx) {
+	// visit param list
+	// link current BB to the function's first BB (what happens when you exit though ???)
+}
+
+antlrcpp::Any CodeGenVisitor::visitFuncParamsList(ifccParser::FuncParamsListContext *ctx) {
+	// for each param, check type (compared to function definition in symbol table)
+	// and generate instruction that puts them into the special parameter registers
+}
+
 void CodeGenVisitor::returnDefault() {
 	returned = true;
 	cfg.getCurrentBB()->addInstr(Instr::ret, {"$0"});
@@ -434,13 +458,10 @@ bool CodeGenVisitor::hasReturned() {
 }
 
 varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx) {
-
-	// Create temporary variable with the intermediary result
 	tempVarCounter++;
 	string newVar = "!tmp" + to_string(tempVarCounter);
 	string newVarType = "int";
 	symbolTable.addVar(newVar, newVarType, "temporary", ctx->getStart()->getLine());
 	symbolTable.getVar(newVar).isUsed = true;
 	return symbolTable.getVar(newVar);
-
 }
