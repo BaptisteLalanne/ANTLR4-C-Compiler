@@ -2,14 +2,35 @@ grammar ifcc;
 
 axiom : prog ;
 
-prog : 
+prog :
+	(funcDeclr)* mainDeclr (funcDeclr)*
+;
+
+funcDeclr :
+	funcHeader '{' body '}'
+;
+funcHeader :
+	FTYPE=('void'|'int') TOKENNAME '(' (funcParamsDeclr)? ')' 
+;
+funcParamsDeclr :
+	VTYPE TOKENNAME (',' VTYPE TOKENNAME)*
+;
+funcParamsList :
+	expr (',' expr)*
+;
+funcCall :
+	TOKENNAME '(' (funcParamsList)? ')'
+;
+
+mainDeclr : 
 	mainHeader '{' body '}'
 ;
 mainHeader :
 	'int' 'main' '(' ')'
 ;
+
 body : 
-	| declr ';' body 
+	declr ';' body 
 	| expr ';' body
 	| end ';' body
 	| 
@@ -22,12 +43,13 @@ expr :
 	| expr OP2=('+'|'-') expr 		#addSubExpr
 	| expr CMP=('<' | '>') expr		#cmpLessOrGreaterExpr
 	| expr EQ=('=='|'!=') expr		#cmpEqualityExpr
-	| VAR '=' expr 					#affExpr
+	| TOKENNAME '=' expr 					#affExpr
 	| expr '&' expr					#andExpr
 	| expr '^' expr					#xorExpr
 	| expr '|' expr					#orExpr
+	| funcCall						#funcExpr
 	| CONST 						#constExpr 
-	| VAR							#varExpr
+	| TOKENNAME							#varExpr
 ;
 
 declr :
@@ -35,23 +57,24 @@ declr :
 	| varDeclrAndAffect
 ;
 varDeclr : 
-	TYPE VAR (',' VAR)*
+	VTYPE TOKENNAME (',' TOKENNAME)*
 ;
 varDeclrAndAffect :
-	TYPE VAR '=' expr 
+	VTYPE TOKENNAME '=' expr 
 ;
 
 end :
-	RETURN expr			#exprEnd	
-	| RETURN 			#emptyEnd
+	RETURN expr						#exprEnd	
+	| RETURN 						#emptyEnd
 ;
 
-WS : [ \t\r\n] -> channel(HIDDEN);
+WS : [ \t\r\n] -> channel(HIDDEN) ;
 RETURN : 'return' ;
-TYPE : 'int';
-CONST : NUMBER | CHAR;
-NUMBER : [0-9]+;
-CHAR : '\'' . '\'';
-VAR : [a-zA-Z_][a-zA-Z0-9_]* ;
-COMMENT : '/*' .*? '*/' -> skip ;
+VTYPE : 'int' ;
+CONST : NUMBER | CHAR ;
+NUMBER : [0-9]+ ;
+CHAR : '\'' . '\'' ;
+TOKENNAME : [a-zA-Z_][a-zA-Z0-9_]* ;
+MULTICOMMENT : '/*' .*? '*/' -> skip ;
+SINGLECOMMENT : '//' .*? '\n' -> skip ;
 DIRECTIVE : '#' .*? '\n' -> skip ;

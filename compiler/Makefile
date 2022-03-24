@@ -10,7 +10,7 @@ LDFLAGS=-g
 default: all
 all: ifcc
 
--include build/*.d
+#-include build/*.d
 
 ##########################################
 # link together all pieces of our compiler 

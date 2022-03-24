@@ -199,7 +199,7 @@ antlrcpp::Any CodeGenVisitor::visitParExpr(ifccParser::ParExprContext *ctx) {
 antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	
 	// Fetch first variable
-	string varName = ctx->VAR()->getText();
+	string varName = ctx->TOKENNAME()->getText();
 
 	// Check for errors
 	if (!symbolTable.hasVar(varName)) {
@@ -319,7 +319,7 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
 	
 	// Fetch variable
-	string varName = ctx->VAR()->getText();
+	string varName = ctx->TOKENNAME()->getText();
 	// Check errors
 	if (!symbolTable.hasVar(varName)) {
 		string message =  "Variable " + varName + " has not been declared";
@@ -337,12 +337,12 @@ antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
 antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 	
 	// Number of variable to declare
-	int numVariable = ctx->VAR().size();
+	int numVariable = ctx->TOKENNAME().size();
 	// Fetch type
-	string dVarType = ctx->TYPE()->getText();
+	string dVarType = ctx->VTYPE()->getText();
 	for(int i = 0 ; i < numVariable ; i++) {
 		// Fetch variable
-		string dVarName = ctx->VAR(i)->getText();
+		string dVarName = ctx->TOKENNAME(i)->getText();
 		// Check errors
 		if (symbolTable.hasVar(dVarName)) {
 			string message =  "Variable " + dVarName + " has already been declared";
@@ -360,8 +360,8 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffectContext *ctx) {
 	
 	// Fetch variable
-	string dVarName = ctx->VAR()->getText();
-	string dVarType = ctx->TYPE()->getText();
+	string dVarName = ctx->TOKENNAME()->getText();
+	string dVarType = ctx->VTYPE()->getText();
 	// Check errors
 	if (symbolTable.hasVar(dVarName)) {
 		string message =  "Variable " + dVarName + " has already been declared";
