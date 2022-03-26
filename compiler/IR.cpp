@@ -69,6 +69,9 @@ void CFG::generateASMEpilogue(ostream& o) {
 BasicBlock* CFG::getCurrentBB() {
 	return currentBB;
 }
+void CFG::setCurrentBB(BasicBlock* bb) {
+	currentBB = bb;
+}
 
 /* --------------------------------------------------------------------- */
 Instr::Instr(BasicBlock* bb, Instr::Operation op, vector<string> params) : bb(bb), op(op), params(params) {}
@@ -76,9 +79,11 @@ Instr::Instr(BasicBlock* bb, Instr::Operation op, vector<string> params) : bb(bb
 varStruct Instr::getSymbol(string name) {
 	return this->bb->getCFG()->getSymbolTable().getVar(name);
 }
-
 bool Instr::hasSymbol(string name) {
 	return this->bb->getCFG()->getSymbolTable().hasVar(name);
+}
+SymbolTable& Instr::getSymbolTable() {
+	return this->bb->getCFG()->getSymbolTable(); 
 }
 
 void Instr::generateASM(ostream &o) {
@@ -91,17 +96,13 @@ void Instr::generateASM(ostream &o) {
 			string label = params.at(0);
 
 			// Write ASM instructions
-			o << ".globl " << label << endl;
-			o << label << ":" << endl;
-			o << "pushq	%rbp" << endl;
-			o << "movq	%rsp, %rbp" << endl;
+			o << "	call " << label << endl;
 
 			break;
 		}
 
 		case Instr::ret:
 		{
-
 			// Get params
 			string param1 = params.at(0);
 
@@ -125,9 +126,9 @@ void Instr::generateASM(ostream &o) {
 				o << "	movl	$" << constValue << ", %eax" << endl;
 			}
 
-			// Write ASM instructions
-			o << "popq	%rbp"<<endl;
-			o << "ret"<<endl;
+			// Write ASM instructions (EDIT: this is handled by the epilogue)
+			//o << "popq	%rbp"<<endl;
+			//o << "ret"<<endl;
 
 			break;
 		}
@@ -385,6 +386,38 @@ void Instr::generateASM(ostream &o) {
 			o << "	movzbl	%al, %eax" << endl;
 			o << "	movl	%eax, " << getSymbol(tmp).memoryOffset << "(%rbp)" << endl;
 
+			break;
+		}
+
+		case Instr::prologue:
+		{
+			// Get param
+			string label = params.at(0);
+
+			// f we're constructing the main function
+			if (label == "main") { 
+				o << ".globl " << label << endl;
+			}
+
+			// Write ASM instructions
+			o << label << ":" << endl;
+			o << "	pushq %rbp " << endl;
+			o << "	movq %rsp, %rbp" << endl;
+
+			// If we're constructing a function AR
+			if (label != "main") {
+				// Get the memory size needed to store the function's local variables (must be multiple of 16)
+				int memSize = getSymbolTable().getFuncMemorySpace(label);
+				o << "	subq $" << memSize << ", %rsp" << endl;
+			}
+
+			break;
+		}
+
+		case Instr::epilogue:
+		{
+			o << "	leave" << endl;
+			o << "	ret" << endl;
 			break;
 		}
 

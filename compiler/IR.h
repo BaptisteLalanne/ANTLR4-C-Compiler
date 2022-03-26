@@ -36,7 +36,9 @@ class Instr {
 		op_mod,
 		op_not,
 		op_minus,
-		ret
+		ret,
+		prologue,
+		epilogue
 	} Operation;
 
 	Instr(BasicBlock* bb, Instr::Operation op, vector<string> params);
@@ -59,6 +61,8 @@ class Instr {
 	/* Symbol table accessors */
 	varStruct getSymbol(string name);
 	bool hasSymbol(string name);
+	SymbolTable& getSymbolTable();
+
 
 };
 
@@ -116,6 +120,7 @@ class CFG {
 
 		void createBB(); 
 		BasicBlock* getCurrentBB();
+		void setCurrentBB(BasicBlock* bb);
 
 		void generateASM(ostream& o);
 

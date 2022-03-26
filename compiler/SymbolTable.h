@@ -11,7 +11,7 @@
 
 //--------------------------------------------------- Called interfaces
 #include <unordered_map>
-#include <list>
+#include <vector>
 #include "ErrorHandler.h"
 using namespace std;
 
@@ -29,10 +29,11 @@ struct varStruct {
 
 // Store all informations relvent for a function
 struct funcStruct {
-	string returnType; 				//The return type of the function
-	int nbParameters;				//The number of input parameters
-	list<string> parameterTypes;	//The type of every input parameter
-	string code;					//The code inside the function
+	string funcName;				//Its name
+	string returnType; 				//Its return type 
+	size_t nbParameters;				//The number of input parameters
+	vector<string> parameterTypes;	//The type of every input parameter
+	int funcLine; 					// The line of code where the function is declared
 	bool isCalled;					//Whether the function is called
 };
 
@@ -60,6 +61,9 @@ class SymbolTable {
 		// Get the function corresponding to the input function name if it was found
 		funcStruct& getFunc(string name);
 
+		// Get the number of bytes needed to store the local variables of a given function
+		int getFuncMemorySpace(string name);
+
 		// Get the stack pointer 
 		int getStackPointer();
 
@@ -70,7 +74,7 @@ class SymbolTable {
 		void addVar(string name, string vT, string vS, int vL);
 
 		// Add a function to the table of symbols
-		void addFunc(string name, string rT, int nbP, list<string> pT, string c);
+		void addFunc(string name, string rT, vector<string> pT, int fL);
 		
 		// Perform static analysis
 		void checkUsedVariables(ErrorHandler& eH);

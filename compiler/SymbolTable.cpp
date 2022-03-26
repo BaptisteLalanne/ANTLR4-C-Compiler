@@ -30,6 +30,18 @@ funcStruct& SymbolTable::getFunc(string name) {
 	return funcMap[name];
 }
 
+int SymbolTable::getFuncMemorySpace(string name) {
+	int memSize = 0;
+	for (auto v : varMap) {
+		if (v.second.varScope == name) {
+			memSize += typeSizes[v.second.varType];
+		}
+	}
+	int remainder = memSize % 16;
+	memSize += (remainder > 0) ? 16 - remainder : 0;
+	return memSize;
+}
+
 int SymbolTable::getStackPointer() {
 	return stackPointer;
 }
@@ -52,13 +64,14 @@ void SymbolTable::addVar(string name, string vT, string vS, int vL) {
 	varMap[name] = s;
 }
 
-void SymbolTable::addFunc(string name, string rT, int nbP, list<string> pT, string c) {
+void SymbolTable::addFunc(string name, string rT, vector<string> pT, int fL) {
 	struct funcStruct s = {
+		name,
 		rT,
-		nbP,
+		pT.size(),
 		pT,
-		c,
-		false,
+		fL,
+		false
 	};
 	funcMap[name] = s;
 }

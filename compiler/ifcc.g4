@@ -10,24 +10,14 @@ funcDeclr :
 	funcHeader '{' body '}'
 ;
 funcHeader :
-	FTYPE=('void'|'int') TOKENNAME '(' (funcParamsDeclr)? ')' 
+	FTYPE=('void'|'int') TOKENNAME '(' (VTYPE TOKENNAME (',' VTYPE TOKENNAME)*)? ')' 
 ;
-funcParamsDeclr :
-	VTYPE TOKENNAME (',' VTYPE TOKENNAME)*
-;
-
 funcCall :
-	TOKENNAME '(' (funcParamsList)? ')'
-;
-funcParamsList :
-	expr (',' expr)*
+	TOKENNAME '(' (expr (',' expr)*)? ')'
 ;
 
 mainDeclr : 
-	mainHeader '{' body '}'
-;
-mainHeader :
-	'int' 'main' '(' ')'
+	'int' 'main' '(' ')' '{' body '}'
 ;
 
 body : 

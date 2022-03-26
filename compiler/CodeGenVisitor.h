@@ -26,10 +26,10 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 	public:
 
 		// Default constructor
-		CodeGenVisitor(SymbolTable& sT, ErrorHandler& eH, CFG& cfg) : symbolTable(sT), errorHandler(eH), cfg(cfg), returned(false), tempVarCounter(0) { }
+		CodeGenVisitor(SymbolTable& sT, ErrorHandler& eH, CFG& cfg) : symbolTable(sT), errorHandler(eH), cfg(cfg), returned(false), tempVarCounter(0), currFunction("") { }
 
 		// Linearising functions
-		virtual antlrcpp::Any visitMainHeader(ifccParser::MainHeaderContext *ctx);
+		virtual antlrcpp::Any visitMainDeclr(ifccParser::MainDeclrContext *ctx);
 		virtual antlrcpp::Any visitUnaryExpr(ifccParser::UnaryExprContext *ctx) ;
 		virtual antlrcpp::Any visitAddSubExpr(ifccParser::AddSubExprContext *ctx) ;
 		virtual antlrcpp::Any visitMulDivModExpr(ifccParser::MulDivModExprContext *ctx) ;
@@ -48,18 +48,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitOrExpr(ifccParser::OrExprContext *ctx) ;
 		virtual antlrcpp::Any visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) ;
 		virtual antlrcpp::Any visitFuncHeader(ifccParser::FuncHeaderContext *ctx) ;
-		virtual antlrcpp::Any visitFuncParamsDeclr(ifccParser::FuncParamsDeclrContext *ctx) ;
 		virtual antlrcpp::Any visitFuncCall(ifccParser::FuncCallContext *ctx) ;
-		virtual antlrcpp::Any visitFuncParamsList(ifccParser::FuncParamsListContext *ctx) ;
-
-		// Return 0 by default
-		void returnDefault();
-
-		// Whether the program has returned or not
-		bool hasReturned();
-		
-		// Return offset temp variable after created it
-		varStruct createTempVar(antlr4::ParserRuleContext *ctx);
 		
 	protected:
 
@@ -77,5 +66,19 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 
 		// A temp variables counter for evaluating expressions
 		int tempVarCounter;
+
+		// The currently visited function to keep track of scopes
+		string currFunction;
+
+		// A dummy struct to pass vectors between visitors 
+		struct dummyStruct {
+			vector<string> list;
+		};
+		
+		// Return 0 by default
+		void returnDefault();
+		
+		// Return offset temp variable after created it
+		varStruct createTempVar(antlr4::ParserRuleContext *ctx);
 
 };

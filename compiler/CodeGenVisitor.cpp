@@ -11,11 +11,6 @@
 
 using namespace std;
 
-antlrcpp::Any CodeGenVisitor::visitMainHeader(ifccParser::MainHeaderContext *ctx) {
-	cfg.getCurrentBB()->addInstr(Instr::call, {"main"});
-	return visitChildren(ctx);
-}
-
 antlrcpp::Any CodeGenVisitor::visitUnaryExpr(ifccParser::UnaryExprContext *ctx) {
 
 	// Fetch sub-expressions
@@ -350,7 +345,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 			return 1;
 		}
 		// Add variable to symbol table
-		symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
+		symbolTable.addVar(dVarName, dVarType, currFunction, ctx->getStart()->getLine());
 	}
 
 	return 0;
@@ -369,7 +364,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
         return 1;
 	}
 	// Add variable to symbol table
-	symbolTable.addVar(dVarName, dVarType, "local", ctx->getStart()->getLine());
+	symbolTable.addVar(dVarName, dVarType, currFunction, ctx->getStart()->getLine());
 
 	// Save current stack pointer
 	int currStackPointer = symbolTable.getStackPointer();
@@ -422,46 +417,103 @@ antlrcpp::Any CodeGenVisitor::visitEmptyEnd(ifccParser::EmptyEndContext *ctx) {
 	return 0;
 }
 
-antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) {
-	// visit header
-	// visit body, generate BB(s) with it
-	// save body BB(s) in the function's symbol table struct (including prologue and epilogue!) ???
-}
-
-antlrcpp::Any CodeGenVisitor::visitFuncHeader(ifccParser::FuncHeaderContext *ctx) {
-	// visit parameter declaration, fetch parameter types and number of parameters
-	// fetch return type
-	// create function in symbol table (if doesn't exist, otherwise error)
-}
-
-antlrcpp::Any CodeGenVisitor::visitFuncParamsDeclr(ifccParser::FuncParamsDeclrContext *ctx) {
-	// return a struct containing parameter types
-}
-
-antlrcpp::Any CodeGenVisitor::visitFuncCall(ifccParser::FuncCallContext *ctx) {
-	// visit param list
-	// link current BB to the function's first BB (what happens when you exit though ???)
-}
-
-antlrcpp::Any CodeGenVisitor::visitFuncParamsList(ifccParser::FuncParamsListContext *ctx) {
-	// for each param, check type (compared to function definition in symbol table)
-	// and generate instruction that puts them into the special parameter registers
-}
-
 void CodeGenVisitor::returnDefault() {
 	returned = true;
 	cfg.getCurrentBB()->addInstr(Instr::ret, {"$0"});
 }
 
-bool CodeGenVisitor::hasReturned() {
-	return returned;
+antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) {
+
+	// Create main function in symbol table (grammar makes sure it can only be declared once)
+	symbolTable.addFunc("main", "int", {}, ctx->getStart()->getLine());
+
+	// Set it as the current function
+	currFunction = "main";
+
+	// Write prologue instruction
+	cfg.getCurrentBB()->addInstr(Instr::prologue, {"main"});
+
+	// Visit body, generate rest of the function's IR with it
+	visit(ctx->body());
+
+	//In case the function has not returned, return 0 by default
+    if (!returned) returnDefault();
+
+	// Write epilogue instruction
+	cfg.getCurrentBB()->addInstr(Instr::epilogue, {}); 
+	
+	return 0;
+}
+
+
+antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) {
+
+	// Visit header
+	funcStruct func = visit(ctx->funcHeader());
+
+	// Save current function
+	currFunction = func.funcName;
+
+	// Write prologue instruction
+	cfg.getCurrentBB()->addInstr(Instr::prologue, {func.funcName}); 
+
+	// Visit body, generate rest of the function's IR with it
+	visit(ctx->body());
+
+	// Write epilogue instruction
+	cfg.getCurrentBB()->addInstr(Instr::epilogue, {}); 
+
+	return 0;
+
+}
+
+antlrcpp::Any CodeGenVisitor::visitFuncHeader(ifccParser::FuncHeaderContext *ctx) {
+
+	string funcName = ctx->TOKENNAME(0)->getText();
+
+	// Visit parameter declaration to fetch parameter types
+	vector<string> params = {};
+	int numParams = ctx->VTYPE().size();
+	for(int i = 1 ; i < numParams ; i++) {
+		params.push_back(ctx->VTYPE(i)->getText());
+	}
+
+	// Fetch return type
+	string returnType = ctx->FTYPE->getText();
+
+	// Check errors
+	if (symbolTable.hasFunc(funcName)) {
+		string message =  "Function " + funcName + " has already been declared";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return 1; //TODO: return dummy func struct
+	}
+
+	// Create function in symbol table (if doesn't exist, otherwise error)
+	symbolTable.addFunc(funcName, returnType, params, ctx->getStart()->getLine());
+
+	return symbolTable.getFunc(funcName);
+
+}
+
+antlrcpp::Any CodeGenVisitor::visitFuncCall(ifccParser::FuncCallContext *ctx) {
+
+	// Iterate through expressions, evaluate them, put them in registers (or on the AR)
+	
+	// For each expr param, check type (compared to function definition in symbol table) (TODO LATER)
+
+	// Write call instruction
+	string funcName = ctx->TOKENNAME()->getText();
+	cfg.getCurrentBB()->addInstr(Instr::call, {funcName});
+
+	return 0;
+
 }
 
 varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx) {
 	tempVarCounter++;
 	string newVar = "!tmp" + to_string(tempVarCounter);
 	string newVarType = "int";
-	symbolTable.addVar(newVar, newVarType, "temporary", ctx->getStart()->getLine());
+	symbolTable.addVar(newVar, newVarType, currFunction, ctx->getStart()->getLine());
 	symbolTable.getVar(newVar).isUsed = true;
 	return symbolTable.getVar(newVar);
 }
