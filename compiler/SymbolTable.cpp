@@ -64,12 +64,14 @@ void SymbolTable::addVar(string name, string vT, string vS, int vL) {
 	varMap[name] = s;
 }
 
-void SymbolTable::addFunc(string name, string rT, vector<string> pT, int fL) {
+void SymbolTable::addFunc(string name, string rT, vector<string> pT, vector<string> pN, int fL) {
+	stackPointer = 0;
 	struct funcStruct s = {
 		name,
 		rT,
 		pT.size(),
 		pT,
+		pN,
 		fL,
 		false
 	};

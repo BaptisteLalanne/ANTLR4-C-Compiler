@@ -8,6 +8,7 @@
 
 //---- Implementation of class <CodeGenVisitor> (file CodeGenVisitor.cpp) -----/
 #include "CodeGenVisitor.h"
+#include <algorithm>
 
 using namespace std;
 
@@ -215,11 +216,11 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	tempVarCounter = 0;
 	
 	// Write assembly instructions to save expression in variable 
-	cfg.getCurrentBB()->addInstr(Instr::copy, {varName, result.varName});
+	cfg.getCurrentBB()->addInstr(Instr::copy, {result.varName, varName});
 
 	// Create new temporary variable holding the result
 	varStruct tmp = createTempVar(ctx);
-	cfg.getCurrentBB()->addInstr(Instr::copy, {tmp.varName, result.varName});
+	cfg.getCurrentBB()->addInstr(Instr::copy, {result.varName, tmp.varName});
  		
 	return tmp;
 
@@ -304,7 +305,7 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 	varStruct tmp = createTempVar(ctx);
  	
 	// Write assembly instructions
-	cfg.getCurrentBB()->addInstr(Instr::ldconst, {tmp.varName, "$" + to_string(constValue)});
+	cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp.varName});
 	
 	// Return the temporary variable
 	return tmp;
@@ -315,18 +316,111 @@ antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
 	
 	// Fetch variable
 	string varName = ctx->TOKENNAME()->getText();
-	// Check errors
-	if (!symbolTable.hasVar(varName)) {
-		string message =  "Variable " + varName + " has not been declared";
+
+	// If the variable is one of the current function's parameters, return new temporary variable holding the register
+	vector<string> funcParams = symbolTable.getFunc(currFunction).parameterNames;
+	vector<string>::iterator varPos = find(funcParams.begin(), funcParams.end(), varName);
+	if(varPos != funcParams.end()) {
+    	
+		varStruct tmp = createTempVar(ctx);
+ 	
+		// Write assembly instructions
+		cfg.getCurrentBB()->addInstr(Instr::rparam, {tmp.varName, to_string(varPos-funcParams.begin())});
+		
+		// Return the temporary variable
+		return tmp;
+
+	}
+
+	// Otherwise, return the saved variable
+	else {
+
+		// Check errors
+		if (!symbolTable.hasVar(varName)) {
+			string message =  "Variable " + varName + " has not been declared";
+			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+			return symbolTable.dummyVarStruct;
+		}
+
+		// Mark it as used
+		symbolTable.getVar(varName).isUsed = true;
+
+		// Return the variable
+		return symbolTable.getVar(varName);
+
+	}	
+	
+}
+
+antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
+
+	string funcName = ctx->TOKENNAME()->getText();
+
+	// Check if function is declared 
+	if (!symbolTable.hasFunc(funcName)) {
+		string message =  "Function " + funcName + " has not been declared";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 		return symbolTable.dummyVarStruct;
 	}
-	// Mark it as used
-	symbolTable.getVar(varName).isUsed = true;
+
+	funcStruct func = symbolTable.getFunc(funcName);
 	
-	// Return the variable
-	return symbolTable.getVar(varName);
-	
+	// Check type error 
+	//cout << "RETURN: " << func.returnType << endl;
+	if (func.returnType == "void") {
+		string message =  "Function " + funcName + " has a void return type";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return symbolTable.dummyVarStruct;
+	}
+
+	// Check param number
+	int numParams = ctx->expr().size();
+	//cout << "PARAMS: " << numParams << " VS " << func.nbParameters << endl;
+	if (numParams != func.nbParameters) {
+		string message =  "Function " + funcName + " is called with the wrong number of parameters";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return symbolTable.dummyVarStruct;
+	}
+
+	// TEMPORARY Error message if there are more than 6 params
+	if (numParams > 6) {
+		string message =  "Sorry, this compiler does not support more than 6 parameters yet";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return symbolTable.dummyVarStruct;
+	}
+
+	// Iterate through parameters and put them into registers
+	for(int i = 1 ; i < numParams ; i++) {
+		
+		// Save current stack pointer
+		int currStackPointer = symbolTable.getStackPointer();
+
+		// Compute expression
+		varStruct result = visit(ctx->expr(i));
+
+		// Reset the stack pointer and temp variable counter after having evaluated the expression
+		symbolTable.setStackPointer(currStackPointer);
+		symbolTable.cleanTempVars();
+		tempVarCounter = 0;
+
+		// Check param types
+		if (result.varType != func.parameterTypes[i]) {
+			string message =  "Function " + funcName + " is called with the wrong parameter types";
+			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+			return symbolTable.dummyVarStruct;
+		}
+		
+		// Write assembly instructions to put the expression into a param register
+		cfg.getCurrentBB()->addInstr(Instr::wparam, {result.varName, to_string(i)});
+
+	}
+
+	// Write call instruction
+	varStruct tmp = createTempVar(ctx);
+	cfg.getCurrentBB()->addInstr(Instr::call, {funcName, tmp.varName});
+
+	return tmp;
+
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
@@ -378,7 +472,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	tempVarCounter = 0;
 	
 	// Write assembly instructions
-	cfg.getCurrentBB()->addInstr(Instr::copy, {dVarName, result.varName});
+	cfg.getCurrentBB()->addInstr(Instr::copy, {result.varName, dVarName});
 	
 	return 0;
 
@@ -425,24 +519,19 @@ void CodeGenVisitor::returnDefault() {
 antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) {
 
 	// Create main function in symbol table (grammar makes sure it can only be declared once)
-	symbolTable.addFunc("main", "int", {}, ctx->getStart()->getLine());
+	symbolTable.addFunc("main", "int", {}, {}, ctx->getStart()->getLine());
 
 	// Set it as the current function
 	currFunction = "main";
 
-	// Write prologue instruction
+	// Write function instructions
 	cfg.getCurrentBB()->addInstr(Instr::prologue, {"main"});
-
-	// Visit body, generate rest of the function's IR with it
 	visit(ctx->body());
-
-	//In case the function has not returned, return 0 by default
     if (!returned) returnDefault();
-
-	// Write epilogue instruction
 	cfg.getCurrentBB()->addInstr(Instr::epilogue, {}); 
 	
 	return 0;
+
 }
 
 
@@ -451,16 +540,12 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) 
 	// Visit header
 	funcStruct func = visit(ctx->funcHeader());
 
-	// Save current function
+	// Set the new function as the current function
 	currFunction = func.funcName;
 
-	// Write prologue instruction
+	// Write function instructions
 	cfg.getCurrentBB()->addInstr(Instr::prologue, {func.funcName}); 
-
-	// Visit body, generate rest of the function's IR with it
 	visit(ctx->body());
-
-	// Write epilogue instruction
 	cfg.getCurrentBB()->addInstr(Instr::epilogue, {}); 
 
 	return 0;
@@ -471,11 +556,13 @@ antlrcpp::Any CodeGenVisitor::visitFuncHeader(ifccParser::FuncHeaderContext *ctx
 
 	string funcName = ctx->TOKENNAME(0)->getText();
 
-	// Visit parameter declaration to fetch parameter types
-	vector<string> params = {};
-	int numParams = ctx->VTYPE().size();
-	for(int i = 1 ; i < numParams ; i++) {
-		params.push_back(ctx->VTYPE(i)->getText());
+	// Fetch parameter names and types
+	vector<string> paramTypes = {};
+	vector<string> paramNames = {};
+	int numParams = ctx->TOKENNAME().size()-1;
+	for(int i = 0 ; i < numParams ; i++) {
+		paramTypes.push_back( ctx->VTYPE(i)->getText());
+		paramNames.push_back(ctx->TOKENNAME(1+i)->getText());
 	}
 
 	// Fetch return type
@@ -489,23 +576,9 @@ antlrcpp::Any CodeGenVisitor::visitFuncHeader(ifccParser::FuncHeaderContext *ctx
 	}
 
 	// Create function in symbol table (if doesn't exist, otherwise error)
-	symbolTable.addFunc(funcName, returnType, params, ctx->getStart()->getLine());
+	symbolTable.addFunc(funcName, returnType, paramTypes, paramNames, ctx->getStart()->getLine());
 
 	return symbolTable.getFunc(funcName);
-
-}
-
-antlrcpp::Any CodeGenVisitor::visitFuncCall(ifccParser::FuncCallContext *ctx) {
-
-	// Iterate through expressions, evaluate them, put them in registers (or on the AR)
-	
-	// For each expr param, check type (compared to function definition in symbol table) (TODO LATER)
-
-	// Write call instruction
-	string funcName = ctx->TOKENNAME()->getText();
-	cfg.getCurrentBB()->addInstr(Instr::call, {funcName});
-
-	return 0;
 
 }
 

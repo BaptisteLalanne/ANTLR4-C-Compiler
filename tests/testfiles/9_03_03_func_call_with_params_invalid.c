@@ -1,7 +1,7 @@
-void toto(int a, int b, int c) {
-    //Comment
+int toto(int a, int b, int c) {
+    int result = a+b+c;
 }
 
 int main() {
-    toto(1, 1+1);
+    return toto(1, 1+1);
 }

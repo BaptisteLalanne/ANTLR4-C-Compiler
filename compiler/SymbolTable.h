@@ -31,8 +31,9 @@ struct varStruct {
 struct funcStruct {
 	string funcName;				//Its name
 	string returnType; 				//Its return type 
-	size_t nbParameters;				//The number of input parameters
+	size_t nbParameters;			//The number of input parameters
 	vector<string> parameterTypes;	//The type of every input parameter
+	vector<string> parameterNames; 	//The names of every parameter
 	int funcLine; 					// The line of code where the function is declared
 	bool isCalled;					//Whether the function is called
 };
@@ -74,7 +75,7 @@ class SymbolTable {
 		void addVar(string name, string vT, string vS, int vL);
 
 		// Add a function to the table of symbols
-		void addFunc(string name, string rT, vector<string> pT, int fL);
+		void addFunc(string name, string rT, vector<string> pT, vector<string> pN, int fL);
 		
 		// Perform static analysis
 		void checkUsedVariables(ErrorHandler& eH);

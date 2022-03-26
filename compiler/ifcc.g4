@@ -12,9 +12,6 @@ funcDeclr :
 funcHeader :
 	FTYPE=('void'|'int') TOKENNAME '(' (VTYPE TOKENNAME (',' VTYPE TOKENNAME)*)? ')' 
 ;
-funcCall :
-	TOKENNAME '(' (expr (',' expr)*)? ')'
-;
 
 mainDeclr : 
 	'int' 'main' '(' ')' '{' body '}'
@@ -28,19 +25,19 @@ body :
 ;
 
 expr :
-	'(' expr ')' 						#parExpr
-	| UNARY=('-'|'!') expr 		   		#unaryExpr	
-	| expr OP1=('*'|'/'|'%') expr 		#mulDivModExpr	
-	| expr OP2=('+'|'-') expr 			#addSubExpr
-	| expr CMP=('<' | '>') expr			#cmpLessOrGreaterExpr
-	| expr EQ=('=='|'!=') expr			#cmpEqualityExpr
-	| TOKENNAME '=' expr 				#affExpr
-	| expr '&' expr						#andExpr
-	| expr '^' expr						#xorExpr
-	| expr '|' expr						#orExpr
-	| funcCall							#funcExpr
-	| CONST 							#constExpr 
-	| TOKENNAME							#varExpr
+	'(' expr ')' 								#parExpr
+	| UNARY=('-'|'!') expr 		   				#unaryExpr	
+	| expr OP1=('*'|'/'|'%') expr 				#mulDivModExpr	
+	| expr OP2=('+'|'-') expr 					#addSubExpr
+	| expr CMP=('<' | '>') expr					#cmpLessOrGreaterExpr
+	| expr EQ=('=='|'!=') expr					#cmpEqualityExpr
+	| TOKENNAME '=' expr 						#affExpr
+	| expr '&' expr								#andExpr
+	| expr '^' expr								#xorExpr
+	| expr '|' expr								#orExpr
+	| TOKENNAME '(' (expr (',' expr)*)? ')'		#funcExpr
+	| CONST 									#constExpr 
+	| TOKENNAME									#varExpr
 ;
 
 declr :
@@ -55,8 +52,8 @@ varDeclrAndAffect :
 ;
 
 end :
-	RETURN expr							#exprEnd	
-	| RETURN 							#emptyEnd
+	RETURN expr									#exprEnd	
+	| RETURN 									#emptyEnd
 ;
 
 WS : [ \t\r\n] -> channel(HIDDEN) ;

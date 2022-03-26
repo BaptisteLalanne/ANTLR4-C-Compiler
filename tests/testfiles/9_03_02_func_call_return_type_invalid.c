@@ -1,4 +1,4 @@
-int toto() {
+void toto() {
     return 3;
 }
 

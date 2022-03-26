@@ -6,35 +6,17 @@
 			  Baptiste L. Amine L. Tom P. David T.
 *************************************************************************/
 
-//---- Implementation of class <IR> (file IR.cpp) ------/
-
 #include "IR.h"
 #include <iostream>
 
 using namespace std;
 
+unordered_map<string, string> Instr::AMD86_paramRegisters = {{"0", "%edi"}, {"1", "%esi"}, {"2", "%edx"}, {"3", "%ecx"}, {"4", "%r8d"}, {"5", "%r9d"}};
 
 /* --------------------------------------------------------------------- */
-BasicBlock::BasicBlock(CFG* cfg, string label) : cfg(cfg), label(label) { }
-
-BasicBlock::~BasicBlock() {
-	for (Instr* i : instrList) {
-		delete i;
-	}
-}
-
-void BasicBlock::addInstr(Instr::Operation op, vector<string> params) {
-	Instr* instr = new Instr(this, op, params);
-	instrList.push_back(instr);
-}
-
-void BasicBlock::generateASM(ostream &o) {
-	for (Instr* i : instrList) {
-		i->generateASM(o);
-	}
-}
-
+//------------- Implementation of class <CFG> (file IR.cpp) --------------/
 /* --------------------------------------------------------------------- */
+
 CFG::CFG(SymbolTable& st) : symbolTable(st) {
 	createBB();
 }
@@ -74,6 +56,32 @@ void CFG::setCurrentBB(BasicBlock* bb) {
 }
 
 /* --------------------------------------------------------------------- */
+//--------- Implementation of class <BasicBlock> (file IR.cpp) -----------/
+/* --------------------------------------------------------------------- */
+
+BasicBlock::BasicBlock(CFG* cfg, string label) : cfg(cfg), label(label) { }
+
+BasicBlock::~BasicBlock() {
+	for (Instr* i : instrList) {
+		delete i;
+	}
+}
+
+void BasicBlock::addInstr(Instr::Operation op, vector<string> params) {
+	Instr* instr = new Instr(this, op, params);
+	instrList.push_back(instr);
+}
+
+void BasicBlock::generateASM(ostream &o) {
+	for (Instr* i : instrList) {
+		i->generateASM(o);
+	}
+}
+
+/* --------------------------------------------------------------------- */
+//------------ Implementation of class <Instr> (file IR.cpp) -------------/
+/* --------------------------------------------------------------------- */
+
 Instr::Instr(BasicBlock* bb, Instr::Operation op, vector<string> params) : bb(bb), op(op), params(params) {}
 
 varStruct Instr::getSymbol(string name) {
@@ -90,54 +98,11 @@ void Instr::generateASM(ostream &o) {
 
 	switch (op) {
 
-		case Instr::call:
-		{
-			// Get params
-			string label = params.at(0);
-
-			// Write ASM instructions
-			o << "	call " << label << endl;
-
-			break;
-		}
-
-		case Instr::ret:
-		{
-			// Get params
-			string param1 = params.at(0);
-
-			// If we're returning a var
-			if (hasSymbol(param1)) {
-				varStruct var = getSymbol(param1);
-				o << "	movl	" << var.memoryOffset << "(%rbp), %eax"<< endl;
-			}
-
-			// If we're returning a const
-			else {
-				int constValue;
-				bool isChar = (param1[0] == '\'');
-				bool isInt = (param1[0] == '$');
-				if (isChar) {
-					constValue = int(param1[1]);
-				} 
-				else if (isInt) {
-					constValue = stoi(param1.substr(1,param1.size()-1));	
-				}
-				o << "	movl	$" << constValue << ", %eax" << endl;
-			}
-
-			// Write ASM instructions (EDIT: this is handled by the epilogue)
-			//o << "popq	%rbp"<<endl;
-			//o << "ret"<<endl;
-
-			break;
-		}
-
 		case Instr::ldconst:
 		{
 			// Get params
-			string var = params.at(0);
-			string constant = params.at(1);
+			string constant = params.at(0);
+			string var = params.at(1);
 			
 			// Get constant value
 			int constValue;
@@ -164,9 +129,21 @@ void Instr::generateASM(ostream &o) {
 			string var2 = params.at(1);
 
 			// Write ASM instructions
-			o << "	movl	" << getSymbol(var2).memoryOffset << "(%rbp), %eax" << endl;
-			o << "	movl	%eax, " << getSymbol(var1).memoryOffset << "(%rbp)" << endl;
+			o << "	movl	" << getSymbol(var1).memoryOffset << "(%rbp), %eax" << endl;
+			o << "	movl	%eax, " << getSymbol(var2).memoryOffset << "(%rbp)" << endl;
 	
+			break;
+		}
+
+		case Instr::rmem: 
+		{
+			// not yet implemented
+			break;
+		}
+
+		case Instr::wmem: 
+		{
+			// not yet implemented
 			break;
 		}
 
@@ -401,14 +378,14 @@ void Instr::generateASM(ostream &o) {
 
 			// Write ASM instructions
 			o << label << ":" << endl;
-			o << "	pushq %rbp " << endl;
-			o << "	movq %rsp, %rbp" << endl;
+			o << "	pushq 	%rbp " << endl;
+			o << "	movq 	%rsp, %rbp" << endl;
 
 			// If we're constructing a function AR
 			if (label != "main") {
 				// Get the memory size needed to store the function's local variables (must be multiple of 16)
 				int memSize = getSymbolTable().getFuncMemorySpace(label);
-				o << "	subq $" << memSize << ", %rsp" << endl;
+				o << "	subq 	$" << memSize << ", %rsp" << endl;
 			}
 
 			break;
@@ -421,13 +398,80 @@ void Instr::generateASM(ostream &o) {
 			break;
 		}
 
-		case Instr::rmem: 
-			// not yet implemented
-			break;
+		case Instr::call:
+		{
+			// Get params
+			string label = params.at(0);
+			string tmp = params.at(1);
 
-		case Instr::wmem: 
-			// not yet implemented
+			// Write ASM instructions
+			o << "	call 	" << label << endl;
+			o << "	movl	%eax, " << getSymbol(tmp).memoryOffset << "(%rbp)" << endl;
+
 			break;
+		}
+
+		case Instr::wparam: 
+		{
+			// Get params
+			string var = params.at(0);
+			string paramNum = params.at(1);
+
+			// Get param register
+			string reg = Instr::AMD86_paramRegisters[paramNum];
+
+			// Write ASM instructions
+			o << "	movl	" << getSymbol(var).memoryOffset << "(%rbp), %eax" << endl;
+			o << "	movl	%eax, " << reg << endl;
+
+			break;
+		}
+
+		case Instr::rparam: 
+		{
+			// Get params
+			string var = params.at(0);
+			string paramNum = params.at(1);
+
+			// Get param register
+			string reg = Instr::AMD86_paramRegisters[paramNum];
+
+			// Write ASM instructions
+			o << "	movl	" << reg << ", %eax" << endl; 
+			o << "	movl	%eax, " << getSymbol(var).memoryOffset << "(%rbp)" << endl;
+
+			break;
+		}
+
+		case Instr::ret:
+		{
+			// Get params
+			string param1 = params.at(0);
+
+			// If we're returning a var
+			if (hasSymbol(param1)) {
+				varStruct var = getSymbol(param1);
+				o << "	movl	" << var.memoryOffset << "(%rbp), %eax"<< endl;
+			}
+
+			// If we're returning a const
+			else {
+				int constValue;
+				bool isChar = (param1[0] == '\'');
+				bool isInt = (param1[0] == '$');
+				if (isChar) {
+					constValue = int(param1[1]);
+				} 
+				else if (isInt) {
+					constValue = stoi(param1.substr(1,param1.size()-1));	
+				}
+				o << "	movl	$" << constValue << ", %eax" << endl;
+			}
+
+			// Note: the actual return is handled by the epilogue
+			
+			break;
+		}
 
 	}
 	

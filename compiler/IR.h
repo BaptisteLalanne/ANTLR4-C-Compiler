@@ -14,54 +14,57 @@ class DefFonction;
 /* The class for one instruction */
 class Instr {
  
-   public:
+	public:
 
-	typedef enum {
-		ldconst,
-		copy,
-		rmem,
-		wmem,
-		call,
-		cmp_eq,
-		cmp_neq,
-		cmp_lt,
-		cmp_gt,
-		op_or,
-		op_xor,
-		op_and,
-		op_add,
-		op_sub,
-		op_mul,
-		op_div,
-		op_mod,
-		op_not,
-		op_minus,
-		ret,
-		prologue,
-		epilogue
-	} Operation;
+		typedef enum {
+			ldconst,
+			copy,
+			rmem,
+			wmem,
+			wparam,
+			rparam,
+			call,
+			cmp_eq,
+			cmp_neq,
+			cmp_lt,
+			cmp_gt,
+			op_or,
+			op_xor,
+			op_and,
+			op_add,
+			op_sub,
+			op_mul,
+			op_div,
+			op_mod,
+			op_not,
+			op_minus,
+			ret,
+			prologue,
+			epilogue
+		} Operation;
 
-	Instr(BasicBlock* bb, Instr::Operation op, vector<string> params);
+		Instr(BasicBlock* bb, Instr::Operation op, vector<string> params);
 
-	void generateASM(ostream &o); 
+		void generateASM(ostream &o); 
+
+		static unordered_map<string, string> AMD86_paramRegisters;
 	
-	
- private:
+	private:
 
-	/* The BB this instruction belongs to, which provides a pointer to the CFG this instruction belong to */
-	BasicBlock* bb; 
+		/* The BB this instruction belongs to, which provides a pointer to the CFG this instruction belong to */
+		BasicBlock* bb; 
 
-	/* The operator of the instruction */
-	Operation op;
+		/* The operator of the instruction */
+		Operation op;
 
-	/* For 3-op instrs: d, x, y; for ldconst: d, c;  For call: label, d, params;  for wmem and rmem: choose yourself */
-	vector<string> params; 
-	// if you subclass Instr, each Instr subclass has its parameters and the previous (very important) comment becomes useless: it would be a better design.
+		/* For 3-op instrs: d, x, y; for ldconst: d, c;  For call: label, d, params;  for wmem and rmem: choose yourself */
+		vector<string> params; 
+		// if you subclass Instr, each Instr subclass has its parameters and the previous (very important) comment becomes useless: it would be a better design.
 
-	/* Symbol table accessors */
-	varStruct getSymbol(string name);
-	bool hasSymbol(string name);
-	SymbolTable& getSymbolTable();
+		/* Symbol table accessors */
+		varStruct getSymbol(string name);
+		bool hasSymbol(string name);
+		SymbolTable& getSymbolTable();
 
 
 };
