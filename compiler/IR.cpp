@@ -68,6 +68,10 @@ BasicBlock::~BasicBlock() {
 	}
 }
 
+varStruct BasicBlock::getSymbol(string name) {
+	return cfg->getSymbolTable().getVar(name);
+}
+
 void BasicBlock::addInstr(Instr::Operation op, vector<string> params) {
 	Instr* instr = new Instr(this, op, params);
 	instrList.push_back(instr);
@@ -78,10 +82,13 @@ void BasicBlock::generateASM(ostream &o) {
 	for (Instr* i : instrList) {
 		i->generateASM(o);
 	}
-	if (exit_false)
-		cout << "	jne		" << exit_false->getLabel() << endl;
-	if (exit_true)
-		cout << "	jmp		" << exit_true->getLabel() << endl;
+	if (exit_false) {
+		cout << "	cmpl    $0, " << getSymbol(test_var_name).memoryOffset << "(%rbp)" << endl;
+		cout << "	je    " << exit_false->label << endl;
+	}
+	if (exit_true){
+		cout << "	jmp    " << this->exit_true->label << endl;
+	}
 }
 
 void BasicBlock::setExitTrue(BasicBlock* bb) {

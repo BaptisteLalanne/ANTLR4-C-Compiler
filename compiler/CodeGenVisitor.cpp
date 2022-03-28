@@ -143,6 +143,10 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 	varStruct var2 = visit(ctx->expr(1));
 	varStruct tmp = createTempVar(ctx);
 
+	cout << "#var1=" << var1.varName << " " << var1.memoryOffset << endl;
+	cout << "#var2=" << var2.varName << " " << var2.memoryOffset << endl;
+	cout << "#tmp=" << tmp.varName << " " << tmp.memoryOffset << endl;
+
     if(!var1.isCorrect || !var2.isCorrect) {
         return symbolTable.dummyVarStruct;
     }
@@ -209,6 +213,8 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 
 	// Compute expression
 	varStruct result = visit(ctx->expr());
+
+	cout << "#result=" << result.varName << " " << result.memoryOffset << endl;
 
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
 	symbolTable.setStackPointer(currStackPointer);
@@ -303,6 +309,8 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 	}
 
 	varStruct tmp = createTempVar(ctx);
+	cout << "#ConstExpr tmp=" << tmp.varName << " " << tmp.memoryOffset << endl;
+
  	
 	// Write assembly instructions
 	cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp.varName});
@@ -593,9 +601,14 @@ varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx) {
 
 antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *ctx) {
 	
+	cout << "# CodeGenVisitor::visitIfStatement" << endl;
+
 	// Fetch boolean expression of the if
 	varStruct testVar = visit(ctx->expr());
-	
+
+	//Check whether there is an else statment
+	bool hasElseStatment = ctx->body().size() == 2; 
+
 	// Basic block for the test
 	BasicBlock* testBB = cfg.getCurrentBB();
 	//Stores the name of the boolean test variable within the basic block for the test
@@ -603,28 +616,44 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 
 	//Create a BB for the then case
 	BasicBlock* thenBB = cfg.createBB();
-	//BasicBlock* thenLastBB = cfg.getCurrentBB();
-
-	BasicBlock* elseBB = cfg.createBB();
-	//BasicBlock* elseLastBB = cfg.getCurrentBB();
-
+	
+	/*if (hasElseStatment) {
+		BasicBlock* elseBB = cfg.createBB();
+	}*/
+	
 	//
 	BasicBlock* endIfBB = cfg.createBB();
 	endIfBB->setExitTrue(testBB->getExitTrue());
 	endIfBB->setExitFalse(testBB->getExitFalse());
 	
 	testBB->setExitTrue(thenBB);
-	testBB->setExitFalse(elseBB);
 	
-	cfg.setCurrentBB(thenBB);
-	visit(ctx->body(0));
+	if (hasElseStatment) {
+		BasicBlock* elseBB = cfg.createBB();
+		testBB->setExitFalse(elseBB);
+		elseBB->setExitTrue(endIfBB);
+		elseBB->setExitFalse(nullptr);
+		cfg.setCurrentBB(elseBB);
+		visit(ctx->body(1));
+	} else {
+		testBB->setExitFalse(endIfBB);
+	}
+	
 	thenBB->setExitTrue(endIfBB);
 	thenBB->setExitFalse(nullptr);
 	
-	cfg.setCurrentBB(elseBB);
-	visit(ctx->body(1));
-	elseBB->setExitTrue(endIfBB);
-	elseBB->setExitFalse(nullptr);
+	/*if (hasElseStatment) {
+		elseBB->setExitTrue(endIfBB);
+		elseBB->setExitFalse(nullptr);
+	}*/
+	
+	cfg.setCurrentBB(thenBB);
+	visit(ctx->body(0));
+
+	/*if (hasElseStatment) {
+		cfg.setCurrentBB(elseBB);
+		visit(ctx->body(1));
+	}*/
 
 	cfg.setCurrentBB(endIfBB);
 	

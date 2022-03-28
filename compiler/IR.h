@@ -88,15 +88,18 @@ class BasicBlock {
 		BasicBlock* getExitFalse();
 		string getLabel();
 		void setTestVarName(string test_var_name);
+
+		/* Symbol table accessors */
+		varStruct getSymbol(string name);
 	
 
 	protected:
 
 		/* Pointer to the next basic block, true branch. If nullptr, return from procedure */ 
-		BasicBlock* exit_true;  
+		BasicBlock* exit_true = nullptr;  
 
 		/* Pointer to the next basic block, false branch. If nullptr, the basic block ends with an unconditional jump */
-		BasicBlock* exit_false; 
+		BasicBlock* exit_false = nullptr; 
 
 		/* Label of the BB, also will be the label in the generated code */
 		string label; 
