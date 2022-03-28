@@ -60,7 +60,7 @@ WS : [ \t\r\n] -> channel(HIDDEN) ;
 RETURN : 'return' ;
 CONST : NUMBER | CHAR ;
 NUMBER : [0-9]+ ;
-CHAR : '\''.'\'' ;
+CHAR : '\'' . '\'' ;
 TOKENNAME : [a-zA-Z_][a-zA-Z0-9_]* ;
 MULTICOMMENT : '/*' .*? '*/' -> skip ;
 SINGLECOMMENT : '//' .*? '\n' -> skip ;
