@@ -87,6 +87,8 @@ class SymbolTable {
 
 		// Hashtable containing the size in bytes of the different types (typeName : size)
 		static unordered_map<string, int> typeSizes;
+		static unordered_map<string, string> typeConstMoves;
+		static unordered_map<string, string> typeOpeMoves;
 
         // Dummy varStruct to handle parsing errors
         static varStruct dummyVarStruct;

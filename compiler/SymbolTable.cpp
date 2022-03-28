@@ -13,6 +13,9 @@
 using namespace std;
 
 unordered_map<string, int> SymbolTable::typeSizes = {{"int", 4}, {"char", 1}};
+unordered_map<string, string> SymbolTable::typeConstMoves = {{"int", "movl"}, {"char", "movzb"}};
+unordered_map<string, string> SymbolTable::typeOpeMoves = {{"int", "movl"}, {"char", "movzbl"}};
+
 varStruct SymbolTable::dummyVarStruct = {"", 0,"",0,false,false};
 
 bool SymbolTable::hasVar(string name) {

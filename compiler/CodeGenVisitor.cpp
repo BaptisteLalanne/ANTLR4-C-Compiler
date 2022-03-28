@@ -14,8 +14,6 @@ using namespace std;
 
 antlrcpp::Any CodeGenVisitor::visitUnaryExpr(ifccParser::UnaryExprContext *ctx) {
 
-	cout << "#visitUnaryExpr" << endl;
-
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
 	// Fetch sub-expressions
@@ -39,7 +37,6 @@ antlrcpp::Any CodeGenVisitor::visitUnaryExpr(ifccParser::UnaryExprContext *ctx) 
 }
 
 antlrcpp::Any CodeGenVisitor::visitAndExpr(ifccParser::AndExprContext *ctx) {
-	cout << "#visitAndExpr" << endl;
 
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
@@ -57,7 +54,6 @@ antlrcpp::Any CodeGenVisitor::visitAndExpr(ifccParser::AndExprContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitXorExpr(ifccParser::XorExprContext *ctx) {
-	cout << "#visitXorExpr" << endl;
 
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
@@ -75,7 +71,6 @@ antlrcpp::Any CodeGenVisitor::visitXorExpr(ifccParser::XorExprContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitOrExpr(ifccParser::OrExprContext *ctx) {
-	cout << "#visitOrExpr" << endl;
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
@@ -93,7 +88,6 @@ antlrcpp::Any CodeGenVisitor::visitOrExpr(ifccParser::OrExprContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx) {
-	cout << "#visitAddSubExpr" << endl;
 
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
@@ -123,7 +117,6 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 }
 
 antlrcpp::Any CodeGenVisitor::visitMulDivModExpr(ifccParser::MulDivModExprContext *ctx) {
-	cout << "#visitMulDivModExpr" << endl;
 
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
@@ -156,7 +149,6 @@ antlrcpp::Any CodeGenVisitor::visitMulDivModExpr(ifccParser::MulDivModExprContex
 }
 
 antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGreaterExprContext *ctx) {
-	cout << "#visitCmpLessOrGreaterExpr" << endl;
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
@@ -185,7 +177,6 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 }
 
 antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprContext *ctx) {
-	cout << "#visitCmpEqualityExpr" << endl;
 		
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
@@ -214,13 +205,11 @@ antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprCo
 }
 
 antlrcpp::Any CodeGenVisitor::visitParExpr(ifccParser::ParExprContext *ctx) {
-	cout << "#visitParExpr" << endl;
 
 	return visit(ctx->expr());
 }
 
 antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
-	cout << "#visitAffExpr" << endl;
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
@@ -241,9 +230,9 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	varStruct result = visit(ctx->expr());
 
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
-	symbolTable->setStackPointer(currStackPointer);
-	symbolTable->cleanTempVars();
-	tempVarCounter = 0;
+	// symbolTable->setStackPointer(currStackPointer);
+	// symbolTable->cleanTempVars();
+	// tempVarCounter = 0;
 	
 	// Write assembly instructions to save expression in variable 
 	cfg.getCurrentBB()->addInstr(Instr::copy, {result.varName, varName}, symbolTable);
@@ -257,7 +246,6 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) {
-	cout << "#visitConstExpr" << endl;
 	
 	int constValue;
 	SymbolTable* symbolTable = symbolTablesStack.top();
@@ -351,14 +339,12 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
-	cout << "#visitVarExpr" << endl;
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 	
 
 	// Fetch variable
 	string varName = ctx->TOKENNAME()->getText();
-	cout << "#varName: " << varName << endl;
 
 	// Check if var doesn't exist
 	bool isParam = symbolTable->hasVar("^"+varName);
@@ -405,7 +391,6 @@ antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
-	cout << "#visitFuncExpr" << endl;
 
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
@@ -452,9 +437,9 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 		varStruct result = visit(ctx->expr(i));
 
 		// Reset the stack pointer and temp variable counter after having evaluated the expression
-		symbolTable->setStackPointer(currStackPointer);
-		symbolTable->cleanTempVars();
-		tempVarCounter = 0;
+		// symbolTable->setStackPointer(currStackPointer);
+		// symbolTable->cleanTempVars();
+		// tempVarCounter = 0;
 
 		// Check param types
 		if (result.varType != func.parameterTypes[i]) {
@@ -477,7 +462,6 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
-	cout << "#visitVarDeclr" << endl;
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
@@ -512,7 +496,6 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffectContext *ctx) {
-	cout << "#visitVarDeclrAndAffect" << endl;
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
@@ -541,9 +524,9 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	varStruct result = visit(ctx->expr());
 	
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
-	symbolTable->setStackPointer(currStackPointer);
-	symbolTable->cleanTempVars();
-	tempVarCounter = 0;
+	// symbolTable->setStackPointer(currStackPointer);
+	// symbolTable->cleanTempVars();
+	// tempVarCounter = 0;
 	
 	// Write assembly instructions
 	cfg.getCurrentBB()->addInstr(Instr::copy, {result.varName, dVarName}, symbolTable);
@@ -553,7 +536,6 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 }
 
 antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
-	cout << "#visitExprEnd" << endl;
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 	returned = true;
@@ -570,9 +552,9 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
     }
 	
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
-	symbolTable->setStackPointer(currStackPointer);
-	symbolTable->cleanTempVars();
-	tempVarCounter = 0;
+	// symbolTable->setStackPointer(currStackPointer);
+	// symbolTable->cleanTempVars();
+	// tempVarCounter = 0;
 
 	// Write assembly instructions
 	cfg.getCurrentBB()->addInstr(Instr::ret, {result.varName}, symbolTable);
@@ -582,7 +564,6 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitEmptyEnd(ifccParser::EmptyEndContext *ctx) {
-	cout << "#visitEmptyEnd" << endl;
 
 	SymbolTable* symbolTable = symbolTablesStack.top();
 	returned = true;
@@ -591,7 +572,6 @@ antlrcpp::Any CodeGenVisitor::visitEmptyEnd(ifccParser::EmptyEndContext *ctx) {
 }
 
 void CodeGenVisitor::returnDefault() {
-	cout << "#returnDefault" << endl;
 
 	SymbolTable* symbolTable = symbolTablesStack.top();
 	returned = true;
@@ -599,7 +579,6 @@ void CodeGenVisitor::returnDefault() {
 }
 
 antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) {
-	cout << "#visitMainDeclr" << endl;
 
 	// Create main function in symbol table (grammar makes sure it can only be declared once)
 	globalSymbolTable->addFunc("main", "int", {}, {}, ctx->getStart()->getLine());	
@@ -627,7 +606,6 @@ antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) 
 
 
 antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) {
-	cout << "#visitFuncDeclr" << endl;
 
 	// Create new symbol table
 	SymbolTable* newSymbolTable = new SymbolTable(0, nullptr);
@@ -686,7 +664,6 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) 
 }
 
 antlrcpp::Any CodeGenVisitor::visitEndBlock(ifccParser::EndBlockContext *ctx) {
-	cout << "#visitEndBlock" << endl;
 
 	// Static analysis
 	symbolTablesStack.top()->checkUsedVariables(errorHandler);
@@ -699,30 +676,29 @@ antlrcpp::Any CodeGenVisitor::visitEndBlock(ifccParser::EndBlockContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitVtype(ifccParser::VtypeContext *ctx) {
-	cout << "# visitVtype" << endl;
 	return 0;
 }
 
 
 varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx, string varType) {
-	cout << "#createTempVar" << endl;
 
 	SymbolTable* symbolTable = symbolTablesStack.top();
 	tempVarCounter++;
 	string newVar = "!tmp" + to_string(tempVarCounter);
 	string newVarType = varType;
+	cout << "# newVar: " << newVar << "(" << newVarType << ")" << endl;
 	symbolTable->addVar(newVar, newVarType, ctx->getStart()->getLine());
 	symbolTable->getVar(newVar).isUsed = true;
 	return symbolTable->getVar(newVar);
 }
 
 varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx) {
-	cout << "#createTempVar" << endl;
 
 	SymbolTable* symbolTable = symbolTablesStack.top();
 	tempVarCounter++;
 	string newVar = "!tmp" + to_string(tempVarCounter);
 	string newVarType = "int";
+	cout << "# newVar: " << newVar << "(" << newVarType << ")" << endl;
 	symbolTable->addVar(newVar, newVarType, ctx->getStart()->getLine());
 	symbolTable->getVar(newVar).isUsed = true;
 	return symbolTable->getVar(newVar);
