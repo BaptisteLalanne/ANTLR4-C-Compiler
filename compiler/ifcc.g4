@@ -26,7 +26,8 @@ body :
 	declr ';' body 
 	| expr ';' body
 	| end ';' body
-	| 
+	| beginBlock body endBlock
+	|
 ;
 
 expr :

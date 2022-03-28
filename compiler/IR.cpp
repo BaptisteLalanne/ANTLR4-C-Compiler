@@ -473,8 +473,7 @@ void Instr::generateASM(ostream &o) {
 			string reg = Instr::AMD86_paramRegisters[paramNum];
 
 			// Write ASM instructions
-			o << "	movl	" << symbolTable->getVar(var).memoryOffset << "(%rbp), %eax" << endl;
-			o << "	movl	%eax, " << reg << endl;
+			o << "	movl	" << symbolTable->getVar(var).memoryOffset << "(%rbp), " << reg << endl;
 
 			break;
 		}
@@ -489,10 +488,8 @@ void Instr::generateASM(ostream &o) {
 			// Get param register
 			string reg = Instr::AMD86_paramRegisters[paramNum];
 
-
 			// Write ASM instructions
-			o << "	movl	" << reg << ", %eax" << endl; 
-			o << "	movl	%eax, " << symbolTable->getVar("^" + var).memoryOffset << "(%rbp)" << endl;
+			o << "	movl	" << reg << ", " << symbolTable->getVar("^" + var).memoryOffset << "(%rbp)" << endl;
 
 			break;
 		}

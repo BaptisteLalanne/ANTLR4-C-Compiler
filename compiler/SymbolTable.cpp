@@ -79,7 +79,14 @@ void SymbolTable::checkUsedVariables(ErrorHandler& eH) {
 	for (auto v : varMap)
 	{
 		if (!v.second.isUsed) {
-			string message =  "Variable " + v.first + " is not used";
+			string message = "";
+			if (v.first[0] == '^') {
+				message =  "Parameter " + v.first.substr(1) + " is not used";
+			}
+			else {
+				message =  "Variable " + v.first + " is not used";
+				
+			}
 			eH.signal(WARNING, message, v.second.varLine);
 		}
 	}

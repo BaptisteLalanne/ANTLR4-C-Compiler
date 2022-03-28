@@ -443,7 +443,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 	}
 
 	// Iterate through parameters and put them into registers
-	for(int i = 1 ; i < numParams ; i++) {
+	for(int i = 0 ; i < numParams ; i++) {
 		
 		// Save current stack pointer
 		int currStackPointer = symbolTable->getStackPointer();
@@ -465,7 +465,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 		
 		// Write assembly instructions to put the expression into a param register
 		cfg.getCurrentBB()->addInstr(Instr::wparam, {result.varName, to_string(i)}, symbolTable);
-
+		
 	}
 
 	// Write call instruction
@@ -483,17 +483,26 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 
 	// Number of variable to declare
 	int numVariable = ctx->TOKENNAME().size();
+
 	// Fetch type
 	string dVarType = ctx->vtype()->getText();
 	for(int i = 0 ; i < numVariable ; i++) {
+		
 		// Fetch variable
 		string dVarName = ctx->TOKENNAME(i)->getText();
+
 		// Check errors
 		if (symbolTable->hasVar(dVarName)) {
 			string message =  "Variable " + dVarName + " has already been declared";
 			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 			return 1;
 		}
+		if (symbolTable->hasVar("^"+dVarName)) {
+			string message =  "Variable " + dVarName + " is already defined as a parameter of the function";
+			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+			return 1;
+		}
+
 		// Add variable to symbol table
 		symbolTable->addVar(dVarName, dVarType, ctx->getStart()->getLine());
 	}
@@ -516,6 +525,12 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
         return 1;
 	}
+	if (symbolTable->hasVar("^"+dVarName)) {
+		string message =  "Variable " + dVarName + " is already defined as a parameter of the function";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return 1;
+	}
+
 	// Add variable to symbol table
 	symbolTable->addVar(dVarName, dVarType, ctx->getStart()->getLine());
 
@@ -593,11 +608,18 @@ antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) 
 	SymbolTable* newSymbolTable = new SymbolTable(0, globalSymbolTable);
 	symbolTablesStack.push(newSymbolTable);
 
-	// Write function instructions
+	// Create prologue instructions
 	cfg.getCurrentBB()->addInstr(Instr::prologue, {"main"}, newSymbolTable);
+
+	// Create body instructions
 	visit(ctx->body());
     if (!returned) returnDefault();
+
+	// Create epilogue instructions
 	cfg.getCurrentBB()->addInstr(Instr::epilogue, {}, newSymbolTable); 
+
+	// Visit end 
+	visit(ctx->endBlock());
 	
 	return 0;
 
@@ -608,7 +630,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) 
 	cout << "#visitFuncDeclr" << endl;
 
 	// Create new symbol table
-	SymbolTable* newSymbolTable = new SymbolTable(0, symbolTablesStack.top());
+	SymbolTable* newSymbolTable = new SymbolTable(0, nullptr);
 	symbolTablesStack.push(newSymbolTable);
 
 	// Fetch function name
@@ -656,6 +678,9 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) 
 	// Create epilogue instructions
 	cfg.getCurrentBB()->addInstr(Instr::epilogue, {}, newSymbolTable); 
 
+	// Visit end 
+	visit(ctx->endBlock());
+
 	return 0;
 
 }
@@ -663,9 +688,14 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) 
 antlrcpp::Any CodeGenVisitor::visitEndBlock(ifccParser::EndBlockContext *ctx) {
 	cout << "#visitEndBlock" << endl;
 
+	// Static analysis
 	symbolTablesStack.top()->checkUsedVariables(errorHandler);
+
+	// Remove symbol table from stack
 	symbolTablesStack.pop();
+
 	return 0;
+
 }
 
 antlrcpp::Any CodeGenVisitor::visitVtype(ifccParser::VtypeContext *ctx) {
@@ -697,4 +727,3 @@ varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx) {
 	symbolTable->getVar(newVar).isUsed = true;
 	return symbolTable->getVar(newVar);
 }
-

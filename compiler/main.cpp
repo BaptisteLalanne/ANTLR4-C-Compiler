@@ -63,11 +63,6 @@ int main(int argn, const char **argv) {
         exit(1);
     }
 
-    // Static Analysis
-    /*for (SymbolTable st : symbolTableList) {
-	    st.checkUsedVariables(errorHandler);
-    }*/
-
     // Generate ASM instructions
     controlFlowGraph.generateASM(cout);
 
