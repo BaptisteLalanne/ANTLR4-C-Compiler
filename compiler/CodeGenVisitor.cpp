@@ -586,7 +586,7 @@ antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) 
 	cfg.getCurrentBB()->addInstr(Instr::epilogue, {}, newSymbolTable); 
 
 	// Visit end 
-	//visit(ctx->endBlock());
+	visit(ctx->endBlock());
 	
 	return 0;
 
@@ -645,7 +645,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) 
 	cfg.getCurrentBB()->addInstr(Instr::epilogue, {}, newSymbolTable); 
 
 	// Visit end 
-	//visit(ctx->endBlock());
+	visit(ctx->endBlock());
 
 	return 0;
 
