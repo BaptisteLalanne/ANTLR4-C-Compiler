@@ -21,7 +21,6 @@ struct varStruct {
 	string varName; 	//Its name
 	int memoryOffset;	//Its offset (in memory) to the base pointer 
 	string varType;		//The type of the variable
-	string varScope;	//The variable scope (i.e. global, local, ou paramètre)
 	int varLine;		//The line of code where the variable is declared
 	bool isUsed;		//Whether the variable is used in the code
     bool isCorrect; 	// False when a dummy struct is returned to avoid bad cast	
@@ -48,7 +47,7 @@ class SymbolTable {
 	public:
 
 		// Constructor of SymbolTable
-		SymbolTable() : stackPointer(0) { }
+		SymbolTable(int sP = 0, SymbolTable* parent = nullptr) : stackPointer(sP), parentSymbolTable(parent) { }
 
 		// Tell whether a variable with a given name is present in the symbol table
 		bool hasVar(string name);
@@ -63,7 +62,7 @@ class SymbolTable {
 		funcStruct& getFunc(string name);
 
 		// Get the number of bytes needed to store the local variables of a given function
-		int getFuncMemorySpace(string name);
+		int getFuncMemorySpace();
 
 		// Get the stack pointer 
 		int getStackPointer();
@@ -72,10 +71,13 @@ class SymbolTable {
 		void setStackPointer(int s);
 
 		// Add a variable to the table of symbols
-		void addVar(string name, string vT, string vS, int vL);
+		void addVar(string name, string vT, int vL);
 
 		// Add a function to the table of symbols
 		void addFunc(string name, string rT, vector<string> pT, vector<string> pN, int fL);
+
+		// Parent getter 
+		SymbolTable* getParent() { return parentSymbolTable; }
 		
 		// Perform static analysis
 		void checkUsedVariables(ErrorHandler& eH);
@@ -87,13 +89,16 @@ class SymbolTable {
 		static unordered_map<string, int> typeSizes;
 
         // Dummy varStruct to handle parsing errors
-        varStruct dummyVarStruct = {"", 0,"","",0,false,false};
+        static varStruct dummyVarStruct;
 			
 	protected:
 
 		// The current position of the memory stack pointer 
 		int stackPointer;	
 		
+		// Parent symbol table
+		SymbolTable* parentSymbolTable;
+
 		// TODO: turn this into a MultiMap (or use a key containing the scope)
 		// Hashtable containing the encountered variables (varName : variable)
 		unordered_map<string, varStruct> varMap;

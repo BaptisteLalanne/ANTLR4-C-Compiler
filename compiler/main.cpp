@@ -48,13 +48,12 @@ int main(int argn, const char **argv) {
         exit(1);
     }
     
-    // Create symbol table and error handler
-    SymbolTable symbolTable;
+    // Create error handler and IR
     ErrorHandler errorHandler;
-    CFG controlFlowGraph(symbolTable);
+    CFG controlFlowGraph;
 
     // Visit tree and linearize
-    CodeGenVisitor v(symbolTable, errorHandler, controlFlowGraph);
+    CodeGenVisitor v(errorHandler, controlFlowGraph);
     v.visit(tree);
 
     if(errorHandler.hasError()) {
@@ -63,7 +62,9 @@ int main(int argn, const char **argv) {
     }
 
     // Static Analysis
-	symbolTable.checkUsedVariables(errorHandler);
+    /*for (SymbolTable st : symbolTableList) {
+	    st.checkUsedVariables(errorHandler);
+    }*/
 
     // Generate ASM instructions
     controlFlowGraph.generateASM(cout);

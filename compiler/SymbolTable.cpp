@@ -13,6 +13,7 @@
 using namespace std;
 
 unordered_map<string, int> SymbolTable::typeSizes = {{"int", 4}, {"char", 1}};
+varStruct SymbolTable::dummyVarStruct = {"", 0,"",0,false,false};
 
 bool SymbolTable::hasVar(string name) {
 	return varMap.find(name) != varMap.end();
@@ -30,12 +31,10 @@ funcStruct& SymbolTable::getFunc(string name) {
 	return funcMap[name];
 }
 
-int SymbolTable::getFuncMemorySpace(string name) {
+int SymbolTable::getFuncMemorySpace() {
 	int memSize = 0;
 	for (auto v : varMap) {
-		if (v.second.varScope == name) {
-			memSize += typeSizes[v.second.varType];
-		}
+		memSize += typeSizes[v.second.varType];
 	}
 	int remainder = memSize % 16;
 	memSize += (remainder > 0) ? 16 - remainder : 0;
@@ -50,13 +49,12 @@ void SymbolTable::setStackPointer(int s) {
 	stackPointer = s;
 }
 
-void SymbolTable::addVar(string name, string vT, string vS, int vL) {
+void SymbolTable::addVar(string name, string vT, int vL) {
 	stackPointer -= typeSizes[vT];
 	struct varStruct s = {
 		name,
 		stackPointer,
 		vT,
-		vS,
 		vL,
 		false,
 		true,
@@ -65,7 +63,6 @@ void SymbolTable::addVar(string name, string vT, string vS, int vL) {
 }
 
 void SymbolTable::addFunc(string name, string rT, vector<string> pT, vector<string> pN, int fL) {
-	stackPointer = 0;
 	struct funcStruct s = {
 		name,
 		rT,

@@ -2,19 +2,19 @@ grammar ifcc;
 
 axiom : prog ;
 
+beginBlock : '{' ;
+endBlock : '}' ;
+
 prog :
 	(funcDeclr)* mainDeclr (funcDeclr)*
 ;
 
 funcDeclr :
-	funcHeader '{' body '}'
-;
-funcHeader :
-	FTYPE=('void'|'int') TOKENNAME '(' (VTYPE TOKENNAME (',' VTYPE TOKENNAME)*)? ')' 
+	FTYPE=('void'|'int') TOKENNAME '(' (VTYPE TOKENNAME (',' VTYPE TOKENNAME)*)? ')' beginBlock body endBlock
 ;
 
 mainDeclr : 
-	'int' 'main' '(' ')' '{' body '}'
+	'int' 'main' '(' ')' beginBlock body endBlock
 ;
 
 body : 
