@@ -1,4 +1,0 @@
-int main() {
-    // Invalid 
-    comment
-}

@@ -1,4 +1,0 @@
-line 4:0 missing ';' at '}'
-ERROR : syntax error during parsing
-
-return code: 1

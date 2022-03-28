@@ -1,6 +1,0 @@
-input.c: In function ‘main’:
-input.c:2:5: warning: implicit declaration of function ‘toto’ [-Wimplicit-function-declaration]
-    2 |     toto();
-      |     ^~~~
-
-return code: 0

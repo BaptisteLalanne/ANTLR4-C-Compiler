@@ -1,5 +1,0 @@
-ERROR : Variable b has not been declared at line 2.
-ERROR : Variable b has not been declared at line 3.
-ERROR : Variable c has not been declared at line 3.
-
-return code: 1

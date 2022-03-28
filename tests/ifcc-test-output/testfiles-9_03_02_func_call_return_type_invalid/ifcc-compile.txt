@@ -1,3 +1,0 @@
-ERROR : Function toto has a void return type at line 6.
-
-return code: 1

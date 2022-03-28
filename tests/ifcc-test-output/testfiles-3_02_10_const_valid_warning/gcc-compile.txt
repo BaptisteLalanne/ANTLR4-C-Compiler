@@ -1,7 +1,0 @@
-input.c: In function ‘main’:
-input.c:2:13: warning: integer constant is too large for its type
-    2 |     int a = 988793805203850293538792094873875668293089363258734109840198782736586129803710298749832492873670918274174987369839856;
-      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-input.c:2:13: warning: overflow in conversion from ‘__int128’ to ‘int’ changes value from ‘12350490186643274992’ to ‘-1731068688’ [-Woverflow]
-
-return code: 0

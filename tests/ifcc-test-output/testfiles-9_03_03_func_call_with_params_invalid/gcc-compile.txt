@@ -1,9 +1,0 @@
-input.c: In function ‘main’:
-input.c:6:12: error: too few arguments to function ‘toto’
-    6 |     return toto(1, 1+1);
-      |            ^~~~
-input.c:1:5: note: declared here
-    1 | int toto(int a, int b, int c) {
-      |     ^~~~
-
-return code: 1

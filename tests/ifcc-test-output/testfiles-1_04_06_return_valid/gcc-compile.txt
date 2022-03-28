@@ -1,9 +1,0 @@
-input.c: In function ‘main’:
-input.c:2:5: warning: ‘return’ with no value, in function returning non-void
-    2 |     return;
-      |     ^~~~~~
-input.c:1:5: note: declared here
-    1 | int main() {
-      |     ^~~~
-
-return code: 0

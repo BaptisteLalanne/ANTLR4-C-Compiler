@@ -1,5 +1,0 @@
-line 2:11 token recognition error at: ''tw'
-line 2:14 extraneous input 'ork' expecting ';'
-ERROR : syntax error during parsing
-
-return code: 1

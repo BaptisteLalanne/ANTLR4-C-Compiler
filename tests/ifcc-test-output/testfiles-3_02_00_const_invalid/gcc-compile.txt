@@ -1,6 +1,0 @@
-input.c: In function ‘main’:
-input.c:3:9: error: invalid suffix "a" on integer constant
-    3 |     x = 1a;
-      |         ^~
-
-return code: 1

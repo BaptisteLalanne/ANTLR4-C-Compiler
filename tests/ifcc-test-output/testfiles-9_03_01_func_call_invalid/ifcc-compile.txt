@@ -1,3 +1,0 @@
-ERROR : Function toto has not been declared at line 2.
-
-return code: 1

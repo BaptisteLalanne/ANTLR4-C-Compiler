@@ -1,5 +1,0 @@
-line 2:13 token recognition error at: '¼'
-line 2:14 extraneous input 'World' expecting ';'
-ERROR : syntax error during parsing
-
-return code: 1

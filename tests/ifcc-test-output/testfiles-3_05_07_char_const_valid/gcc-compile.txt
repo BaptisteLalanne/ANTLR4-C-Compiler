@@ -1,6 +1,0 @@
-input.c: In function ‘main’:
-input.c:2:13: warning: multi-character character constant [-Wmultichar]
-    2 |     int a = '¼';
-      |             ^~~~
-
-return code: 0

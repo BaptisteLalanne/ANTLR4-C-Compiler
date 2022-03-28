@@ -1,4 +1,0 @@
-line 2:8 no viable alternative at input 'int 1'
-ERROR : syntax error during parsing
-
-return code: 1

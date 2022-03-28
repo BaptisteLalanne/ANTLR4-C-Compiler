@@ -1,3 +1,0 @@
-line 2:8 token recognition error at: '¼'
-
-return code: 1

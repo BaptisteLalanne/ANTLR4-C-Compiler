@@ -1,6 +1,0 @@
-input.c: In function ‘main’:
-input.c:3:9: error: invalid suffix "_567890" on integer constant
-    3 |     x = 1234_567890;
-      |         ^~~~~~~~~~~
-
-return code: 1

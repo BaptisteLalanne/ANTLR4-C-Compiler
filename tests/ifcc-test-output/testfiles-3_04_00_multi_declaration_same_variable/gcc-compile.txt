@@ -1,9 +1,0 @@
-input.c: In function ‘main’:
-input.c:3:9: error: redefinition of ‘a’
-    3 |     int a = 4;
-      |         ^
-input.c:2:9: note: previous definition of ‘a’ was here
-    2 |     int a = 5;
-      |         ^
-
-return code: 1
