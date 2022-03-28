@@ -53,10 +53,8 @@ int main(int argn, const char **argv) {
     CFG controlFlowGraph;
 
     // Visit tree and linearize
-    cout << "#before" << endl;
     CodeGenVisitor v(errorHandler, controlFlowGraph);
     v.visit(tree);
-    cout << "#after" << endl;
 
     if(errorHandler.hasError()) {
         cout.flush();

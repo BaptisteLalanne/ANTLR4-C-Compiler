@@ -686,20 +686,11 @@ varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx, string v
 	tempVarCounter++;
 	string newVar = "!tmp" + to_string(tempVarCounter);
 	string newVarType = varType;
-	cout << "# newVar: " << newVar << "(" << newVarType << ")" << endl;
 	symbolTable->addVar(newVar, newVarType, ctx->getStart()->getLine());
 	symbolTable->getVar(newVar).isUsed = true;
 	return symbolTable->getVar(newVar);
 }
 
 varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx) {
-
-	SymbolTable* symbolTable = symbolTablesStack.top();
-	tempVarCounter++;
-	string newVar = "!tmp" + to_string(tempVarCounter);
-	string newVarType = "int";
-	cout << "# newVar: " << newVar << "(" << newVarType << ")" << endl;
-	symbolTable->addVar(newVar, newVarType, ctx->getStart()->getLine());
-	symbolTable->getVar(newVar).isUsed = true;
-	return symbolTable->getVar(newVar);
+	return this->createTempVar(ctx, "int");
 }

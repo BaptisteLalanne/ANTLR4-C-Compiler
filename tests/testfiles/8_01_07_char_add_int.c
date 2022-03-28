@@ -1,6 +1,6 @@
 int main() {
-    char a = 'a';
-    char b = 'b';
+    int a = 14;
+    int b = 40;
     char c = a + b;
     return c;
 }
