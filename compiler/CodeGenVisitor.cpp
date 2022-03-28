@@ -219,7 +219,7 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	cfg.getCurrentBB()->addInstr(Instr::copy, {result.varName, varName});
 
 	// Create new temporary variable holding the result
-	varStruct tmp = createTempVar(ctx);
+	varStruct tmp = createTempVar(ctx, result.varType);
 	cfg.getCurrentBB()->addInstr(Instr::copy, {result.varName, tmp.varName});
  		
 	return tmp;
@@ -302,12 +302,14 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 
 	}
 
-	varStruct tmp = createTempVar(ctx);
+	varStruct tmp;
  	
 	// Write assembly instructions
 	if (constStr[0] == '\'') {
+		tmp = createTempVar(ctx, "char");
 		cfg.getCurrentBB()->addInstr(Instr::ldconst, {"\'" + to_string(constValue), tmp.varName});
 	} else {
+		tmp = createTempVar(ctx, "int");
 		cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp.varName});
 	}
 	
@@ -326,7 +328,7 @@ antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
 	vector<string>::iterator varPos = find(funcParams.begin(), funcParams.end(), varName);
 	if(varPos != funcParams.end()) {
     	
-		varStruct tmp = createTempVar(ctx);
+		varStruct tmp = createTempVar(ctx, symbolTable.getVar(varName).varType);
  	
 		// Write assembly instructions
 		cfg.getCurrentBB()->addInstr(Instr::rparam, {tmp.varName, to_string(varPos-funcParams.begin())});
@@ -584,6 +586,15 @@ antlrcpp::Any CodeGenVisitor::visitFuncHeader(ifccParser::FuncHeaderContext *ctx
 
 	return symbolTable.getFunc(funcName);
 
+}
+
+varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx, string varType) {
+	tempVarCounter++;
+	string newVar = "!tmp" + to_string(tempVarCounter);
+	string newVarType = varType;
+	symbolTable.addVar(newVar, newVarType, currFunction, ctx->getStart()->getLine());
+	symbolTable.getVar(newVar).isUsed = true;
+	return symbolTable.getVar(newVar);
 }
 
 varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx) {

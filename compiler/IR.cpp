@@ -106,12 +106,15 @@ void Instr::generateASM(ostream &o) {
 
 			o << "# constant:" << constant << endl; 
 			o << "# var: " << var << endl;
+			o << "# varType: " << getSymbol(var).varType << endl;
 			
 			// Get constant value
 			int constValue;
 			string movInstr;
-			bool isChar = (constant[0] == '\'');
-			bool isInt = (constant[0] == '$');
+			//bool isChar = (constant[0] == '\'');
+			//bool isInt = (constant[0] == '$');
+			bool isChar = (getSymbol(var).varType == "char");
+			bool isInt = (getSymbol(var).varType == "int");
 			if (isChar) {
 				//constValue = int(constant[1]);
 				constValue = stoi(constant.substr(1,constant.size()-1));
