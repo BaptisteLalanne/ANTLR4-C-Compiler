@@ -8,4 +8,5 @@ ifcc
 compiler/generated
 compiler/build
 tests/ifcc-test-output
+tests/testfiles_selection
 .main*
