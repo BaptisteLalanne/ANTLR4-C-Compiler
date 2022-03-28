@@ -1,20 +1,25 @@
 grammar ifcc;
 
+vtype:
+	TINT
+	| TCHAR
+;
+
 axiom : prog ;
+
+beginBlock : '{' ;
+endBlock : '}' ;
 
 prog :
 	(funcDeclr)* mainDeclr (funcDeclr)*
 ;
 
 funcDeclr :
-	funcHeader '{' body '}'
-;
-funcHeader :
-	FTYPE=('void'|'int') TOKENNAME '(' (VTYPE=('int'|'char') TOKENNAME (',' VTYPE=('int'|'char') TOKENNAME)*)? ')' 
+	FTYPE=('void'|'int') TOKENNAME '(' (vtype TOKENNAME (',' vtype TOKENNAME)*)? ')' beginBlock body endBlock
 ;
 
 mainDeclr : 
-	'int' 'main' '(' ')' '{' body '}'
+	'int' 'main' '(' ')' beginBlock body endBlock
 ;
 
 body : 
@@ -45,10 +50,10 @@ declr :
 	| varDeclrAndAffect
 ;
 varDeclr : 
-	VTYPE=('int'|'char') TOKENNAME (',' TOKENNAME)*
+	vtype TOKENNAME (',' TOKENNAME)*
 ;
 varDeclrAndAffect :
-	VTYPE=('int'|'char') TOKENNAME '=' expr 
+	vtype TOKENNAME '=' expr 
 ;
 
 end :
@@ -61,6 +66,8 @@ RETURN : 'return' ;
 CONST : NUMBER | CHAR ;
 NUMBER : [0-9]+ ;
 CHAR : '\'' . '\'' ;
+TINT : 'int' ;
+TCHAR : 'char' ;
 TOKENNAME : [a-zA-Z_][a-zA-Z0-9_]* ;
 MULTICOMMENT : '/*' .*? '*/' -> skip ;
 SINGLECOMMENT : '//' .*? '\n' -> skip ;

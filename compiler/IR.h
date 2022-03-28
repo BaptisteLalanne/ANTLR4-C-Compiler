@@ -43,7 +43,7 @@ class Instr {
 			epilogue
 		} Operation;
 
-		Instr(BasicBlock* bb, Instr::Operation op, vector<string> params);
+		Instr(BasicBlock* bb, Instr::Operation op, vector<string> params, SymbolTable* sT);
 
 		void generateASM(ostream &o); 
 
@@ -57,15 +57,12 @@ class Instr {
 		/* The operator of the instruction */
 		Operation op;
 
+		/* The associated symbol table*/
+		SymbolTable* symbolTable;
+
 		/* For 3-op instrs: d, x, y; for ldconst: d, c;  For call: label, d, params;  for wmem and rmem: choose yourself */
 		vector<string> params; 
 		// if you subclass Instr, each Instr subclass has its parameters and the previous (very important) comment becomes useless: it would be a better design.
-
-		/* Symbol table accessors */
-		varStruct getSymbol(string name);
-		bool hasSymbol(string name);
-		SymbolTable& getSymbolTable();
-
 
 };
 
@@ -78,7 +75,7 @@ class BasicBlock {
 		~BasicBlock();
 
 		void generateASM(ostream &o); 
-		void addInstr(Instr::Operation op, vector<string> params);
+		void addInstr(Instr::Operation op, vector<string> params, SymbolTable* sT);
 
 		CFG* getCFG() { return cfg; };
 
@@ -118,7 +115,7 @@ class CFG {
 
 	public:
 
-		CFG(SymbolTable& st);
+		CFG();
 		~CFG();
 
 		void createBB(); 
@@ -126,8 +123,6 @@ class CFG {
 		void setCurrentBB(BasicBlock* bb);
 
 		void generateASM(ostream& o);
-
-		SymbolTable& getSymbolTable() { return symbolTable; };
 
 	protected:
 
@@ -140,9 +135,6 @@ class CFG {
 
 		/* The current basic block*/
 		BasicBlock* currentBB;
-
-		/* The associated symbol table*/
-		SymbolTable& symbolTable;
 
 };
 

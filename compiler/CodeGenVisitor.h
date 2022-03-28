@@ -26,10 +26,11 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 	public:
 
 		// Default constructor
-		CodeGenVisitor(SymbolTable& sT, ErrorHandler& eH, CFG& cfg) : symbolTable(sT), errorHandler(eH), cfg(cfg), returned(false), tempVarCounter(0), currFunction("") { }
+		CodeGenVisitor(ErrorHandler& eH, CFG& cfg) : errorHandler(eH), cfg(cfg), returned(false), tempVarCounter(0) { globalSymbolTable = new SymbolTable(0, nullptr); }
 
 		// Linearising functions
 		virtual antlrcpp::Any visitMainDeclr(ifccParser::MainDeclrContext *ctx);
+		virtual antlrcpp::Any visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) ;
 		virtual antlrcpp::Any visitUnaryExpr(ifccParser::UnaryExprContext *ctx) ;
 		virtual antlrcpp::Any visitAddSubExpr(ifccParser::AddSubExprContext *ctx) ;
 		virtual antlrcpp::Any visitMulDivModExpr(ifccParser::MulDivModExprContext *ctx) ;
@@ -47,13 +48,10 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitAndExpr(ifccParser::AndExprContext *ctx) ;
 		virtual antlrcpp::Any visitXorExpr(ifccParser::XorExprContext *ctx) ;
 		virtual antlrcpp::Any visitOrExpr(ifccParser::OrExprContext *ctx) ;
-		virtual antlrcpp::Any visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) ;
-		virtual antlrcpp::Any visitFuncHeader(ifccParser::FuncHeaderContext *ctx) ;
+		virtual antlrcpp::Any visitEndBlock(ifccParser::EndBlockContext *ctx) ;
+		virtual antlrcpp::Any visitVtype(ifccParser::VtypeContext *ctx) ;
 		
 	protected:
-
-		// The associated symbol table instance
-		SymbolTable& symbolTable;
 
 		// The associated error handler instance
 		ErrorHandler& errorHandler;
@@ -67,13 +65,11 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		// A temp variables counter for evaluating expressions
 		int tempVarCounter;
 
-		// The currently visited function to keep track of scopes
-		string currFunction;
+		// The currently visited symbol table to keep track of nested scopes
+		stack<SymbolTable*> symbolTablesStack;
 
-		// A dummy struct to pass vectors between visitors 
-		struct dummyStruct {
-			vector<string> list;
-		};
+		// The global symbol table
+		SymbolTable* globalSymbolTable;
 		
 		// Return 0 by default
 		void returnDefault();
