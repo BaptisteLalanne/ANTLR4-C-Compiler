@@ -82,6 +82,14 @@ class BasicBlock {
 
 		CFG* getCFG() { return cfg; };
 
+		void setExitTrue(BasicBlock* bb);
+		BasicBlock* getExitTrue();
+		void setExitFalse(BasicBlock* bb);
+		BasicBlock* getExitFalse();
+		string getLabel();
+		void setTestVarName(string test_var_name);
+	
+
 	protected:
 
 		/* Pointer to the next basic block, true branch. If nullptr, return from procedure */ 
@@ -121,7 +129,7 @@ class CFG {
 		CFG(SymbolTable& st);
 		~CFG();
 
-		void createBB(); 
+		BasicBlock* createBB(); 
 		BasicBlock* getCurrentBB();
 		void setCurrentBB(BasicBlock* bb);
 

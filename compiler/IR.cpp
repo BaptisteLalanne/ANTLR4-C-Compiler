@@ -18,7 +18,7 @@ unordered_map<string, string> Instr::AMD86_paramRegisters = {{"0", "%edi"}, {"1"
 /* --------------------------------------------------------------------- */
 
 CFG::CFG(SymbolTable& st) : symbolTable(st) {
-	createBB();
+	setCurrentBB(createBB());
 }
 
 CFG::~CFG() {
@@ -27,11 +27,12 @@ CFG::~CFG() {
 	}
 }
 
-void CFG::createBB() {
+BasicBlock* CFG::createBB() {
 	string bbName = "bb" + to_string(bbList.size());
 	BasicBlock* bb = new BasicBlock(this, bbName);
 	bbList.push_back(bb);
-	currentBB = bb;
+	//currentBB = bb;
+	return bb;
 }
 
 void CFG::generateASM(ostream& o) {
@@ -73,9 +74,38 @@ void BasicBlock::addInstr(Instr::Operation op, vector<string> params) {
 }
 
 void BasicBlock::generateASM(ostream &o) {
+	cout << label << ":" << endl;
 	for (Instr* i : instrList) {
 		i->generateASM(o);
 	}
+	if (exit_false)
+		cout << "	jne		" << exit_false->getLabel() << endl;
+	if (exit_true)
+		cout << "	jmp		" << exit_true->getLabel() << endl;
+}
+
+void BasicBlock::setExitTrue(BasicBlock* bb) {
+	this->exit_true = bb;
+}
+
+BasicBlock* BasicBlock::getExitTrue(){
+	return this->exit_true;
+}
+
+void BasicBlock::setExitFalse(BasicBlock* bb) {
+	this->exit_false = bb;
+}
+
+BasicBlock* BasicBlock::getExitFalse(){
+	return this->exit_false;
+}
+
+string BasicBlock::getLabel(){
+	return this->label;
+}
+
+void BasicBlock::setTestVarName(string test_var_name) {
+	this->test_var_name = test_var_name;
 }
 
 /* --------------------------------------------------------------------- */

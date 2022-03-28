@@ -590,3 +590,70 @@ varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx) {
 	symbolTable.getVar(newVar).isUsed = true;
 	return symbolTable.getVar(newVar);
 }
+
+antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *ctx) {
+	
+	// Fetch boolean expression of the if
+	varStruct testVar = visit(ctx->expr());
+	
+	// Basic block for the test
+	BasicBlock* testBB = cfg.getCurrentBB();
+	//Stores the name of the boolean test variable within the basic block for the test
+	testBB->setTestVarName(testVar.varName);
+
+	//Create a BB for the then case
+	BasicBlock* thenBB = cfg.createBB();
+	//BasicBlock* thenLastBB = cfg.getCurrentBB();
+
+	BasicBlock* elseBB = cfg.createBB();
+	//BasicBlock* elseLastBB = cfg.getCurrentBB();
+
+	//
+	BasicBlock* endIfBB = cfg.createBB();
+	endIfBB->setExitTrue(testBB->getExitTrue());
+	endIfBB->setExitFalse(testBB->getExitFalse());
+	
+	testBB->setExitTrue(thenBB);
+	testBB->setExitFalse(elseBB);
+	
+	cfg.setCurrentBB(thenBB);
+	visit(ctx->body(0));
+	thenBB->setExitTrue(endIfBB);
+	thenBB->setExitFalse(nullptr);
+	
+	cfg.setCurrentBB(elseBB);
+	visit(ctx->body(1));
+	elseBB->setExitTrue(endIfBB);
+	elseBB->setExitFalse(nullptr);
+
+	cfg.setCurrentBB(endIfBB);
+	
+	return 0;
+	/*
+	testvar = test→linearize(cfg); . returns an IR variable 							//Recuperer le test (var)
+	
+	testBB = cfg→currentBB 																//Recuperer le BB current
+	testBB→test var name = testvar . will be used by the conversion to assembly			//Get the name of the test variable and stores it in the basic block
+	
+	thenBB = new BasicBlock(cfg, trueCode) . this constructor also generates the code	//Cree block pour true (then)
+	thenLastBB = cfg→currentBB . useful if trueCode itself included ifs or whiles		//Assign to the deepest then block (when there are if statements whithin if statements) the current block as a exit true 
+	
+	elseBB = new BasicBlock(cfg, falseCode)												//Cree block pour false ()
+	elseLastBB = cfg→currentBB
+	
+	endIfBB = new BasicBlock(cfg) . constructor of an empty basic block
+	endIfBB→exitTrue = testBB→exitTrue . pointer stitching
+	endIfBB→exitFalse = testBB→exitFalse . pointer stitching
+	
+	testBB→exitTrue = thenBB . pointer stitching
+	testBB→exitFalse = elseBB . pointer stitching
+	
+	thenLastBB→exitTrue = endIfBB . pointer stitching
+	thenLastBB→exitFalse = NULL . unconditional exit
+	
+	elseLastBB→exitTrue = endIfBB . pointer stitching
+	elseLastBB→exitFalse = NULL . unconditional exit
+	
+	cfg→currentBB = endIfBB
+	*/
+}

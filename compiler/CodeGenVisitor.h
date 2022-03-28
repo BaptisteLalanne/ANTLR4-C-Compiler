@@ -49,6 +49,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitOrExpr(ifccParser::OrExprContext *ctx) ;
 		virtual antlrcpp::Any visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) ;
 		virtual antlrcpp::Any visitFuncHeader(ifccParser::FuncHeaderContext *ctx) ;
+		virtual antlrcpp::Any visitIfStatement(ifccParser::IfStatementContext *ctx) ;
 		
 	protected:
 
