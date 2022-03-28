@@ -305,7 +305,11 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 	varStruct tmp = createTempVar(ctx);
  	
 	// Write assembly instructions
-	cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp.varName});
+	if (constStr[0] == '\'') {
+		cfg.getCurrentBB()->addInstr(Instr::ldconst, {"\'" + to_string(constValue), tmp.varName});
+	} else {
+		cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp.varName});
+	}
 	
 	// Return the temporary variable
 	return tmp;
@@ -428,7 +432,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 	// Number of variable to declare
 	int numVariable = ctx->TOKENNAME().size();
 	// Fetch type
-	string dVarType = ctx->VTYPE()->getText();
+	string dVarType = ctx->VTYPE->getText();
 	for(int i = 0 ; i < numVariable ; i++) {
 		// Fetch variable
 		string dVarName = ctx->TOKENNAME(i)->getText();
@@ -450,7 +454,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	
 	// Fetch variable
 	string dVarName = ctx->TOKENNAME()->getText();
-	string dVarType = ctx->VTYPE()->getText();
+	string dVarType = ctx->VTYPE->getText();
 	// Check errors
 	if (symbolTable.hasVar(dVarName)) {
 		string message =  "Variable " + dVarName + " has already been declared";
@@ -561,7 +565,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncHeader(ifccParser::FuncHeaderContext *ctx
 	vector<string> paramNames = {};
 	int numParams = ctx->TOKENNAME().size()-1;
 	for(int i = 0 ; i < numParams ; i++) {
-		paramTypes.push_back( ctx->VTYPE(i)->getText());
+		paramTypes.push_back( ctx->VTYPE->getText());
 		paramNames.push_back(ctx->TOKENNAME(1+i)->getText());
 	}
 

@@ -1,0 +1,3 @@
+ERROR : Variable _1 has not been declared at line 3.
+
+return code: 1

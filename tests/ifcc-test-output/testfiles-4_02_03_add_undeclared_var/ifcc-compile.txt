@@ -1,0 +1,3 @@
+ERROR : Variable a has not been declared at line 5.
+
+return code: 1

@@ -1,0 +1,3 @@
+WARNING : Variable helloWorld2 is not used at line 2.
+
+return code: 0

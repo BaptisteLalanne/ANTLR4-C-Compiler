@@ -1,0 +1,4 @@
+line 3:1 extraneous input '<EOF>' expecting {'void', 'int'}
+ERROR : syntax error during parsing
+
+return code: 1

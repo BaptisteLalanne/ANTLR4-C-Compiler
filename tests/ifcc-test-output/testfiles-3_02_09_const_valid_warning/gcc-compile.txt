@@ -1,0 +1,7 @@
+input.c: In function ‘main’:
+input.c:2:13: warning: integer constant is too large for its type
+    2 |     int a = 124365142337612763461523471563471356471347171761253471256712;
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+input.c:2:13: warning: overflow in conversion from ‘__int128’ to ‘int’ changes value from ‘17423299714807267464’ to ‘742424712’ [-Woverflow]
+
+return code: 0

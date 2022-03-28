@@ -1,0 +1,3 @@
+WARNING : Multi-character character constant at line 2.
+
+return code: 0

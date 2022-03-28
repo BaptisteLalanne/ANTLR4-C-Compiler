@@ -1,0 +1,3 @@
+ERROR : Function toto is called with the wrong number of parameters at line 6.
+
+return code: 1

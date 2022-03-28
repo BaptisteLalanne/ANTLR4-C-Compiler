@@ -1,0 +1,4 @@
+WARNING : Integer constant is too large for its type.
+Overflow in conversion to 'int' changes value from '124365142337612763461523471563471356471347171761253471256712' to '742424712' at line 2.
+
+return code: 0

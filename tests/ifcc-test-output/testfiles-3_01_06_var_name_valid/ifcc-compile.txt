@@ -1,0 +1,3 @@
+WARNING : Variable _helloWorld is not used at line 2.
+
+return code: 0

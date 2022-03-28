@@ -1,0 +1,4 @@
+line 3:12 extraneous input '_567890' expecting ';'
+ERROR : syntax error during parsing
+
+return code: 1

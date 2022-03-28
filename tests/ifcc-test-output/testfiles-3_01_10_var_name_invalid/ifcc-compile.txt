@@ -1,0 +1,5 @@
+line 2:8 token recognition error at: '¼'
+line 2:9 no viable alternative at input 'int ;'
+ERROR : syntax error during parsing
+
+return code: 1

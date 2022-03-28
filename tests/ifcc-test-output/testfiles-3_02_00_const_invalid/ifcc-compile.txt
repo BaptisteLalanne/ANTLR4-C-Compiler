@@ -1,0 +1,4 @@
+line 3:9 extraneous input 'a' expecting ';'
+ERROR : syntax error during parsing
+
+return code: 1

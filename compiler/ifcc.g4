@@ -10,7 +10,7 @@ funcDeclr :
 	funcHeader '{' body '}'
 ;
 funcHeader :
-	FTYPE=('void'|'int') TOKENNAME '(' (VTYPE TOKENNAME (',' VTYPE TOKENNAME)*)? ')' 
+	FTYPE=('void'|'int') TOKENNAME '(' (VTYPE=('int'|'char') TOKENNAME (',' VTYPE=('int'|'char') TOKENNAME)*)? ')' 
 ;
 
 mainDeclr : 
@@ -45,10 +45,10 @@ declr :
 	| varDeclrAndAffect
 ;
 varDeclr : 
-	VTYPE TOKENNAME (',' TOKENNAME)*
+	VTYPE=('int'|'char') TOKENNAME (',' TOKENNAME)*
 ;
 varDeclrAndAffect :
-	VTYPE TOKENNAME '=' expr 
+	VTYPE=('int'|'char') TOKENNAME '=' expr 
 ;
 
 end :
@@ -58,10 +58,9 @@ end :
 
 WS : [ \t\r\n] -> channel(HIDDEN) ;
 RETURN : 'return' ;
-VTYPE : 'int' ;
 CONST : NUMBER | CHAR ;
 NUMBER : [0-9]+ ;
-CHAR : '\'' . '\'' ;
+CHAR : '\''.'\'' ;
 TOKENNAME : [a-zA-Z_][a-zA-Z0-9_]* ;
 MULTICOMMENT : '/*' .*? '*/' -> skip ;
 SINGLECOMMENT : '//' .*? '\n' -> skip ;

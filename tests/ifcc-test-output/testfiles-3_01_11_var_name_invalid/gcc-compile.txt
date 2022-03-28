@@ -1,0 +1,14 @@
+input.c: In function ‘main’:
+input.c:2:14: error: stray ‘\302’ in program
+    2 |     int hello¼World;
+      |              ^
+input.c:2:15: error: stray ‘\274’ in program
+    2 |     int hello¼World;
+      |               ^
+input.c:2:16: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘World’
+    2 |     int hello¼World;
+      |                ^~~~~
+input.c:2:16: error: ‘World’ undeclared (first use in this function)
+input.c:2:16: note: each undeclared identifier is reported only once for each function it appears in
+
+return code: 1

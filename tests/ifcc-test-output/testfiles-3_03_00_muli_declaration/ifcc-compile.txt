@@ -1,0 +1,4 @@
+WARNING : Variable b is not used at line 2.
+WARNING : Variable a is not used at line 2.
+
+return code: 0

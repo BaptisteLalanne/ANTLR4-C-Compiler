@@ -1,0 +1,13 @@
+input.c: In function ‘toto’:
+input.c:2:12: warning: ‘return’ with a value, in function returning void
+    2 |     return 3;
+      |            ^
+input.c:1:6: note: declared here
+    1 | void toto() {
+      |      ^~~~
+input.c: In function ‘main’:
+input.c:6:13: error: void value not ignored as it ought to be
+    6 |     int a = toto();
+      |             ^~~~
+
+return code: 1

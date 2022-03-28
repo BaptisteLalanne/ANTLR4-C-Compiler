@@ -103,21 +103,28 @@ void Instr::generateASM(ostream &o) {
 			// Get params
 			string constant = params.at(0);
 			string var = params.at(1);
+
+			o << "# constant:" << constant << endl; 
+			o << "# var: " << var << endl;
 			
 			// Get constant value
 			int constValue;
+			string movInstr;
 			bool isChar = (constant[0] == '\'');
 			bool isInt = (constant[0] == '$');
 			if (isChar) {
-				constValue = int(constant[1]);
+				//constValue = int(constant[1]);
+				constValue = stoi(constant.substr(1,constant.size()-1));
+				movInstr = "movb	%al";
 			} 
 			else if (isInt) {
-				constValue = stoi(constant.substr(1,constant.size()-1));	
+				constValue = stoi(constant.substr(1,constant.size()-1));
+				movInstr = "movl	%eax";
 			}
 
 			// Write ASM instructions
 			o << "	movl	$" << constValue << ", %eax" << endl;
-			o << "	movl	%eax, " << getSymbol(var).memoryOffset << "(%rbp)" << endl;
+			o << "	" << movInstr << ", " << getSymbol(var).memoryOffset << "(%rbp)" << endl;
 
 			break;
 		}
@@ -128,9 +135,23 @@ void Instr::generateASM(ostream &o) {
 			string var1 = params.at(0);
 			string var2 = params.at(1);
 
+			varStruct s1 = getSymbol(var1);
+			varStruct s2 = getSymbol(var2);
+
+			string movInstr;
+			string reg;
+
+			if (s1.varType == "char") {
+				movInstr = "movb";
+				reg = "al";
+			} else if (s1.varType == "int") {
+				movInstr = "movl";
+				reg = "eax";
+			}
+
 			// Write ASM instructions
-			o << "	movl	" << getSymbol(var1).memoryOffset << "(%rbp), %eax" << endl;
-			o << "	movl	%eax, " << getSymbol(var2).memoryOffset << "(%rbp)" << endl;
+			o << "	" << movInstr << "	" << getSymbol(var1).memoryOffset << "(%rbp), %" << reg << endl;
+			o << "	" << movInstr << "	%" << reg << ", " << getSymbol(var2).memoryOffset << "(%rbp)" << endl;
 	
 			break;
 		}

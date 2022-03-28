@@ -1,0 +1,5 @@
+/usr/bin/ld: /tmp/ccTumcGf.o: in function `main':
+input.c:(.text+0xe): undefined reference to `toto'
+collect2: error: ld returned 1 exit status
+
+return code: 1
