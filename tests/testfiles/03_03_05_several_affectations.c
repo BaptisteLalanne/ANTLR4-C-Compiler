@@ -1,8 +1,6 @@
 int main() {
-    int a;
-    a=4;
-    a=2;
-    a=3;
-    
+    int a, b;
+    a = 5>0;
+    b=2;
     return a;
 }

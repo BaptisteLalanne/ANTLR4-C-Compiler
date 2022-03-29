@@ -1,6 +1,6 @@
 int main() {
-    int a;
-    if (a=4 > 1) {
+    int a=1;
+    if (5>0) {
         a=2;
     } else {
         a=3;
