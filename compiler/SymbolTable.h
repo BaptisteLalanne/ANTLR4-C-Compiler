@@ -88,7 +88,10 @@ class SymbolTable {
 
         // Dummy varStruct to handle parsing errors
         varStruct dummyVarStruct = {"", 0,"","",0,false,false};
-			
+		
+		//TODO DELETE THIS!
+		void displayVarMap();
+
 	protected:
 
 		// The current position of the memory stack pointer 

@@ -137,7 +137,7 @@ antlrcpp::Any CodeGenVisitor::visitMulDivModExpr(ifccParser::MulDivModExprContex
 }
 
 antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGreaterExprContext *ctx) {
-	
+	cout << "#VISIT visitCmpLessOrGreaterExpr begin" << endl;
 	// Fetch sub-expressions
 	varStruct var1 = visit(ctx->expr(0));
 	varStruct var2 = visit(ctx->expr(1));
@@ -161,6 +161,7 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 			cfg.getCurrentBB()->addInstr(Instr::cmp_gt, {var1.varName, var2.varName, tmp.varName});
 			break;
 	}
+	cout << "#VISIT visitCmpLessOrGreaterExpr end" << endl;
 	
 	// Return the temporary variable
 	return tmp;
@@ -210,6 +211,7 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 		
 	// Save current stack pointer
 	int currStackPointer = symbolTable.getStackPointer();
+	cout << "#visitAffExpr1: stackPointer" << symbolTable.getStackPointer() << endl;
 
 	// Compute expression
 	varStruct result = visit(ctx->expr());
@@ -218,7 +220,12 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
 	symbolTable.setStackPointer(currStackPointer);
+	cout << "#visitAffExpr2: stackPointer" << symbolTable.getStackPointer() << endl;
 	symbolTable.cleanTempVars();
+
+	//TO DELETE THIS
+	symbolTable.displayVarMap();
+
 	tempVarCounter = 0;
 	
 	// Write assembly instructions to save expression in variable 
@@ -233,6 +240,7 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) {
+	cout << "#VISIT visitConstExpr begin" << endl;
 	
 	int constValue;
 
@@ -315,6 +323,8 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 	// Write assembly instructions
 	cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp.varName});
 	
+	cout << "#VISIT visitConstExpr end" << endl;
+
 	// Return the temporary variable
 	return tmp;
 	
@@ -455,6 +465,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffectContext *ctx) {
+	cout << "#VISIT visitVarDeclrAndAffect begin" << endl;
 	
 	// Fetch variable
 	string dVarName = ctx->TOKENNAME()->getText();
@@ -470,23 +481,27 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 
 	// Save current stack pointer
 	int currStackPointer = symbolTable.getStackPointer();
+	cout << "#visitVarDeclrAndAffect1: stackPointer" << symbolTable.getStackPointer() << endl;
 
 	// Compute expression
 	varStruct result = visit(ctx->expr());
 	
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
 	symbolTable.setStackPointer(currStackPointer);
+	cout << "#visitVarDeclrAndAffect2: stackPointer" << symbolTable.getStackPointer() << endl;
 	symbolTable.cleanTempVars();
 	tempVarCounter = 0;
 	
 	// Write assembly instructions
 	cfg.getCurrentBB()->addInstr(Instr::copy, {result.varName, dVarName});
 	
+	cout << "#VISIT visitVarDeclrAndAffect end" << endl;
+	
 	return 0;
-
 }
 
 antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
+	cout << "#VISIT visitExprEnd begin" << endl;
 	
 	returned = true;
 
@@ -508,6 +523,8 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 
 	// Write assembly instructions
 	cfg.getCurrentBB()->addInstr(Instr::ret, {result.varName});
+
+	cout << "#VISIT visitExprEnd end" << endl;
 
 	return 0;
 	
@@ -591,17 +608,25 @@ antlrcpp::Any CodeGenVisitor::visitFuncHeader(ifccParser::FuncHeaderContext *ctx
 }
 
 varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx) {
+	cout << "#VISIT createTempVar begin" << endl;
+	
+	cout << "#createTempVar: stackPointer" << symbolTable.getStackPointer() << endl;
+	
 	tempVarCounter++;
 	string newVar = "!tmp" + to_string(tempVarCounter);
+	cout << "#createTempVar: newVar name = " << newVar << endl;
 	string newVarType = "int";
 	symbolTable.addVar(newVar, newVarType, currFunction, ctx->getStart()->getLine());
 	symbolTable.getVar(newVar).isUsed = true;
+
+	cout << "#VISIT createTempVar end" << endl;
+
 	return symbolTable.getVar(newVar);
 }
 
 antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *ctx) {
 	
-	cout << "# CodeGenVisitor::visitIfStatement" << endl;
+	cout << "#VISIT visitIfStatement begin" << endl;
 
 	// Fetch boolean expression of the if
 	varStruct testVar = visit(ctx->expr());
@@ -657,6 +682,8 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 
 	cfg.setCurrentBB(endIfBB);
 	
+	cout << "#VISIT visitIfStatement end" << endl;
+
 	return 0;
 	/*
 	testvar = test→linearize(cfg); . returns an IR variable 							//Recuperer le test (var)

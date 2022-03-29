@@ -133,6 +133,9 @@ SymbolTable& Instr::getSymbolTable() {
 
 void Instr::generateASM(ostream &o) {
 
+	cout << "#generateASM : display Map : "<<endl;
+			this->bb->getCFG()->getSymbolTable().displayVarMap();
+
 	switch (op) {
 
 		case Instr::ldconst:
@@ -164,6 +167,9 @@ void Instr::generateASM(ostream &o) {
 			// Get params
 			string var1 = params.at(0);
 			string var2 = params.at(1);
+
+			cout << "#getSymbol(var1) : " << getSymbol(var1).varName << ", " << getSymbol(var1).memoryOffset << endl;
+			cout << "#getSymbol(var2) : " << getSymbol(var2).varName << ", " << getSymbol(var2).memoryOffset << endl;
 
 			// Write ASM instructions
 			o << "	movl	" << getSymbol(var1).memoryOffset << "(%rbp), %eax" << endl;
@@ -394,6 +400,9 @@ void Instr::generateASM(ostream &o) {
 			string tmp = params.at(2);
 
 			// Write ASM instructions
+			cout << "#getSymbol(var1) : " << getSymbol(var1).varName << ", " << getSymbol(var1).memoryOffset << endl;
+			cout << "#getSymbol(var2) : " << getSymbol(var2).varName << ", " << getSymbol(var2).memoryOffset << endl;
+			cout << "#getSymbol(tmp) : " << getSymbol(tmp).varName << ", " << getSymbol(tmp).memoryOffset << endl;
 			o << "	movl	" << getSymbol(var1).memoryOffset << "(%rbp), %eax" << endl;
 			o << "	cmpl	" << getSymbol(var2).memoryOffset << "(%rbp), %eax" << endl;
 			o << "	setg	%al" << endl;
