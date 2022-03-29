@@ -108,16 +108,16 @@ void Instr::generateASM(ostream &o) {
 			if (isChar) {
 				//constValue = int(constant[1]);
 				constValue = stoi(constant.substr(1,constant.size()-1));
-				movInstr = "movb	%al";
+				movInstr = "movb";
 			} 
 			else if (isInt) {
 				constValue = stoi(constant.substr(1,constant.size()-1));
-				movInstr = "movl	%eax";
+				movInstr = "movl";
 			}
 
 			// Write ASM instructions
-			o << "	movl	$" << constValue << ", %eax" << endl;
-			o << "	" << movInstr << ", " << symbolTable->getVar(var).memoryOffset << "(%rbp)" << endl;
+			//o << "	movl	$" << constValue << ", %eax" << endl;
+			o << "	" << movInstr << "	$" << constValue << ", " << symbolTable->getVar(var).memoryOffset << "(%rbp)" << endl;
 
 			break;
 		}
