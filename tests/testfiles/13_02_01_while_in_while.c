@@ -3,9 +3,9 @@ int main() {
     int b=0;
     while(b>5){
         while(a>5){
-            a ++;
+            a = a+1;
         }
-        b++;
+        b = b+1;
     }
     return a+b;
 }
