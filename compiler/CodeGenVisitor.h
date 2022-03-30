@@ -26,11 +26,14 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 	public:
 
 		// Default constructor
-		CodeGenVisitor(ErrorHandler& eH, CFG& cfg) : errorHandler(eH), cfg(cfg), tempVarCounter(0) { globalSymbolTable = new SymbolTable(0, nullptr); }
+		CodeGenVisitor(ErrorHandler& eH, CFG& cfg) : errorHandler(eH), cfg(cfg) { globalSymbolTable = new SymbolTable(0, nullptr); }
 
 		// Linearising functions
-		virtual antlrcpp::Any visitMainDeclr(ifccParser::MainDeclrContext *ctx);
+		virtual antlrcpp::Any visitProg(ifccParser::ProgContext *ctx);
+		virtual antlrcpp::Any visitMainDeclr(ifccParser::MainDeclrContext *ctx) ;
 		virtual antlrcpp::Any visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) ;
+		virtual antlrcpp::Any visitFuncDeclrHeader(ifccParser::FuncDeclrContext *ctx) ;
+		virtual antlrcpp::Any visitFuncDeclrBody(ifccParser::FuncDeclrContext *ctx) ;
 		virtual antlrcpp::Any visitUnaryExpr(ifccParser::UnaryExprContext *ctx) ;
 		virtual antlrcpp::Any visitAddSubExpr(ifccParser::AddSubExprContext *ctx) ;
 		virtual antlrcpp::Any visitMulDivModExpr(ifccParser::MulDivModExprContext *ctx) ;
@@ -61,7 +64,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		CFG& cfg;
 
 		// A temp variables counter for evaluating expressions
-		int tempVarCounter;
+		int tempVarCounter = 0;
 
 		// The currently visited symbol table to keep track of nested scopes
 		stack<SymbolTable*> symbolTablesStack;

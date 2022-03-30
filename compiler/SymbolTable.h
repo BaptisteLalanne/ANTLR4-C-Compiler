@@ -49,8 +49,9 @@ class SymbolTable {
 		// Constructor of SymbolTable
 		SymbolTable(int sP = 0, SymbolTable* parent = nullptr) : stackPointer(sP), parentSymbolTable(parent) { }
 
-		// Tell whether a variable with a given name is present in the symbol table
+		// Tell whether a variable (or parameter) with a given name is present in the symbol table
 		bool hasVar(string name);
+		bool hasParam(string name);
 
 		// Tell whether a function with a given name is present in the symbol table
 		bool hasFunc(string name);
@@ -85,11 +86,8 @@ class SymbolTable {
 		// Returned setter 
 		void setReturned(bool r);
 		
-		// Perform static analysis
+		// Perform static analysis on variables
 		void checkUsedVariables(ErrorHandler& eH);
-
-		// Clean temporary variables
-		void cleanTempVars();
 
 		// Hashtable containing the size in bytes of the different types (typeName : size)
 		static unordered_map<string, int> typeSizes;
@@ -97,9 +95,6 @@ class SymbolTable {
 
         // Dummy varStruct to handle parsing errors
         static varStruct dummyVarStruct;
-		
-		//TODO DELETE THIS!
-		void displayVarMap();
 
 	protected:
 
@@ -112,11 +107,10 @@ class SymbolTable {
 		// Parent symbol table
 		SymbolTable* parentSymbolTable;
 
-		// TODO: turn this into a MultiMap (or use a key containing the scope)
-		// Hashtable containing the encountered variables (varName : variable)
+		// Hashtable containing the encountered variable declarations
 		unordered_map<string, varStruct> varMap;
 
-		// Hashtable containing the encountered functions (funcName : function)
+		// Hashtable containing the encountered function declarations
 		unordered_map<string, funcStruct> funcMap;
 
 };

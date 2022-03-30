@@ -16,30 +16,48 @@ unordered_map<string, int> SymbolTable::typeSizes = {{"int", 4}, {"char", 1}};
 unordered_map<string, string> SymbolTable::typeOpeMoves = {{"int", "movl"}, {"char", "movzbl"}};
 varStruct SymbolTable::dummyVarStruct = {"", 0,"",0,false,false};
 
-//TODO : DLETE THIS!
-void SymbolTable::displayVarMap() {
-	cout << "#displayVarMap : ";
-	for (auto v : this->varMap)
-	{
-		cout << v.first << ", ";
-	}
-	cout << endl;
+bool SymbolTable::hasVar(string name) {
+	bool hasVarInOwnMap = varMap.find(name) != varMap.end();
+	bool hasVarInParentMap = (parentSymbolTable != nullptr && parentSymbolTable->hasVar(name));
+	return hasVarInOwnMap || hasVarInParentMap;
 }
 
-bool SymbolTable::hasVar(string name) {
-	return varMap.find(name) != varMap.end();
+bool SymbolTable::hasParam(string name) {
+	return hasVar("^"+name);
 }
 
 bool SymbolTable::hasFunc(string name) {
-	return funcMap.find(name) != funcMap.end();
+	bool hasFuncInOwnMap = funcMap.find(name) != funcMap.end();
+	bool hasFuncInParentMap = (parentSymbolTable != nullptr && parentSymbolTable->hasFunc(name));
+	return hasFuncInOwnMap || hasFuncInParentMap;
 }
 
 varStruct& SymbolTable::getVar(string name) {
-	return varMap[name];
+	
+	if (hasParam(name)) {
+		return getVar("^"+name);
+	}
+
+	bool hasVarInOwnMap = varMap.find(name) != varMap.end();
+	if (hasVarInOwnMap) {
+		return varMap[name];
+	}
+	else {
+		return parentSymbolTable->getVar(name);
+	}
+
 }
 
 funcStruct& SymbolTable::getFunc(string name) {
-	return funcMap[name];
+
+	bool hasFuncInOwnMap = funcMap.find(name) != funcMap.end();
+	if (hasFuncInOwnMap) {
+		return funcMap[name];
+	}
+	else {
+		return parentSymbolTable->getFunc(name);
+	}
+	
 }
 
 int SymbolTable::getFuncMemorySpace() {
@@ -94,8 +112,7 @@ void SymbolTable::setReturned(bool r) {
 }
 
 void SymbolTable::checkUsedVariables(ErrorHandler& eH) {
-	for (auto v : varMap)
-	{
+	for (auto v : varMap) {
 		if (!v.second.isUsed) {
 			string message = "";
 			if (v.first[0] == '^') {
@@ -108,18 +125,4 @@ void SymbolTable::checkUsedVariables(ErrorHandler& eH) {
 			eH.signal(WARNING, message, v.second.varLine);
 		}
 	}
-}
-
-void SymbolTable::cleanTempVars() {
-	cout << "##############SymbolTable::cleanTempVars begin" << endl;
-	displayVarMap();
-	for (auto v : varMap)
-	{
-		cout << "# clean var" << endl;
-		if (!v.first[0] == '!') {
-			varMap.erase(v.first);
-		}
-	}
-	displayVarMap();
-	cout << "##############SymbolTable::cleanTempVars end" << endl;
 }

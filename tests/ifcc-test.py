@@ -199,7 +199,7 @@ for jobname in jobs:
         ## ifcc wrongly rejects valid program -> error
         print("TEST FAIL (your compiler rejects a valid program)")
         all_jobs_passed = False
-        failed_list.append(jobname + " : " + "your compiler rejects an invalid program")
+        failed_list.append(jobname + " : " + "your compiler rejects a valid program")
         if args.verbose:
             dumpfile("ifcc-compile.txt")
         continue
