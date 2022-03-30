@@ -846,3 +846,55 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 	cfg→currentBB = endIfBB
 	*/
 }
+
+antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementContext *ctx) {
+
+	cout << "#VISIT visitIfStatement begin" << endl;
+	SymbolTable* symbolTable = symbolTablesStack.top();
+
+	// Fetch boolean expression of the if
+	varStruct testVar = visit(ctx->expr());
+
+	// Basic block for the test
+	BasicBlock* testBB = cfg.getCurrentBB();
+
+	//Stores the name of the boolean test variable within the basic block for the test
+	testBB->setTestVarName(testVar.varName);
+
+	// Create an 'then' BB
+	BasicBlock* thenBB = cfg.createBB();
+		
+	// Create a BB for the code following the if/else statement
+	BasicBlock* endIfBB = cfg.createBB();
+	// Set its exit pointers to the ones of the parent BB
+	endIfBB->setExitTrue(testBB->getExitTrue());
+	endIfBB->setExitFalse(testBB->getExitFalse());
+	
+	// Set the parent's true exit pointer to the 'then' BB
+	testBB->setExitTrue(thenBB);
+	
+	
+	// Set the parent's false exit pointer to the following BB
+	testBB->setExitFalse(endIfBB);
+
+	// Write jump instructions
+	testBB->addInstr(Instr::conditional_jump, {testBB->getTestVarName(), testBB->getExitFalse()->getLabel(), testBB->getExitTrue()->getLabel()}, symbolTable);
+
+	// Set the 'then's BB true exit pointer to the following BB
+	thenBB->setExitTrue(thenBB);
+	thenBB->setExitFalse(nullptr);
+	
+	// Visit then body
+	cfg.setCurrentBB(thenBB);
+	visit(ctx->body());
+	// Write jump instructions
+	testBB->addInstr(Instr::conditional_jump, {testBB->getTestVarName(), testBB->getExitFalse()->getLabel(), testBB->getExitTrue()->getLabel()}, symbolTable);
+
+	// Set the next current BB
+	cfg.setCurrentBB(endIfBB);
+
+	cout << "#VISIT visitIfStatement end" << endl;
+
+	return 0;
+
+}
