@@ -801,48 +801,44 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 	cout << "#VISIT visitIfStatement begin" << endl;
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
-	// Fetch boolean expression of the if
+	// Basic block before the while expression
+	BasicBlock* beforeWhileBB = cfg.getCurrentBB();
+
+	// Create a basic block that will contain the condition
+	BasicBlock* testBB = cfg.createBB();
+	// Fetch the condition of the while loop
+	cfg.setCurrentBB(testBB);
 	varStruct testVar = visit(ctx->expr());
-
-	// Basic block for the test
-	BasicBlock* testBB = cfg.getCurrentBB();
-
 	//Stores the name of the boolean test variable within the basic block for the test
 	testBB->setTestVarName(testVar.varName);
 
-	// Create an 'then' BB
-	BasicBlock* thenBB = cfg.createBB();
-		
-	// Create a BB for the code following the if/else statement
-	BasicBlock* endIfBB = cfg.createBB();
-	// Set its exit pointers to the ones of the parent BB
-	endIfBB->setExitTrue(testBB->getExitTrue());
-	endIfBB->setExitFalse(testBB->getExitFalse());
-	
-	// Set the parent's true exit pointer to the 'then' BB
-	testBB->setExitTrue(thenBB);
-	
-	
-	// Set the parent's false exit pointer to the following BB
-	testBB->setExitFalse(endIfBB);
-
-	// Write jump instructions
-	testBB->addInstr(Instr::conditional_jump, {testBB->getTestVarName(), testBB->getExitFalse()->getLabel(), testBB->getExitTrue()->getLabel()}, symbolTable);
-
-	// Set the 'then's BB true exit pointer to the following BB
-	thenBB->setExitTrue(thenBB);
-	thenBB->setExitFalse(nullptr);
-	
-	// Visit then body
-	cfg.setCurrentBB(thenBB);
+	// Create a basic block that will contain the body of the while loop
+	BasicBlock* bodyBB = cfg.createBB();
+	// Visit body of the while loop
+	cfg.setCurrentBB(bodyBB);
 	visit(ctx->body());
-	// Write jump instructions
+
+	// Create a basic block that will contain the code after the while loop
+	BasicBlock* afterWhileBB = cfg.createBB();
+	// Set the exit pointers of the afterWhileBB to the ones of the parent BB
+	afterWhileBB->setExitTrue(beforeWhileBB->getExitTrue());
+	afterWhileBB->setExitFalse(beforeWhileBB->getExitFalse());
+	
+	// Set the tue exit pointer of the test block to the body block
+	testBB->setExitTrue(bodyBB);
+	// Set the false exit pointer of the test block to the block after the while
+	testBB->setExitFalse(afterWhileBB);
 	testBB->addInstr(Instr::conditional_jump, {testBB->getTestVarName(), testBB->getExitFalse()->getLabel(), testBB->getExitTrue()->getLabel()}, symbolTable);
+
+	// Set the true exit pointer of the body block to the test block
+	bodyBB->setExitTrue(testBB);
+	bodyBB->setExitFalse(nullptr);
+	bodyBB->addInstr(Instr::absolute_jump, {bodyBB->getExitTrue()->getLabel()}, symbolTable);
 
 	// Set the next current BB
-	cfg.setCurrentBB(endIfBB);
+	cfg.setCurrentBB(afterWhileBB);
 
-	cout << "#VISIT visitIfStatement end" << endl;
+	cout << "#VISIT visitWhileStatement end" << endl;
 
 	return 0;
 
