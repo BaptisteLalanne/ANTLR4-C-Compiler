@@ -763,7 +763,7 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 		// Write instruction to jump back to the following block
 		elseBB->addInstr(Instr::absolute_jump, {elseBB->getExitTrue()->getLabel()}, symbolTable);
 
-	} 
+	}
 	// If there's only a 'then' statement
 	else {
 
@@ -787,7 +787,9 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 
 	// Set the next current BB
 	cfg.setCurrentBB(endIfBB);
-
+	if (endIfBB->getExitTrue()){
+		endIfBB->addInstr(Instr::absolute_jump, {endIfBB->getExitTrue()->getLabel()}, symbolTable);
+	}
 	cout << "#VISIT visitIfStatement end" << endl;
 
 	return 0;
