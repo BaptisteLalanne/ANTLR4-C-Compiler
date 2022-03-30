@@ -557,7 +557,7 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 	cout << "#VISIT visitExprEnd begin" << endl;
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
-	returned = true;
+	symbolTable->setReturned(true);
 
 	// Save current stack pointer
 	int currStackPointer = symbolTable->getStackPointer();
@@ -585,26 +585,25 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitEmptyEnd(ifccParser::EmptyEndContext *ctx) {
-
 	SymbolTable* symbolTable = symbolTablesStack.top();
-	returned = true;
-	cfg.getCurrentBB()->addInstr(Instr::ret, {"$41"}, symbolTable);
+	symbolTable->setReturned(true);
+	cfg.getCurrentBB()->addInstr(Instr::ret, {(currFunction == "main") ? "$41" : "$0"}, symbolTable);
 	return 0;
 }
 
 void CodeGenVisitor::returnDefault() {
-
 	SymbolTable* symbolTable = symbolTablesStack.top();
-	returned = true;
+	symbolTable->setReturned(true);
 	cfg.getCurrentBB()->addInstr(Instr::ret, {"$0"}, symbolTable);
 }
 
 antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) {
 
 	// Create main function in symbol table (grammar makes sure it can only be declared once)
-	globalSymbolTable->addFunc("main", "int", {}, {}, ctx->getStart()->getLine());	
+	globalSymbolTable->addFunc("main", "int", {}, {}, ctx->getStart()->getLine());
+	currFunction = "main";
 
-		// Create new symbol table
+	// Create new symbol table
 	SymbolTable* newSymbolTable = new SymbolTable(0, globalSymbolTable);
 	symbolTablesStack.push(newSymbolTable);
 
@@ -613,7 +612,7 @@ antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) 
 
 	// Create body instructions
 	visit(ctx->body());
-    if (!returned) returnDefault();
+    if (!newSymbolTable->hasReturned()) returnDefault();
 
 	// Create epilogue instructions
 	cfg.getCurrentBB()->addInstr(Instr::epilogue, {}, newSymbolTable); 
@@ -633,6 +632,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) 
 
 	// Fetch function name
 	string funcName = ctx->TOKENNAME(0)->getText();
+	currFunction = funcName;
 
 	// Fetch parameter names and types
 	vector<string> paramTypes = {};
@@ -672,6 +672,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) 
 
 	// Create body instrctions
 	visit(ctx->body());
+	if (!newSymbolTable->hasReturned()) returnDefault();
 
 	// Create epilogue instructions
 	cfg.getCurrentBB()->addInstr(Instr::epilogue, {}, newSymbolTable); 
@@ -699,48 +700,21 @@ antlrcpp::Any CodeGenVisitor::visitVtype(ifccParser::VtypeContext *ctx) {
 	return 0;
 }
 
-
-varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx) {
-	cout << "#VISIT createTempVar begin" << endl;
-	SymbolTable* symbolTable = symbolTablesStack.top();
-	
-	cout << "#createTempVar: stackPointer" << symbolTable->getStackPointer() << endl;
-	
-	tempVarCounter++;
-	string newVar = "!tmp" + to_string(tempVarCounter);
-	cout << "#createTempVar: newVar name = " << newVar << endl;
-	string newVarType = "int";
-	// symbolTable->addVar(newVar, newVarType, currFunction, ctx->getStart()->getLine());
-	symbolTable->addVar(newVar, newVarType, ctx->getStart()->getLine());
-	symbolTable->getVar(newVar).isUsed = true;
-
-	cout << "#VISIT createTempVar end" << endl;
-
-	return symbolTable->getVar(newVar);
-}
-
 varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx, string newType) {
-	cout << "#VISIT createTempVar begin" << endl;
-	SymbolTable* symbolTable = symbolTablesStack.top();
 	
-	cout << "#createTempVar: stackPointer" << symbolTable->getStackPointer() << endl;
+	SymbolTable* symbolTable = symbolTablesStack.top();
 	
 	tempVarCounter++;
 	string newVar = "!tmp" + to_string(tempVarCounter);
-	cout << "#createTempVar: newVar name = " << newVar << endl;
 	string newVarType = newType;
-	//symbolTable->addVar(newVar, newVarType, currFunction, ctx->getStart()->getLine());
 	symbolTable->addVar(newVar, newVarType, ctx->getStart()->getLine());
 	symbolTable->getVar(newVar).isUsed = true;
-
-	cout << "#VISIT createTempVar end" << endl;
 
 	return symbolTable->getVar(newVar);
 }
 
 antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *ctx) {
 	
-	cout << "#VISIT visitIfStatement begin" << endl;
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
 	// Fetch boolean expression of the if
@@ -818,33 +792,6 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 
 	return 0;
 
-	/*
-	testvar = test→linearize(cfg); . returns an IR variable 							//Recuperer le test (var)
-	
-	testBB = cfg→currentBB 																//Recuperer le BB current
-	testBB→test var name = testvar . will be used by the conversion to assembly			//Get the name of the test variable and stores it in the basic block
-	
-	thenBB = new BasicBlock(cfg, trueCode) . this constructor also generates the code	//Cree block pour true (then)
-	thenLastBB = cfg→currentBB . useful if trueCode itself included ifs or whiles		//Assign to the deepest then block (when there are if statements whithin if statements) the current block as a exit true 
-	
-	elseBB = new BasicBlock(cfg, falseCode)												//Cree block pour false ()
-	elseLastBB = cfg→currentBB
-	
-	endIfBB = new BasicBlock(cfg) . constructor of an empty basic block
-	endIfBB→exitTrue = testBB→exitTrue . pointer stitching
-	endIfBB→exitFalse = testBB→exitFalse . pointer stitching
-	
-	testBB→exitTrue = thenBB . pointer stitching
-	testBB→exitFalse = elseBB . pointer stitching
-	
-	thenLastBB→exitTrue = endIfBB . pointer stitching
-	thenLastBB→exitFalse = NULL . unconditional exit
-	
-	elseLastBB→exitTrue = endIfBB . pointer stitching
-	elseLastBB→exitFalse = NULL . unconditional exit
-	
-	cfg→currentBB = endIfBB
-	*/
 }
 
 antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementContext *ctx) {
