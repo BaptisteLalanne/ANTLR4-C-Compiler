@@ -152,10 +152,15 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
+	cout << "#VISIT visitCmpLessOrGreaterExpr begin" << endl;
 	// Fetch sub-expressions
 	varStruct var1 = visit(ctx->expr(0));
 	varStruct var2 = visit(ctx->expr(1));
 	varStruct tmp = createTempVar(ctx);
+
+	cout << "#var1=" << var1.varName << " " << var1.memoryOffset << endl;
+	cout << "#var2=" << var2.varName << " " << var2.memoryOffset << endl;
+	cout << "#tmp=" << tmp.varName << " " << tmp.memoryOffset << endl;
 
     if(!var1.isCorrect || !var2.isCorrect) {
         return SymbolTable::dummyVarStruct;
@@ -171,6 +176,7 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 			cfg.getCurrentBB()->addInstr(Instr::cmp_gt, {var1.varName, var2.varName, tmp.varName}, symbolTable);
 			break;
 	}
+	cout << "#VISIT visitCmpLessOrGreaterExpr end" << endl;
 	
 	// Return the temporary variable
 	return tmp;
@@ -225,14 +231,22 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 		
 	// Save current stack pointer
 	int currStackPointer = symbolTable->getStackPointer();
+	cout << "#visitAffExpr1: stackPointer" << symbolTable->getStackPointer() << endl;
 
 	// Compute expression
 	varStruct result = visit(ctx->expr());
 
+	cout << "#result=" << result.varName << " " << result.memoryOffset << endl;
+
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
-	// symbolTable->setStackPointer(currStackPointer);
-	// symbolTable->cleanTempVars();
-	// tempVarCounter = 0;
+	symbolTable->setStackPointer(currStackPointer);
+	cout << "#visitAffExpr2: stackPointer" << symbolTable->getStackPointer() << endl;
+	symbolTable->cleanTempVars();
+
+	//TO DELETE THIS
+	symbolTable->displayVarMap();
+
+	tempVarCounter = 0;
 	
 	// Write assembly instructions to save expression in variable 
 	cfg.getCurrentBB()->addInstr(Instr::copy, {result.varName, varName}, symbolTable);
@@ -246,6 +260,7 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) {
+	cout << "#VISIT visitConstExpr begin" << endl;
 	
 	int constValue;
 	SymbolTable* symbolTable = symbolTablesStack.top();
@@ -496,6 +511,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffectContext *ctx) {
+	cout << "#VISIT visitVarDeclrAndAffect begin" << endl;
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
@@ -519,6 +535,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 
 	// Save current stack pointer
 	int currStackPointer = symbolTable->getStackPointer();
+	cout << "#visitVarDeclrAndAffect1: stackPointer" << symbolTable->getStackPointer() << endl;
 
 	// Compute expression
 	varStruct result = visit(ctx->expr());
@@ -527,15 +544,17 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	// symbolTable->setStackPointer(currStackPointer);
 	// symbolTable->cleanTempVars();
 	// tempVarCounter = 0;
-	
+
 	// Write assembly instructions
 	cfg.getCurrentBB()->addInstr(Instr::copy, {result.varName, dVarName}, symbolTable);
 	
+	cout << "#VISIT visitVarDeclrAndAffect end" << endl;
+	
 	return 0;
-
 }
 
 antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
+	cout << "#VISIT visitExprEnd begin" << endl;
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 	returned = true;
@@ -558,6 +577,8 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 
 	// Write assembly instructions
 	cfg.getCurrentBB()->addInstr(Instr::ret, {result.varName}, symbolTable);
+
+	cout << "#VISIT visitExprEnd end" << endl;
 
 	return 0;
 	
@@ -680,17 +701,130 @@ antlrcpp::Any CodeGenVisitor::visitVtype(ifccParser::VtypeContext *ctx) {
 }
 
 
-varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx, string varType) {
-
+varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx) {
+	cout << "#VISIT createTempVar begin" << endl;
 	SymbolTable* symbolTable = symbolTablesStack.top();
+	
+	cout << "#createTempVar: stackPointer" << symbolTable->getStackPointer() << endl;
+	
 	tempVarCounter++;
 	string newVar = "!tmp" + to_string(tempVarCounter);
-	string newVarType = varType;
+	cout << "#createTempVar: newVar name = " << newVar << endl;
+	string newVarType = "int";
+	// symbolTable->addVar(newVar, newVarType, currFunction, ctx->getStart()->getLine());
 	symbolTable->addVar(newVar, newVarType, ctx->getStart()->getLine());
 	symbolTable->getVar(newVar).isUsed = true;
+
+	cout << "#VISIT createTempVar end" << endl;
+
 	return symbolTable->getVar(newVar);
 }
 
-varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx) {
-	return this->createTempVar(ctx, "int");
+varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx, string newType) {
+	cout << "#VISIT createTempVar begin" << endl;
+	SymbolTable* symbolTable = symbolTablesStack.top();
+	
+	cout << "#createTempVar: stackPointer" << symbolTable->getStackPointer() << endl;
+	
+	tempVarCounter++;
+	string newVar = "!tmp" + to_string(tempVarCounter);
+	cout << "#createTempVar: newVar name = " << newVar << endl;
+	string newVarType = newType;
+	//symbolTable->addVar(newVar, newVarType, currFunction, ctx->getStart()->getLine());
+	symbolTable->addVar(newVar, newVarType, ctx->getStart()->getLine());
+	symbolTable->getVar(newVar).isUsed = true;
+
+	cout << "#VISIT createTempVar end" << endl;
+
+	return symbolTable->getVar(newVar);
+}
+
+antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *ctx) {
+	
+	cout << "#VISIT visitIfStatement begin" << endl;
+
+	// Fetch boolean expression of the if
+	varStruct testVar = visit(ctx->expr());
+
+	//Check whether there is an else statment
+	bool hasElseStatment = ctx->body().size() == 2; 
+
+	// Basic block for the test
+	BasicBlock* testBB = cfg.getCurrentBB();
+	//Stores the name of the boolean test variable within the basic block for the test
+	testBB->setTestVarName(testVar.varName);
+
+	//Create a BB for the then case
+	BasicBlock* thenBB = cfg.createBB();
+	
+	/*if (hasElseStatment) {
+		BasicBlock* elseBB = cfg.createBB();
+	}*/
+	
+	//
+	BasicBlock* endIfBB = cfg.createBB();
+	endIfBB->setExitTrue(testBB->getExitTrue());
+	endIfBB->setExitFalse(testBB->getExitFalse());
+	
+	testBB->setExitTrue(thenBB);
+	
+	if (hasElseStatment) {
+		BasicBlock* elseBB = cfg.createBB();
+		testBB->setExitFalse(elseBB);
+		elseBB->setExitTrue(endIfBB);
+		elseBB->setExitFalse(nullptr);
+		cfg.setCurrentBB(elseBB);
+		visit(ctx->body(1));
+	} else {
+		testBB->setExitFalse(endIfBB);
+	}
+	
+	thenBB->setExitTrue(endIfBB);
+	thenBB->setExitFalse(nullptr);
+	
+	/*if (hasElseStatment) {
+		elseBB->setExitTrue(endIfBB);
+		elseBB->setExitFalse(nullptr);
+	}*/
+	
+	cfg.setCurrentBB(thenBB);
+	visit(ctx->body(0));
+
+	/*if (hasElseStatment) {
+		cfg.setCurrentBB(elseBB);
+		visit(ctx->body(1));
+	}*/
+
+	cfg.setCurrentBB(endIfBB);
+	
+	cout << "#VISIT visitIfStatement end" << endl;
+
+	return 0;
+	/*
+	testvar = test→linearize(cfg); . returns an IR variable 							//Recuperer le test (var)
+	
+	testBB = cfg→currentBB 																//Recuperer le BB current
+	testBB→test var name = testvar . will be used by the conversion to assembly			//Get the name of the test variable and stores it in the basic block
+	
+	thenBB = new BasicBlock(cfg, trueCode) . this constructor also generates the code	//Cree block pour true (then)
+	thenLastBB = cfg→currentBB . useful if trueCode itself included ifs or whiles		//Assign to the deepest then block (when there are if statements whithin if statements) the current block as a exit true 
+	
+	elseBB = new BasicBlock(cfg, falseCode)												//Cree block pour false ()
+	elseLastBB = cfg→currentBB
+	
+	endIfBB = new BasicBlock(cfg) . constructor of an empty basic block
+	endIfBB→exitTrue = testBB→exitTrue . pointer stitching
+	endIfBB→exitFalse = testBB→exitFalse . pointer stitching
+	
+	testBB→exitTrue = thenBB . pointer stitching
+	testBB→exitFalse = elseBB . pointer stitching
+	
+	thenLastBB→exitTrue = endIfBB . pointer stitching
+	thenLastBB→exitFalse = NULL . unconditional exit
+	
+	elseLastBB→exitTrue = endIfBB . pointer stitching
+	elseLastBB→exitFalse = NULL . unconditional exit
+	
+	cfg→currentBB = endIfBB
+	*/
 }

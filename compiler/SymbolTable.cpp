@@ -14,8 +14,17 @@ using namespace std;
 
 unordered_map<string, int> SymbolTable::typeSizes = {{"int", 4}, {"char", 1}};
 unordered_map<string, string> SymbolTable::typeOpeMoves = {{"int", "movl"}, {"char", "movzbl"}};
-
 varStruct SymbolTable::dummyVarStruct = {"", 0,"",0,false,false};
+
+//TODO : DLETE THIS!
+void SymbolTable::displayVarMap() {
+	cout << "#displayVarMap : ";
+	for (auto v : this->varMap)
+	{
+		cout << v.first << ", ";
+	}
+	cout << endl;
+}
 
 bool SymbolTable::hasVar(string name) {
 	return varMap.find(name) != varMap.end();
@@ -95,6 +104,8 @@ void SymbolTable::checkUsedVariables(ErrorHandler& eH) {
 }
 
 void SymbolTable::cleanTempVars() {
+	cout << "##############SymbolTable::cleanTempVars begin" << endl;
+	displayVarMap();
 	for (auto v : varMap)
 	{
 		cout << "# clean var" << endl;
@@ -102,5 +113,6 @@ void SymbolTable::cleanTempVars() {
 			varMap.erase(v.first);
 		}
 	}
-	cout << "# size: " << varMap.size() << endl; 
+	displayVarMap();
+	cout << "##############SymbolTable::cleanTempVars end" << endl;
 }

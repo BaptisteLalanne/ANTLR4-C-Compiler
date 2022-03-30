@@ -24,10 +24,9 @@ mainDeclr :
 
 body : 
 	declr ';' body 
-	| expr ';' body
 	| end ';' body
-	| beginBlock body endBlock
-	|
+	| ifelse body
+	| expr ';' body
 ;
 
 expr :
@@ -37,19 +36,24 @@ expr :
 	| expr OP2=('+'|'-') expr 					#addSubExpr
 	| expr CMP=('<' | '>') expr					#cmpLessOrGreaterExpr
 	| expr EQ=('=='|'!=') expr					#cmpEqualityExpr
-	| TOKENNAME '=' expr 						#affExpr
 	| expr '&' expr								#andExpr
 	| expr '^' expr								#xorExpr
 	| expr '|' expr								#orExpr
 	| TOKENNAME '(' (expr (',' expr)*)? ')'		#funcExpr
 	| CONST 									#constExpr 
 	| TOKENNAME									#varExpr
+	| TOKENNAME '=' expr 						#affExpr
+;
+
+ifelse :
+	'if' '(' expr ')' '{' body '}' ('else' '{' body '}')?	#ifStatement
 ;
 
 declr :
 	varDeclr 
 	| varDeclrAndAffect
 ;
+
 varDeclr : 
 	vtype TOKENNAME (',' TOKENNAME)*
 ;
