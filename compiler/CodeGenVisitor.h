@@ -26,7 +26,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 	public:
 
 		// Default constructor
-		CodeGenVisitor(ErrorHandler& eH, CFG& cfg) : errorHandler(eH), cfg(cfg), returned(false), tempVarCounter(0) { globalSymbolTable = new SymbolTable(0, nullptr); }
+		CodeGenVisitor(ErrorHandler& eH, CFG& cfg) : errorHandler(eH), cfg(cfg), tempVarCounter(0) { globalSymbolTable = new SymbolTable(0, nullptr); }
 
 		// Linearising functions
 		virtual antlrcpp::Any visitMainDeclr(ifccParser::MainDeclrContext *ctx);
@@ -60,14 +60,14 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		// The associated IR instance
 		CFG& cfg;
 
-		// Whether the function has returned
-		bool returned;		
-
 		// A temp variables counter for evaluating expressions
 		int tempVarCounter;
 
 		// The currently visited symbol table to keep track of nested scopes
 		stack<SymbolTable*> symbolTablesStack;
+
+		// The current function
+		string currFunction = "";
 
 		// The global symbol table
 		SymbolTable* globalSymbolTable;
@@ -76,7 +76,6 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		void returnDefault();
 		
 		// Return offset temp variable after created it
-		varStruct createTempVar(antlr4::ParserRuleContext *ctx, string varType);
-		varStruct createTempVar(antlr4::ParserRuleContext *ctx);
+		varStruct createTempVar(antlr4::ParserRuleContext *ctx, string varType="int");
 
 };

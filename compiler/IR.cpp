@@ -78,13 +78,6 @@ void BasicBlock::generateASM(ostream &o) {
 	for (Instr* i : instrList) {
 		i->generateASM(o);
 	}
-	if (exit_false) {
-		cout << "	cmpl    $0, " << sT->getVar(test_var_name).memoryOffset << "(%rbp)" << endl;
-		cout << "	je    " << exit_false->label << endl;
-	}
-	if (exit_true){
-		cout << "	jmp    " << this->exit_true->label << endl;
-	}
 }
 
 void BasicBlock::setExitTrue(BasicBlock* bb) {
@@ -107,9 +100,6 @@ string BasicBlock::getLabel(){
 	return this->label;
 }
 
-void BasicBlock::setTestVarName(string test_var_name) {
-	this->test_var_name = test_var_name;
-}
 /* --------------------------------------------------------------------- */
 //------------ Implementation of class <Instr> (file IR.cpp) -------------/
 /* --------------------------------------------------------------------- */
@@ -669,6 +659,32 @@ void Instr::generateASM(ostream &o) {
 
 			// Note: the actual return is handled by the epilogue
 			
+			break;
+		}
+
+		case Instr::conditional_jump:
+		{
+			// Get params
+			string testVarName = params.at(0);
+			string falseExitBlockLabel = params.at(1);
+			string trueExitBlockLabel = params.at(2);
+
+			// Write ASM instructions
+			o << "	cmpl    $0, " << symbolTable->getVar(testVarName).memoryOffset << "(%rbp)" << endl;
+			o << "	je    " << falseExitBlockLabel << endl;
+			o << "	jmp    " << trueExitBlockLabel << endl;
+
+			break;
+		}
+
+		case Instr::absolute_jump:
+		{
+			// Get params
+			string blockLabel = params.at(0);
+
+			// Write ASM instructions
+			o << "	jmp    " << blockLabel << endl;
+
 			break;
 		}
 

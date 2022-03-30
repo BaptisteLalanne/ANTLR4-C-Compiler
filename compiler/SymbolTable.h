@@ -78,6 +78,12 @@ class SymbolTable {
 
 		// Parent getter 
 		SymbolTable* getParent() { return parentSymbolTable; }
+
+		// Returned getter
+		bool hasReturned() { return returned; }
+
+		// Returned setter 
+		void setReturned(bool r);
 		
 		// Perform static analysis
 		void checkUsedVariables(ErrorHandler& eH);
@@ -99,6 +105,9 @@ class SymbolTable {
 
 		// The current position of the memory stack pointer 
 		int stackPointer;	
+
+		// Whether the scope has a return statement
+		bool returned;
 		
 		// Parent symbol table
 		SymbolTable* parentSymbolTable;

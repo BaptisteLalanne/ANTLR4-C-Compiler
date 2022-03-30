@@ -1,11 +1,12 @@
+
 grammar ifcc;
+
+axiom : prog ;
 
 vtype:
 	TINT
 	| TCHAR
 ;
-
-axiom : prog ;
 
 beginBlock : '{' ;
 endBlock : '}' ;
@@ -24,9 +25,11 @@ mainDeclr :
 
 body : 
 	declr ';' body 
+	| expr ';' body
 	| end ';' body
 	| ifelse body
-	| expr ';' body
+	| beginBlock body endBlock
+	|
 ;
 
 expr :
@@ -36,24 +39,23 @@ expr :
 	| expr OP2=('+'|'-') expr 					#addSubExpr
 	| expr CMP=('<' | '>') expr					#cmpLessOrGreaterExpr
 	| expr EQ=('=='|'!=') expr					#cmpEqualityExpr
+	| TOKENNAME '=' expr 						#affExpr
 	| expr '&' expr								#andExpr
 	| expr '^' expr								#xorExpr
 	| expr '|' expr								#orExpr
 	| TOKENNAME '(' (expr (',' expr)*)? ')'		#funcExpr
 	| CONST 									#constExpr 
 	| TOKENNAME									#varExpr
-	| TOKENNAME '=' expr 						#affExpr
 ;
 
 ifelse :
-	'if' '(' expr ')' '{' body '}' ('else' '{' body '}')?	#ifStatement
+	'if' '(' expr ')' beginBlock body endBlock ('else' beginBlock body endBlock)?	#ifStatement
 ;
 
 declr :
 	varDeclr 
 	| varDeclrAndAffect
 ;
-
 varDeclr : 
 	vtype TOKENNAME (',' TOKENNAME)*
 ;
