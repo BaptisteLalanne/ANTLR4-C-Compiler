@@ -75,7 +75,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		void returnDefault();
 		
 		// Return offset temp variable after created it
-		varStruct createTempVar(antlr4::ParserRuleContext *ctx, string varType);
+		varStruct createTempVar(antlr4::ParserRuleContext *ctx, string varType, int* constPtr = nullptr);
 		varStruct createTempVar(antlr4::ParserRuleContext *ctx);
 
 };

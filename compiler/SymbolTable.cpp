@@ -51,7 +51,7 @@ void SymbolTable::setStackPointer(int s) {
 	stackPointer = s;
 }
 
-void SymbolTable::addVar(string name, string vT, int vL) {
+void SymbolTable::addVar(string name, string vT, int vL, int* constPtr) {
 	stackPointer -= typeSizes[vT];
 	struct varStruct s = {
 		name,
@@ -60,6 +60,7 @@ void SymbolTable::addVar(string name, string vT, int vL) {
 		vL,
 		false,
 		true,
+		constPtr
 	};
 	varMap[name] = s;
 }
@@ -92,6 +93,15 @@ void SymbolTable::checkUsedVariables(ErrorHandler& eH) {
 			eH.signal(WARNING, message, v.second.varLine);
 		}
 	}
+}
+
+int SymbolTable::getCast(string type, int value){
+	if(type.compare("int") == 0){
+		return (int) value;
+	} else if (type.compare("char") == 0){
+		return (char) value;
+	} 
+	return value;
 }
 
 void SymbolTable::cleanTempVars() {

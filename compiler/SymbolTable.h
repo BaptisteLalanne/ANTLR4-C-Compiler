@@ -18,12 +18,13 @@ using namespace std;
 //------------------------------------------------------------------ Types
 // Store all informations relvent for a variable
 struct varStruct {
-	string varName; 	//Its name
-	int memoryOffset;	//Its offset (in memory) to the base pointer 
-	string varType;		//The type of the variable
-	int varLine;		//The line of code where the variable is declared
-	bool isUsed;		//Whether the variable is used in the code
-    bool isCorrect; 	// False when a dummy struct is returned to avoid bad cast	
+	string varName; 	// Its name
+	int memoryOffset;	// Its offset (in memory) to the base pointer 
+	string varType;		// The type of the variable
+	int varLine;		// The line of code where the variable is declared
+	bool isUsed;		// Whether the variable is used in the code
+    bool isCorrect; 	// False when a dummy struct is returned to avoid bad cast
+	int* constPtr;  	// Const pointer
 };
 
 // Store all informations relvent for a function
@@ -49,6 +50,12 @@ class SymbolTable {
 		// Constructor of SymbolTable
 		SymbolTable(int sP = 0, SymbolTable* parent = nullptr) : stackPointer(sP), parentSymbolTable(parent) { }
 
+		~SymbolTable() {
+			for(auto var: varMap) {
+				delete(var.second.constPtr);
+			}
+		};
+
 		// Tell whether a variable with a given name is present in the symbol table
 		bool hasVar(string name);
 
@@ -71,7 +78,7 @@ class SymbolTable {
 		void setStackPointer(int s);
 
 		// Add a variable to the table of symbols
-		void addVar(string name, string vT, int vL);
+		void addVar(string name, string vT, int vL, int* constPtr = nullptr);
 
 		// Add a function to the table of symbols
 		void addFunc(string name, string rT, vector<string> pT, vector<string> pN, int fL);
@@ -84,6 +91,9 @@ class SymbolTable {
 
 		// Clean temporary variables
 		void cleanTempVars();
+
+		// Used for assembler
+		static int getCast(string type, int value);
 
 		// Hashtable containing the size in bytes of the different types (typeName : size)
 		static unordered_map<string, int> typeSizes;
