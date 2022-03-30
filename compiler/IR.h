@@ -40,7 +40,9 @@ class Instr {
 			op_minus,
 			ret,
 			prologue,
-			epilogue
+			epilogue,
+			conditional_jump,
+			absolute_jump
 		} Operation;
 
 		Instr(BasicBlock* bb, Instr::Operation op, vector<string> params, SymbolTable* sT);
@@ -84,7 +86,9 @@ class BasicBlock {
 		void setExitFalse(BasicBlock* bb);
 		BasicBlock* getExitFalse();
 		string getLabel();
-		void setTestVarName(string test_var_name);
+		void setTestVarName(string n) { testVarName = n; }
+		string getTestVarName() { return testVarName; }
+
 
 		/* Symbol table accessors */
 		varStruct getSymbol(string name);
@@ -108,7 +112,7 @@ class BasicBlock {
 		vector<Instr*> instrList; 
 
 		/* When generating IR code for an if(expr) or while(expr) etc, store here the name of the variable that holds the value of expr */
-		string test_var_name;  
+		string testVarName;  
  
 };
 

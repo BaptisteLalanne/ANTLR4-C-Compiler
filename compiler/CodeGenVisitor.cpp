@@ -241,12 +241,12 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
 	symbolTable->setStackPointer(currStackPointer);
 	cout << "#visitAffExpr2: stackPointer" << symbolTable->getStackPointer() << endl;
-	symbolTable->cleanTempVars();
+	//symbolTable->cleanTempVars();
 
 	//TO DELETE THIS
-	symbolTable->displayVarMap();
+	//symbolTable->displayVarMap();
 
-	tempVarCounter = 0;
+	//tempVarCounter = 0;
 	
 	// Write assembly instructions to save expression in variable 
 	cfg.getCurrentBB()->addInstr(Instr::copy, {result.varName, varName}, symbolTable);
@@ -452,7 +452,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 		varStruct result = visit(ctx->expr(i));
 
 		// Reset the stack pointer and temp variable counter after having evaluated the expression
-		// symbolTable->setStackPointer(currStackPointer);
+		symbolTable->setStackPointer(currStackPointer);
 		// symbolTable->cleanTempVars();
 		// tempVarCounter = 0;
 
@@ -541,7 +541,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	varStruct result = visit(ctx->expr());
 	
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
-	// symbolTable->setStackPointer(currStackPointer);
+	symbolTable->setStackPointer(currStackPointer);
 	// symbolTable->cleanTempVars();
 	// tempVarCounter = 0;
 
@@ -571,7 +571,7 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
     }
 	
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
-	// symbolTable->setStackPointer(currStackPointer);
+	symbolTable->setStackPointer(currStackPointer);
 	// symbolTable->cleanTempVars();
 	// tempVarCounter = 0;
 
@@ -624,7 +624,6 @@ antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) 
 	return 0;
 
 }
-
 
 antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) {
 
@@ -742,6 +741,7 @@ varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx, string n
 antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *ctx) {
 	
 	cout << "#VISIT visitIfStatement begin" << endl;
+	SymbolTable* symbolTable = symbolTablesStack.top();
 
 	// Fetch boolean expression of the if
 	varStruct testVar = visit(ctx->expr());
@@ -751,55 +751,73 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 
 	// Basic block for the test
 	BasicBlock* testBB = cfg.getCurrentBB();
+
 	//Stores the name of the boolean test variable within the basic block for the test
 	testBB->setTestVarName(testVar.varName);
 
-	//Create a BB for the then case
+	// Create an 'then' BB
 	BasicBlock* thenBB = cfg.createBB();
-	
-	/*if (hasElseStatment) {
-		BasicBlock* elseBB = cfg.createBB();
-	}*/
-	
-	//
+		
+	// Create a BB for the code following the if/else statement
 	BasicBlock* endIfBB = cfg.createBB();
+	// Set its exit pointers to the ones of the parent BB
 	endIfBB->setExitTrue(testBB->getExitTrue());
 	endIfBB->setExitFalse(testBB->getExitFalse());
 	
+	// Set the parent's true exit pointer to the 'then' BB
 	testBB->setExitTrue(thenBB);
 	
+	// If there's both a 'then' and an 'else' statement,
 	if (hasElseStatment) {
+
+		// Create an 'else' BB
 		BasicBlock* elseBB = cfg.createBB();
+
+		// Set the parent's false exit pointer to it
 		testBB->setExitFalse(elseBB);
+
+		// Set the 'else's BB true exit pointer to the following BB
 		elseBB->setExitTrue(endIfBB);
 		elseBB->setExitFalse(nullptr);
+
+		// Write jump instructions
+		testBB->addInstr(Instr::conditional_jump, {testBB->getTestVarName(), testBB->getExitFalse()->getLabel(), testBB->getExitTrue()->getLabel()}, symbolTable);
+	
+		// Visit else body
 		cfg.setCurrentBB(elseBB);
 		visit(ctx->body(1));
-	} else {
+		// Write instruction to jump back to the following block
+		elseBB->addInstr(Instr::absolute_jump, {elseBB->getExitTrue()->getLabel()}, symbolTable);
+
+	} 
+	// If there's only a 'then' statement
+	else {
+
+		// Set the parent's false exit pointer to the following BB
 		testBB->setExitFalse(endIfBB);
+
+		// Write jump instructions
+		testBB->addInstr(Instr::conditional_jump, {testBB->getTestVarName(), testBB->getExitFalse()->getLabel(), testBB->getExitTrue()->getLabel()}, symbolTable);
+
 	}
-	
+
+	// Set the 'then's BB true exit pointer to the following BB
 	thenBB->setExitTrue(endIfBB);
 	thenBB->setExitFalse(nullptr);
 	
-	/*if (hasElseStatment) {
-		elseBB->setExitTrue(endIfBB);
-		elseBB->setExitFalse(nullptr);
-	}*/
-	
+	// Visit then body
 	cfg.setCurrentBB(thenBB);
 	visit(ctx->body(0));
+	// Write instruction to jump back to the following block
+	thenBB->addInstr(Instr::absolute_jump, {thenBB->getExitTrue()->getLabel()}, symbolTable);
 
-	/*if (hasElseStatment) {
-		cfg.setCurrentBB(elseBB);
-		visit(ctx->body(1));
-	}*/
-
+	// Set the next current BB
 	cfg.setCurrentBB(endIfBB);
-	
+
 	cout << "#VISIT visitIfStatement end" << endl;
 
 	return 0;
+
 	/*
 	testvar = test→linearize(cfg); . returns an IR variable 							//Recuperer le test (var)
 	
