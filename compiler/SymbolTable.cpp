@@ -86,6 +86,13 @@ void SymbolTable::addFunc(string name, string rT, vector<string> pT, vector<stri
 	funcMap[name] = s;
 }
 
+void SymbolTable::setReturned(bool r) {
+	returned = r;
+	if (parentSymbolTable != nullptr) {
+		parentSymbolTable->setReturned(r);
+	}
+}
+
 void SymbolTable::checkUsedVariables(ErrorHandler& eH) {
 	for (auto v : varMap)
 	{
