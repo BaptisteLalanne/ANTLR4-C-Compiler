@@ -39,23 +39,22 @@ antlrcpp::Any CodeGenVisitor::visitUnaryExpr(ifccParser::UnaryExprContext *ctx) 
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
 	// Fetch sub-expressions
-	varStruct var = visit(ctx->expr());
-	varStruct tmp = createTempVar(ctx);
+	varStruct* var = visit(ctx->expr());
+	varStruct* tmp = createTempVar(ctx);
 
 	// Apply the operators
 	char op = ctx->UNARY->getText()[0];
 	switch(op) {
 		case '!':
-			cfg.getCurrentBB()->addInstr(Instr::op_not, {var.varName, tmp.varName}, symbolTable);
+			cfg.getCurrentBB()->addInstr(Instr::op_not, {var->varName, tmp->varName}, symbolTable);
 			break;
 		case '-':
-			cfg.getCurrentBB()->addInstr(Instr::op_minus, {var.varName, tmp.varName}, symbolTable);
+			cfg.getCurrentBB()->addInstr(Instr::op_minus, {var->varName, tmp->varName}, symbolTable);
 			break;
 	}
 	
 	// Return the temporary variable
 	return tmp;
-
 }
 
 antlrcpp::Any CodeGenVisitor::visitAndExpr(ifccParser::AndExprContext *ctx) {
@@ -63,12 +62,12 @@ antlrcpp::Any CodeGenVisitor::visitAndExpr(ifccParser::AndExprContext *ctx) {
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
 	//Fetch expressions
-	varStruct var1 = visit(ctx->expr(0));
-	varStruct var2 = visit(ctx->expr(1));
-	varStruct tmp = createTempVar(ctx);
+	varStruct* var1 = visit(ctx->expr(0));
+	varStruct* var2 = visit(ctx->expr(1));
+	varStruct* tmp = createTempVar(ctx);
 
 	// Apply the operator
-	cfg.getCurrentBB()->addInstr(Instr::op_and, {var1.varName, var2.varName, tmp.varName}, symbolTable);
+	cfg.getCurrentBB()->addInstr(Instr::op_and, {var1->varName, var2->varName, tmp->varName}, symbolTable);
 	
 	// Return the temporary variable
 	return tmp;
@@ -80,12 +79,12 @@ antlrcpp::Any CodeGenVisitor::visitXorExpr(ifccParser::XorExprContext *ctx) {
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
 	//Fetch expressions
-	varStruct var1 = visit(ctx->expr(0));
-	varStruct var2 = visit(ctx->expr(1));
-	varStruct tmp = createTempVar(ctx);
+	varStruct* var1 = visit(ctx->expr(0));
+	varStruct* var2 = visit(ctx->expr(1));
+	varStruct* tmp = createTempVar(ctx);
 
 	// Apply the operator
-	cfg.getCurrentBB()->addInstr(Instr::op_xor, {var1.varName, var2.varName, tmp.varName}, symbolTable);
+	cfg.getCurrentBB()->addInstr(Instr::op_xor, {var1->varName, var2->varName, tmp->varName}, symbolTable);
 	
 	// Return the temporary variable
 	return tmp;
@@ -97,12 +96,12 @@ antlrcpp::Any CodeGenVisitor::visitOrExpr(ifccParser::OrExprContext *ctx) {
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
 	//Fetch expressions
-	varStruct var1 = visit(ctx->expr(0));
-	varStruct var2 = visit(ctx->expr(1));
-	varStruct tmp = createTempVar(ctx);
+	varStruct* var1 = visit(ctx->expr(0));
+	varStruct* var2 = visit(ctx->expr(1));
+	varStruct* tmp = createTempVar(ctx);
 	
 	// Apply the operator
-	cfg.getCurrentBB()->addInstr(Instr::op_or, {var1.varName, var2.varName, tmp.varName}, symbolTable);
+	cfg.getCurrentBB()->addInstr(Instr::op_or, {var1->varName, var2->varName, tmp->varName}, symbolTable);
 	
 	// Return the temporary variable
 	return tmp;
@@ -114,11 +113,11 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
 	// Fetch sub-expressions
-	varStruct var1 = visit(ctx->expr(0));
-	varStruct var2 = visit(ctx->expr(1));
-	varStruct tmp = createTempVar(ctx);
+	varStruct* var1 = visit(ctx->expr(0));
+	varStruct* var2 = visit(ctx->expr(1));
+	varStruct* tmp = createTempVar(ctx);
 
-    if(!var1.isCorrect || !var2.isCorrect) {
+    if(!var1->isCorrect || !var2->isCorrect) {
         return SymbolTable::dummyVarStruct;
     }
 
@@ -126,10 +125,10 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 	char op = ctx->OP2->getText()[0];
 	switch (op) {
 		case '+':
-			cfg.getCurrentBB()->addInstr(Instr::op_add, {var1.varName, var2.varName, tmp.varName}, symbolTable);
+			cfg.getCurrentBB()->addInstr(Instr::op_add, {var1->varName, var2->varName, tmp->varName}, symbolTable);
 			break;
 		case '-':
-			cfg.getCurrentBB()->addInstr(Instr::op_sub, {var1.varName, var2.varName, tmp.varName}, symbolTable);
+			cfg.getCurrentBB()->addInstr(Instr::op_sub, {var1->varName, var2->varName, tmp->varName}, symbolTable);
 			break;
 	}
 
@@ -143,11 +142,11 @@ antlrcpp::Any CodeGenVisitor::visitMulDivModExpr(ifccParser::MulDivModExprContex
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
 	// Fetch sub-expressions
-	varStruct var1 = visit(ctx->expr(0));
-	varStruct var2 = visit(ctx->expr(1));
-	varStruct tmp = createTempVar(ctx);
+	varStruct* var1 = visit(ctx->expr(0));
+	varStruct* var2 = visit(ctx->expr(1));
+	varStruct* tmp = createTempVar(ctx);
 
-    if(!var1.isCorrect || !var2.isCorrect) {
+    if(!var1->isCorrect || !var2->isCorrect) {
         return SymbolTable::dummyVarStruct;
     }
 
@@ -155,13 +154,13 @@ antlrcpp::Any CodeGenVisitor::visitMulDivModExpr(ifccParser::MulDivModExprContex
 	char op = ctx->OP1->getText()[0];
 	switch (op) {
 		case '*':
-			cfg.getCurrentBB()->addInstr(Instr::op_mul, {var1.varName, var2.varName, tmp.varName}, symbolTable);
+			cfg.getCurrentBB()->addInstr(Instr::op_mul, {var1->varName, var2->varName, tmp->varName}, symbolTable);
 			break;
 		case '/':
-			cfg.getCurrentBB()->addInstr(Instr::op_div, {var1.varName, var2.varName, tmp.varName}, symbolTable);
+			cfg.getCurrentBB()->addInstr(Instr::op_div, {var1->varName, var2->varName, tmp->varName}, symbolTable);
 			break;
 		case '%':
-			cfg.getCurrentBB()->addInstr(Instr::op_mod, {var1.varName, var2.varName, tmp.varName}, symbolTable);
+			cfg.getCurrentBB()->addInstr(Instr::op_mod, {var1->varName, var2->varName, tmp->varName}, symbolTable);
 			break;
 	}
 
@@ -175,11 +174,11 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
 	// Fetch sub-expressions
-	varStruct var1 = visit(ctx->expr(0));
-	varStruct var2 = visit(ctx->expr(1));
-	varStruct tmp = createTempVar(ctx);
+	varStruct* var1 = visit(ctx->expr(0));
+	varStruct* var2 = visit(ctx->expr(1));
+	varStruct* tmp = createTempVar(ctx);
 
-    if(!var1.isCorrect || !var2.isCorrect) {
+    if(!var1->isCorrect || !var2->isCorrect) {
         return SymbolTable::dummyVarStruct;
     }
 
@@ -187,10 +186,10 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 	char op = ctx->CMP->getText()[0];
 	switch (op) {
 		case '<':
-			cfg.getCurrentBB()->addInstr(Instr::cmp_lt, {var1.varName, var2.varName, tmp.varName}, symbolTable);
+			cfg.getCurrentBB()->addInstr(Instr::cmp_lt, {var1->varName, var2->varName, tmp->varName}, symbolTable);
 			break;
 		case '>':
-			cfg.getCurrentBB()->addInstr(Instr::cmp_gt, {var1.varName, var2.varName, tmp.varName}, symbolTable);
+			cfg.getCurrentBB()->addInstr(Instr::cmp_gt, {var1->varName, var2->varName, tmp->varName}, symbolTable);
 			break;
 	}
 	
@@ -203,11 +202,11 @@ antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprCo
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
 	// Fetch sub-expressions
-	varStruct var1 = visit(ctx->expr(0));
-	varStruct var2 = visit(ctx->expr(1));
-	varStruct tmp = createTempVar(ctx);
+	varStruct* var1 = visit(ctx->expr(0));
+	varStruct* var2 = visit(ctx->expr(1));
+	varStruct* tmp = createTempVar(ctx);
 
-    if(!var1.isCorrect || !var2.isCorrect) {
+    if(!var1->isCorrect || !var2->isCorrect) {
         return SymbolTable::dummyVarStruct;
     }
 
@@ -215,10 +214,10 @@ antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprCo
 	char op = ctx->EQ->getText()[0];
 	switch (op) {
 		case '=':
-			cfg.getCurrentBB()->addInstr(Instr::cmp_eq, {var1.varName, var2.varName, tmp.varName}, symbolTable);
+			cfg.getCurrentBB()->addInstr(Instr::cmp_eq, {var1->varName, var2->varName, tmp->varName}, symbolTable);
 			break;
 		case '!':
-			cfg.getCurrentBB()->addInstr(Instr::cmp_neq, {var1.varName, var2.varName, tmp.varName}, symbolTable);
+			cfg.getCurrentBB()->addInstr(Instr::cmp_neq, {var1->varName, var2->varName, tmp->varName}, symbolTable);
 			break;
 	}
 		
@@ -248,17 +247,17 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	int currStackPointer = symbolTable->getStackPointer();
 	
 	// Compute expression
-	varStruct result = visit(ctx->expr());
+	varStruct* result = visit(ctx->expr());
 
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
 	symbolTable->setStackPointer(currStackPointer);
 	
 	// Write assembly instructions to save expression in variable 
-	cfg.getCurrentBB()->addInstr(Instr::copy, {result.varName, varName}, symbolTable);
+	cfg.getCurrentBB()->addInstr(Instr::copy, {result->varName, varName}, symbolTable);
 
 	// Create new temporary variable holding the result
-	varStruct tmp = createTempVar(ctx, result.varType);
-	cfg.getCurrentBB()->addInstr(Instr::copy, {result.varName, tmp.varName}, symbolTable);
+	varStruct* tmp = createTempVar(ctx, result->varType);
+	cfg.getCurrentBB()->addInstr(Instr::copy, {result->varName, tmp->varName}, symbolTable);
 
 	return tmp;
 
@@ -341,15 +340,17 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 
 	}
 
-	varStruct tmp;
+	varStruct* tmp;
  	
 	// Write assembly instructions
 	if (constStr[0] == '\'') {
-		tmp = createTempVar(ctx, "char");
-		cfg.getCurrentBB()->addInstr(Instr::ldconst, {"\'" + to_string(constValue), tmp.varName}, symbolTable);
+		int* constPtr = new int(constValue);
+		tmp = createTempVar(ctx, "char", constPtr);
+		cfg.getCurrentBB()->addInstr(Instr::ldconst, {"\'" + to_string(constValue), tmp->varName}, symbolTable);
 	} else {
-		tmp = createTempVar(ctx, "int");
-		cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp.varName}, symbolTable);
+		int* constPtr = new int(constValue);
+		tmp = createTempVar(ctx, "int", constPtr);
+		cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp->varName}, symbolTable);
 	}
 
 	// Return the temporary variable
@@ -372,7 +373,7 @@ antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
 	}
 
 	// Mark it as used
-	symbolTable->getVar(varName).isUsed = true;
+	symbolTable->getVar(varName)->isUsed = true;
 
 	// Return the variable
 	return symbolTable->getVar(varName);
@@ -392,11 +393,11 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 		return SymbolTable::dummyVarStruct;
 	}
 
-	funcStruct func = globalSymbolTable->getFunc(funcName);
+	funcStruct* func = globalSymbolTable->getFunc(funcName);
 
 	// Check param number
 	int numParams = ctx->expr().size();
-	if (numParams != func.nbParameters) {
+	if (numParams != func->nbParameters) {
 		string message =  "Function '" + funcName + "' is called with the wrong number of parameters";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 		return SymbolTable::dummyVarStruct;
@@ -413,14 +414,14 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 	int currStackPointer = symbolTable->getStackPointer();
 
 	// Iterate through parameters to evaluate them
-	vector<varStruct> params;
+	vector<varStruct*> params;
 	for(int i = 0 ; i < numParams ; i++) {
 		
 		// Compute param expression
-		varStruct result = visit(ctx->expr(i));
+		varStruct* result = visit(ctx->expr(i));
 
 		// Check param types
-		if (result.varType != func.parameterTypes[i]) {
+		if (result->varType != func->parameterTypes[i]) {
 			string message =  "Function '" + funcName + "' is called with the wrong parameter types";
 			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 			return SymbolTable::dummyVarStruct;
@@ -436,12 +437,12 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 
 	// Write assembly instructions to put the evaluated params into a param register
 	for (int i = 0; i < numParams; i++) {
-		cfg.getCurrentBB()->addInstr(Instr::wparam, {params[i].varName, to_string(i)}, symbolTable);
+		cfg.getCurrentBB()->addInstr(Instr::wparam, {params[i]->varName, to_string(i)}, symbolTable);
 	}
 
 	// Write call instruction
-	varStruct tmp = createTempVar(ctx, func.returnType);
-	cfg.getCurrentBB()->addInstr(Instr::call, {funcName, tmp.varName}, symbolTable);
+	varStruct* tmp = createTempVar(ctx, func->returnType);
+	cfg.getCurrentBB()->addInstr(Instr::call, {funcName, tmp->varName}, symbolTable);
 
 	return tmp;
 
@@ -508,13 +509,13 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	int currStackPointer = symbolTable->getStackPointer();
 
 	// Compute expression
-	varStruct result = visit(ctx->expr());
+	varStruct* result = visit(ctx->expr());
 	
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
 	symbolTable->setStackPointer(currStackPointer);
 
 	// Write assembly instructions
-	cfg.getCurrentBB()->addInstr(Instr::copy, {result.varName, dVarName}, symbolTable);
+	cfg.getCurrentBB()->addInstr(Instr::copy, {result->varName, dVarName}, symbolTable);
 	
 	return 0;
 }
@@ -528,9 +529,9 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 	int currStackPointer = symbolTable->getStackPointer();
 
 	// Compute expression
-	varStruct result = visit(ctx->expr());
+	varStruct* result = visit(ctx->expr());
 
-    if (!result.isCorrect) {
+    if (!result->isCorrect) {
 		cfg.getCurrentBB()->addInstr(Instr::ret, {}, symbolTable);
         return 1;
     }
@@ -539,7 +540,7 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 	symbolTable->setStackPointer(currStackPointer);
 
 	// Write assembly instructions
-	cfg.getCurrentBB()->addInstr(Instr::ret, {result.varName}, symbolTable);
+	cfg.getCurrentBB()->addInstr(Instr::ret, {result->varName}, symbolTable);
 
 	return 0;
 	
@@ -631,19 +632,19 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrBody(ifccParser::FuncDeclrContext *c
 	currFunction = funcName;
 
 	// Fetch function from symbol table (has been added when visiting header)
-	funcStruct func = globalSymbolTable->getFunc(funcName);
+	funcStruct* func = globalSymbolTable->getFunc(funcName);
 
 	// Create param variables in symbol table
-	for(int i = 0 ; i < func.nbParameters ; i++) {
-		newSymbolTable->addVar("^" + func.parameterNames[i], func.parameterTypes[i], ctx->getStart()->getLine());
+	for(int i = 0 ; i < func->nbParameters ; i++) {
+		newSymbolTable->addVar("^" + func->parameterNames[i], func->parameterTypes[i], ctx->getStart()->getLine());
 	}
 
 	// Create prologue instruction
 	cfg.getCurrentBB()->addInstr(Instr::prologue, {funcName}, newSymbolTable); 
 	
 	// Create instruction that loads register into variable
-	for(int i = 0 ; i < func.nbParameters ; i++) {
-		cfg.getCurrentBB()->addInstr(Instr::rparam, {func.parameterNames[i], to_string(i)}, newSymbolTable);
+	for(int i = 0 ; i < func->nbParameters ; i++) {
+		cfg.getCurrentBB()->addInstr(Instr::rparam, {func->parameterNames[i], to_string(i)}, newSymbolTable);
 	}
 
 	// Create body instructions
@@ -699,15 +700,15 @@ antlrcpp::Any CodeGenVisitor::visitVtype(ifccParser::VtypeContext *ctx) {
 	return 0;
 }
 
-varStruct CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx, string newType) {
-	
+varStruct* CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx, string varType, int* constPtr) {
+
 	SymbolTable* symbolTable = symbolTablesStack.top();
 	
 	tempVarCounter++;
 	string newVar = "!tmp" + to_string(tempVarCounter);
-	string newVarType = newType;
-	symbolTable->addVar(newVar, newVarType, ctx->getStart()->getLine());
-	symbolTable->getVar(newVar).isUsed = true;
+	string newVarType = varType;
+	symbolTable->addVar(newVar, newVarType, ctx->getStart()->getLine(), constPtr);
+	symbolTable->getVar(newVar)->isUsed = true;
 
 	return symbolTable->getVar(newVar);
 }
@@ -717,7 +718,7 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
 	// Fetch boolean expression of the if
-	varStruct testVar = visit(ctx->expr());
+	varStruct* testVar = visit(ctx->expr());
 
 	//Check whether there is an else statment
 	bool hasElseStatment = ctx->body().size() == 2; 
@@ -726,7 +727,7 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 	BasicBlock* testBB = cfg.getCurrentBB();
 
 	//Stores the name of the boolean test variable within the basic block for the test
-	testBB->setTestVarName(testVar.varName);
+	testBB->setTestVarName(testVar->varName);
 
 	// Create an 'then' BB
 	BasicBlock* thenBB = cfg.createBB();
@@ -806,9 +807,9 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 	BasicBlock* testBB = cfg.createBB();
 	// Fetch the condition of the while loop
 	cfg.setCurrentBB(testBB);
-	varStruct testVar = visit(ctx->expr());
+	varStruct* testVar = visit(ctx->expr());
 	//Stores the name of the boolean test variable within the basic block for the test
-	testBB->setTestVarName(testVar.varName);
+	testBB->setTestVarName(testVar->varName);
 
 	// Create a basic block that will contain the body of the while loop
 	BasicBlock* bodyBB = cfg.createBB();

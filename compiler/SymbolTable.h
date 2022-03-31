@@ -18,12 +18,13 @@ using namespace std;
 //------------------------------------------------------------------ Types
 // Store all informations relvent for a variable
 struct varStruct {
-	string varName; 	//Its name
-	int memoryOffset;	//Its offset (in memory) to the base pointer 
-	string varType;		//The type of the variable
-	int varLine;		//The line of code where the variable is declared
-	bool isUsed;		//Whether the variable is used in the code
-    bool isCorrect; 	// False when a dummy struct is returned to avoid bad cast	
+	string varName; 	// Its name
+	int memoryOffset;	// Its offset (in memory) to the base pointer 
+	string varType;		// The type of the variable
+	int varLine;		// The line of code where the variable is declared
+	bool isUsed;		// Whether the variable is used in the code
+    bool isCorrect; 	// False when a dummy struct is returned to avoid bad cast
+	int* constPtr;  	// Const pointer
 };
 
 // Store all informations relvent for a function
@@ -53,7 +54,13 @@ class SymbolTable {
 			}
 		}
 
-		// Tell whether a variable (or parameter) with a given name is present in the symbol table
+		~SymbolTable() {
+			for(auto var: varMap) {
+				delete(var.second.constPtr);
+			}
+		};
+
+		// Tell whether a variable with a given name is present in the symbol table
 		bool hasVar(string name);
 		bool hasParam(string name);
 
@@ -61,16 +68,16 @@ class SymbolTable {
 		bool hasFunc(string name);
 
 		// Get the variable corresponding to the input variable name if it was found
-		varStruct& getVar(string name);
+		varStruct* getVar(string name);
 
 		// Get the function corresponding to the input function name if it was found
-		funcStruct& getFunc(string name);
+		funcStruct* getFunc(string name);
 
 		// Get the number of bytes needed to store the local variables of a given function
 		int getMemorySpace();
 
 		// Add a variable to the table of symbols
-		void addVar(string name, string vT, int vL);
+		void addVar(string name, string vT, int vL, int* constPtr = nullptr);
 
 		// Add a function to the table of symbols
 		void addFunc(string name, string rT, vector<string> pT, vector<string> pN, int fL);
@@ -92,6 +99,9 @@ class SymbolTable {
 		
 		// Perform static analysis on variables
 		void checkUsedVariables(ErrorHandler& eH);
+
+		// Used for assembler
+		static int getCast(string type, int value);
 
 		// Hashtable containing the size in bytes of the different types (typeName : size)
 		static unordered_map<string, int> typeSizes;

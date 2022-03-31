@@ -32,7 +32,7 @@ bool SymbolTable::hasFunc(string name) {
 	return hasFuncInOwnMap || hasFuncInParentMap;
 }
 
-varStruct& SymbolTable::getVar(string name) {
+varStruct* SymbolTable::getVar(string name) {
 	
 	if (hasParam(name)) {
 		return getVar("^"+name);
@@ -40,7 +40,7 @@ varStruct& SymbolTable::getVar(string name) {
 
 	bool hasVarInOwnMap = varMap.find(name) != varMap.end();
 	if (hasVarInOwnMap) {
-		return varMap[name];
+		return &varMap[name];
 	}
 	else {
 		return parentSymbolTable->getVar(name);
@@ -48,11 +48,11 @@ varStruct& SymbolTable::getVar(string name) {
 
 }
 
-funcStruct& SymbolTable::getFunc(string name) {
+funcStruct* SymbolTable::getFunc(string name) {
 
 	bool hasFuncInOwnMap = funcMap.find(name) != funcMap.end();
 	if (hasFuncInOwnMap) {
-		return funcMap[name];
+		return &funcMap[name];
 	}
 	else {
 		return parentSymbolTable->getFunc(name);
@@ -78,7 +78,7 @@ int SymbolTable::getMemorySpace() {
 
 }
 
-void SymbolTable::addVar(string name, string vT, int vL) {
+void SymbolTable::addVar(string name, string vT, int vL, int* constPtr) {
 	stackPointer -= typeSizes[vT];
 	struct varStruct s = {
 		name,
@@ -87,6 +87,7 @@ void SymbolTable::addVar(string name, string vT, int vL) {
 		vL,
 		false,
 		true,
+		constPtr
 	};
 	varMap[name] = s;
 }
@@ -141,4 +142,13 @@ void SymbolTable::checkUsedVariables(ErrorHandler& eH) {
 			eH.signal(WARNING, message, v.second.varLine);
 		}
 	}
+}
+
+int SymbolTable::getCast(string type, int value){
+	if(type.compare("int") == 0){
+		return (int) value;
+	} else if (type.compare("char") == 0){
+		return (char) value;
+	} 
+	return value;
 }
