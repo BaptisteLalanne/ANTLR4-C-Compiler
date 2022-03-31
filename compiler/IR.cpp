@@ -328,7 +328,7 @@ void Instr::generateASM(ostream &o) {
 			  << "		# load " << var2 << " into " << "%edx" << endl;
 
 			o << "	cltd" << endl;
-			o << "	idivl	%ebx" << endl; 
+			o << "	idivl	" << vs2.memoryOffset << "(%rbp)" << endl; 
 			o << "	movl	%eax, " << symbolTable->getVar(tmp).memoryOffset << "(%rbp)" \
 			  << "		# load " << "%eax" << " into " << tmp << endl;
 
