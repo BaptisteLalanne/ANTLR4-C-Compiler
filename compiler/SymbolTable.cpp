@@ -14,7 +14,7 @@ using namespace std;
 
 unordered_map<string, int> SymbolTable::typeSizes = {{"int", 4}, {"char", 1}};
 unordered_map<string, string> SymbolTable::typeOpeMoves = {{"int", "movl"}, {"char", "movzbl"}};
-varStruct SymbolTable::dummyVarStruct = {"", 0,"",0,false,false};
+varStruct SymbolTable::dummyVarStruct = {"", 0, "", 0, false, false};
 
 bool SymbolTable::hasVar(string name) {
 	bool hasVarInOwnMap = varMap.find(name) != varMap.end();
@@ -60,22 +60,15 @@ funcStruct& SymbolTable::getFunc(string name) {
 	
 }
 
-int SymbolTable::getFuncMemorySpace() {
+int SymbolTable::getMemorySpace() {
 	int memSize = 0;
 	for (auto v : varMap) {
 		memSize += typeSizes[v.second.varType];
 	}
-	int remainder = memSize % 16;
-	memSize += (remainder > 0) ? 16 - remainder : 0;
+	for (SymbolTable* sT : childSymbolTables) {
+		memSize += sT->getMemorySpace();
+	}
 	return memSize;
-}
-
-int SymbolTable::getStackPointer() {
-	return stackPointer;
-}
-
-void SymbolTable::setStackPointer(int s) {
-	stackPointer = s;
 }
 
 void SymbolTable::addVar(string name, string vT, int vL) {
@@ -104,11 +97,27 @@ void SymbolTable::addFunc(string name, string rT, vector<string> pT, vector<stri
 	funcMap[name] = s;
 }
 
+SymbolTable* SymbolTable::getParent() { 
+	return parentSymbolTable; 
+}
+
+bool SymbolTable:: hasReturned() { 
+	return returned; 
+}
+
 void SymbolTable::setReturned(bool r) {
 	returned = r;
 	/*if (parentSymbolTable != nullptr) {
 		parentSymbolTable->setReturned(r);
 	}*/
+}
+
+int SymbolTable::getStackPointer() {
+	return stackPointer; 
+}
+
+void SymbolTable::setStackPointer(int s) { 
+	stackPointer = s; 
 }
 
 void SymbolTable::checkUsedVariables(ErrorHandler& eH) {

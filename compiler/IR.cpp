@@ -547,23 +547,19 @@ void Instr::generateASM(ostream &o) {
 			string label = params.at(0);
 
 			o << endl;
-
-			// f we're constructing the main function
-			if (label == "main") { 
-				o << ".globl " << label << endl;
-			}
+			o << ".globl " << label << endl;
+			o << ".type	" << label << ", @function" << endl;
 
 			// Write ASM instructions
 			o << label << ":" << endl << endl;
 			o << "	pushq 	%rbp " << endl;
 			o << "	movq 	%rsp, %rbp" << endl;
 
-			// If we're constructing a function AR
-			if (label != "main") {
-				// Get the memory size needed to store the function's local variables (must be multiple of 16)
-				int memSize = symbolTable->getFuncMemorySpace();
-				o << "	subq 	$" << memSize << ", %rsp" << endl;
-			}
+			// Get the memory size needed to store the function's local variables (must be multiple of 16)
+			int memSize = symbolTable->getMemorySpace();
+			int remainder = memSize % 16;
+			memSize += (remainder > 0) ? 16 - remainder : 0;
+			o << "	subq 	$" << memSize << ", %rsp" << endl;
 
 			o << endl;
 
@@ -573,7 +569,8 @@ void Instr::generateASM(ostream &o) {
 		case Instr::epilogue:
 		{
 			o << endl;
-			o << "	leave" << endl;
+			o << "	movq %rbp, %rsp" << endl;
+			o << "	popq %rbp" << endl;
 			o << "	ret" << endl;
 			break;
 		}

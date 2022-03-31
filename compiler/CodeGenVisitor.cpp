@@ -564,9 +564,9 @@ antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) 
 	globalSymbolTable->addFunc("main", "int", {}, {}, ctx->getStart()->getLine());
 	currFunction = "main";
 
-	// Create new symbol table
-	SymbolTable* newSymbolTable = new SymbolTable(0, globalSymbolTable);
-	symbolTablesStack.push(newSymbolTable);
+	// Visit begin (create symbol table) 
+	visit(ctx->beginBlock());
+	SymbolTable* newSymbolTable = symbolTablesStack.top();
 
 	// Create prologue instructions
 	cfg.getCurrentBB()->addInstr(Instr::prologue, {"main"}, newSymbolTable);
@@ -580,7 +580,7 @@ antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) 
 	// Create epilogue instructions
 	cfg.getCurrentBB()->addInstr(Instr::epilogue, {}, newSymbolTable); 
 
-	// Visit end 
+	// Visit end (discard symbol table)
 	visit(ctx->endBlock());
 	
 	return 0;
@@ -622,9 +622,9 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrHeader(ifccParser::FuncDeclrContext 
 
 antlrcpp::Any CodeGenVisitor::visitFuncDeclrBody(ifccParser::FuncDeclrContext *ctx) {
 
-	// Create new symbol table
-	SymbolTable* newSymbolTable = new SymbolTable(0, nullptr);
-	symbolTablesStack.push(newSymbolTable);
+	// Visit begin (create symbol table) 
+	visit(ctx->beginBlock());
+	SymbolTable* newSymbolTable = symbolTablesStack.top();
 
 	// Fetch function name
 	string funcName = ctx->TOKENNAME(0)->getText();
@@ -655,7 +655,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrBody(ifccParser::FuncDeclrContext *c
 	// Create epilogue instructions
 	cfg.getCurrentBB()->addInstr(Instr::epilogue, {}, newSymbolTable); 
 
-	// Visit end 
+	// Visit end (discard symbol table)
 	visit(ctx->endBlock());
 
 	return 0;
@@ -665,6 +665,23 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrBody(ifccParser::FuncDeclrContext *c
 antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) {
 	return 0;
 }	
+
+
+antlrcpp::Any CodeGenVisitor::visitBeginBlock(ifccParser::BeginBlockContext *ctx) {
+
+	// Fetch parent symbol table
+	SymbolTable* parentSymbolTable = globalSymbolTable;
+	if (symbolTablesStack.size() > 0) {
+		parentSymbolTable = symbolTablesStack.top();
+	}
+
+	// Create new symbol table
+	SymbolTable* newSymbolTable = new SymbolTable(0, parentSymbolTable);
+	symbolTablesStack.push(newSymbolTable);
+
+	return 0;
+
+}
 
 antlrcpp::Any CodeGenVisitor::visitEndBlock(ifccParser::EndBlockContext *ctx) {
 
@@ -780,7 +797,6 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 
 antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementContext *ctx) {
 
-	cout << "#VISIT visitIfStatement begin" << endl;
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
 	// Basic block before the while expression
@@ -819,8 +835,6 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 
 	// Set the next current BB
 	cfg.setCurrentBB(afterWhileBB);
-
-	cout << "#VISIT visitWhileStatement end" << endl;
 
 	return 0;
 

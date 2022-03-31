@@ -47,7 +47,11 @@ class SymbolTable {
 	public:
 
 		// Constructor of SymbolTable
-		SymbolTable(int sP = 0, SymbolTable* parent = nullptr) : stackPointer(sP), parentSymbolTable(parent) { }
+		SymbolTable(int sP = 0, SymbolTable* par = nullptr) : stackPointer(sP), parentSymbolTable(par) {
+			if (parentSymbolTable != nullptr) {
+				parentSymbolTable->childSymbolTables.push_back(this);
+			}
+		}
 
 		// Tell whether a variable (or parameter) with a given name is present in the symbol table
 		bool hasVar(string name);
@@ -63,13 +67,7 @@ class SymbolTable {
 		funcStruct& getFunc(string name);
 
 		// Get the number of bytes needed to store the local variables of a given function
-		int getFuncMemorySpace();
-
-		// Get the stack pointer 
-		int getStackPointer();
-
-		// Set the stack pointer
-		void setStackPointer(int s);
+		int getMemorySpace();
 
 		// Add a variable to the table of symbols
 		void addVar(string name, string vT, int vL);
@@ -78,13 +76,19 @@ class SymbolTable {
 		void addFunc(string name, string rT, vector<string> pT, vector<string> pN, int fL);
 
 		// Parent getter 
-		SymbolTable* getParent() { return parentSymbolTable; }
+		SymbolTable* getParent();
 
 		// Returned getter
-		bool hasReturned() { return returned; }
+		bool hasReturned();
 
 		// Returned setter 
 		void setReturned(bool r);
+
+		// Stack pointer getter
+		int getStackPointer();
+
+		// Stack pointer setter
+		void setStackPointer(int s);
 		
 		// Perform static analysis on variables
 		void checkUsedVariables(ErrorHandler& eH);
@@ -106,6 +110,9 @@ class SymbolTable {
 		
 		// Parent symbol table
 		SymbolTable* parentSymbolTable;
+
+		// Children symbol tables
+		vector<SymbolTable*> childSymbolTables;
 
 		// Hashtable containing the encountered variable declarations
 		unordered_map<string, varStruct> varMap;

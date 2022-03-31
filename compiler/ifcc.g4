@@ -29,7 +29,7 @@ body :
 	| end ';' body
 	| ifelse body
 	| whileStatement body
-	| beginBlock body endBlock
+	| beginBlock body endBlock body
 	|
 ;
 
@@ -54,7 +54,7 @@ ifelse :
 ;
 
 whileStatement :
-	'while' '(' expr ')' '{' body '}'
+	'while' '(' expr ')' beginBlock body endBlock
 ;
 
 declr :
