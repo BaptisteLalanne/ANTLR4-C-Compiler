@@ -167,8 +167,8 @@ void Instr::generateASM(ostream &o) {
 				reg2 = "eax";
 			}
 			// Check if const
-			if(s2.constPtr) {
-				s1.constPtr = new int(*s2.constPtr);
+			if(s1.constPtr) {
+				s2.constPtr = new int(*s1.constPtr);
 				o << "	" << movInstr2 << "	$" << SymbolTable::getCast(s2.varType,*s2.constPtr) << ", " << s2.memoryOffset << "(%rbp)" << endl;
 			} else {
 				// Write ASM instructions
