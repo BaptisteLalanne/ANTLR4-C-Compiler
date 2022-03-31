@@ -61,14 +61,21 @@ funcStruct& SymbolTable::getFunc(string name) {
 }
 
 int SymbolTable::getMemorySpace() {
+
 	int memSize = 0;
+
+	// Compute memory size of own symbol table
 	for (auto v : varMap) {
 		memSize += typeSizes[v.second.varType];
 	}
+
+	// Add memory size of child symbol tables
 	for (SymbolTable* sT : childSymbolTables) {
 		memSize += sT->getMemorySpace();
 	}
+
 	return memSize;
+
 }
 
 void SymbolTable::addVar(string name, string vT, int vL) {

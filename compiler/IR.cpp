@@ -123,7 +123,6 @@ void Instr::generateASM(ostream &o) {
 			bool isInt = (constant[0] == '$');
 			
 			if (isChar) {
-				//constValue = int(constant[1]);
 				constValue = stoi(constant.substr(1,constant.size()-1));
 				movInstr = "movb";
 			} 
@@ -181,9 +180,9 @@ void Instr::generateASM(ostream &o) {
 
 			// Write ASM instructions
 			o << "	" << movInstr1 << "	" << symbolTable->getVar(var1).memoryOffset << "(%rbp), %" << reg1 \
-			  << "		# load " << var1 << " into " << reg1 << endl;
+			  << "		# load " << var1 << " into " << "%" << reg1 << endl;
 			o << "	" << movInstr2 << "	%" << reg2 << ", " << symbolTable->getVar(var2).memoryOffset << "(%rbp)" \
-			  << "		# load " << reg2 << " into " << var2 << endl;
+			  << "		# load " << "%" << reg2 << " into " << var2 << endl;
 
 			break;
 		}
@@ -600,7 +599,7 @@ void Instr::generateASM(ostream &o) {
 
 			// Write ASM instructions
 			o << "	movl	" << symbolTable->getVar(var).memoryOffset << "(%rbp), " << reg \
-			  << "		# load " << var << " into " << reg << endl;
+			  << "		# load " << var << " into " << "%" << reg << endl;
 
 			break;
 		}
@@ -616,7 +615,7 @@ void Instr::generateASM(ostream &o) {
 
 			// Write ASM instructions
 			o << "	movl	" << reg << ", " << symbolTable->getVar(var).memoryOffset << "(%rbp)" \
-			  << "		# load " << reg << " into " << "^" + var << endl;
+			  << "		# load " << "%" << reg << " into " << "^" + var << endl;
 
 			break;
 		}

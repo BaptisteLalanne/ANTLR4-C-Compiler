@@ -3,11 +3,7 @@ grammar ifcc;
 
 axiom : prog ;
 
-vtype:
-	TINT
-	| TCHAR
-;
-
+vtype: TINT | TCHAR ;
 beginBlock : '{' ;
 endBlock : '}' ;
 
