@@ -106,9 +106,9 @@ void SymbolTable::addFunc(string name, string rT, vector<string> pT, vector<stri
 
 void SymbolTable::setReturned(bool r) {
 	returned = r;
-	if (parentSymbolTable != nullptr) {
+	/*if (parentSymbolTable != nullptr) {
 		parentSymbolTable->setReturned(r);
-	}
+	}*/
 }
 
 void SymbolTable::checkUsedVariables(ErrorHandler& eH) {

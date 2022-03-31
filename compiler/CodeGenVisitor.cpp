@@ -745,7 +745,7 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 		// Write instruction to jump back to the following block
 		elseBB->addInstr(Instr::absolute_jump, {elseBB->getExitTrue()->getLabel()}, symbolTable);
 
-	} 
+	}
 	// If there's only a 'then' statement
 	else {
 
@@ -769,6 +769,58 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 
 	// Set the next current BB
 	cfg.setCurrentBB(endIfBB);
+
+	if (endIfBB->getExitTrue()){
+		endIfBB->addInstr(Instr::absolute_jump, {endIfBB->getExitTrue()->getLabel()}, symbolTable);
+	}
+
+	return 0;
+
+}
+
+antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementContext *ctx) {
+
+	cout << "#VISIT visitIfStatement begin" << endl;
+	SymbolTable* symbolTable = symbolTablesStack.top();
+
+	// Basic block before the while expression
+	BasicBlock* beforeWhileBB = cfg.getCurrentBB();
+
+	// Create a basic block that will contain the condition
+	BasicBlock* testBB = cfg.createBB();
+	// Fetch the condition of the while loop
+	cfg.setCurrentBB(testBB);
+	varStruct testVar = visit(ctx->expr());
+	//Stores the name of the boolean test variable within the basic block for the test
+	testBB->setTestVarName(testVar.varName);
+
+	// Create a basic block that will contain the body of the while loop
+	BasicBlock* bodyBB = cfg.createBB();
+	// Visit body of the while loop
+	cfg.setCurrentBB(bodyBB);
+	visit(ctx->body());
+
+	// Create a basic block that will contain the code after the while loop
+	BasicBlock* afterWhileBB = cfg.createBB();
+	// Set the exit pointers of the afterWhileBB to the ones of the parent BB
+	afterWhileBB->setExitTrue(beforeWhileBB->getExitTrue());
+	afterWhileBB->setExitFalse(beforeWhileBB->getExitFalse());
+	
+	// Set the tue exit pointer of the test block to the body block
+	testBB->setExitTrue(bodyBB);
+	// Set the false exit pointer of the test block to the block after the while
+	testBB->setExitFalse(afterWhileBB);
+	testBB->addInstr(Instr::conditional_jump, {testBB->getTestVarName(), testBB->getExitFalse()->getLabel(), testBB->getExitTrue()->getLabel()}, symbolTable);
+
+	// Set the true exit pointer of the body block to the test block
+	bodyBB->setExitTrue(testBB);
+	bodyBB->setExitFalse(nullptr);
+	bodyBB->addInstr(Instr::absolute_jump, {bodyBB->getExitTrue()->getLabel()}, symbolTable);
+
+	// Set the next current BB
+	cfg.setCurrentBB(afterWhileBB);
+
+	cout << "#VISIT visitWhileStatement end" << endl;
 
 	return 0;
 

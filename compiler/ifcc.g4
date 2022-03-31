@@ -28,6 +28,7 @@ body :
 	| expr ';' body
 	| end ';' body
 	| ifelse body
+	| whileStatement body
 	| beginBlock body endBlock
 	|
 ;
@@ -50,6 +51,10 @@ expr :
 
 ifelse :
 	'if' '(' expr ')' beginBlock body endBlock ('else' beginBlock body endBlock)?	#ifStatement
+;
+
+whileStatement :
+	'while' '(' expr ')' '{' body '}'
 ;
 
 declr :
