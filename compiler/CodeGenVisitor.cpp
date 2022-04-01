@@ -672,12 +672,14 @@ antlrcpp::Any CodeGenVisitor::visitBeginBlock(ifccParser::BeginBlockContext *ctx
 
 	// Fetch parent symbol table
 	SymbolTable* parentSymbolTable = globalSymbolTable;
+	int startingStackPointer = 0;
 	if (symbolTablesStack.size() > 0) {
 		parentSymbolTable = symbolTablesStack.top();
+		startingStackPointer = parentSymbolTable->getStackPointer();
 	}
 
 	// Create new symbol table
-	SymbolTable* newSymbolTable = new SymbolTable(0, parentSymbolTable);
+	SymbolTable* newSymbolTable = new SymbolTable(startingStackPointer, parentSymbolTable);
 	symbolTablesStack.push(newSymbolTable);
 
 	return 0;
