@@ -1,6 +1,6 @@
 int toto(int a, int b, int c) {
     int result = a+b+c;
-    return tata(result);
+    return result;
 }
 
 int main() {

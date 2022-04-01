@@ -42,6 +42,13 @@ antlrcpp::Any CodeGenVisitor::visitUnaryExpr(ifccParser::UnaryExprContext *ctx) 
 	varStruct* var = visit(ctx->expr());
 	varStruct* tmp = createTempVar(ctx);
 
+	// Check void errors
+	if (var->varType == "void") {
+		string message =  "Cannot perform operations on void";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return SymbolTable::dummyVarStruct;
+	}
+
 	// Apply the operators
 	char op = ctx->UNARY->getText()[0];
 	switch(op) {
@@ -66,6 +73,13 @@ antlrcpp::Any CodeGenVisitor::visitAndExpr(ifccParser::AndExprContext *ctx) {
 	varStruct* var2 = visit(ctx->expr(1));
 	varStruct* tmp = createTempVar(ctx);
 
+	// Check void errors
+	if (var1->varType == "void" || var2->varType == "void") {
+		string message =  "Cannot perform operations on void";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return SymbolTable::dummyVarStruct;
+	}
+
 	// Apply the operator
 	cfg.getCurrentBB()->addInstr(Instr::op_and, {var1->varName, var2->varName, tmp->varName}, symbolTable);
 	
@@ -83,6 +97,13 @@ antlrcpp::Any CodeGenVisitor::visitXorExpr(ifccParser::XorExprContext *ctx) {
 	varStruct* var2 = visit(ctx->expr(1));
 	varStruct* tmp = createTempVar(ctx);
 
+	// Check void errors
+	if (var1->varType == "void" || var2->varType == "void") {
+		string message =  "Cannot perform operations on void";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return SymbolTable::dummyVarStruct;
+	}
+
 	// Apply the operator
 	cfg.getCurrentBB()->addInstr(Instr::op_xor, {var1->varName, var2->varName, tmp->varName}, symbolTable);
 	
@@ -99,6 +120,13 @@ antlrcpp::Any CodeGenVisitor::visitOrExpr(ifccParser::OrExprContext *ctx) {
 	varStruct* var1 = visit(ctx->expr(0));
 	varStruct* var2 = visit(ctx->expr(1));
 	varStruct* tmp = createTempVar(ctx);
+
+	// Check void errors
+	if (var1->varType == "void" || var2->varType == "void") {
+		string message =  "Cannot perform operations on void";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return SymbolTable::dummyVarStruct;
+	}
 	
 	// Apply the operator
 	cfg.getCurrentBB()->addInstr(Instr::op_or, {var1->varName, var2->varName, tmp->varName}, symbolTable);
@@ -116,6 +144,13 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 	varStruct* var1 = visit(ctx->expr(0));
 	varStruct* var2 = visit(ctx->expr(1));
 	varStruct* tmp = createTempVar(ctx);
+
+	// Check void errors
+	if (var1->varType == "void" || var2->varType == "void") {
+		string message =  "Cannot perform operations on void";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return SymbolTable::dummyVarStruct;
+	}
 
     if(!var1->isCorrect || !var2->isCorrect) {
         return SymbolTable::dummyVarStruct;
@@ -145,6 +180,13 @@ antlrcpp::Any CodeGenVisitor::visitMulDivModExpr(ifccParser::MulDivModExprContex
 	varStruct* var1 = visit(ctx->expr(0));
 	varStruct* var2 = visit(ctx->expr(1));
 	varStruct* tmp = createTempVar(ctx);
+
+	// Check void errors
+	if (var1->varType == "void" || var2->varType == "void") {
+		string message =  "Cannot perform operations on void";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return SymbolTable::dummyVarStruct;
+	}
 
     if(!var1->isCorrect || !var2->isCorrect) {
         return SymbolTable::dummyVarStruct;
@@ -178,6 +220,13 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 	varStruct* var2 = visit(ctx->expr(1));
 	varStruct* tmp = createTempVar(ctx);
 
+	// Check void errors
+	if (var1->varType == "void" || var2->varType == "void") {
+		string message =  "Cannot perform operations on void";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return SymbolTable::dummyVarStruct;
+	}
+
     if(!var1->isCorrect || !var2->isCorrect) {
         return SymbolTable::dummyVarStruct;
     }
@@ -205,6 +254,13 @@ antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprCo
 	varStruct* var1 = visit(ctx->expr(0));
 	varStruct* var2 = visit(ctx->expr(1));
 	varStruct* tmp = createTempVar(ctx);
+
+	// Check void errors
+	if (var1->varType == "void" || var2->varType == "void") {
+		string message =  "Cannot perform operations on void";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return SymbolTable::dummyVarStruct;
+	}
 
     if(!var1->isCorrect || !var2->isCorrect) {
         return SymbolTable::dummyVarStruct;
@@ -251,6 +307,13 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
 	symbolTable->setStackPointer(currStackPointer);
+
+	// Check void errors
+	if (result->varType == "void") {
+		string message =  "Cannot assign on void type";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return SymbolTable::dummyVarStruct;
+	}
 	
 	// Write assembly instructions to save expression in variable 
 	cfg.getCurrentBB()->addInstr(Instr::copy, {result->varName, varName}, symbolTable);
@@ -510,6 +573,13 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 
 	// Compute expression
 	varStruct* result = visit(ctx->expr2());
+
+	// Check void errors
+	if (result->varType == "void") {
+		string message =  "Cannot perform operations on void";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return SymbolTable::dummyVarStruct;
+	}
 	
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
 	symbolTable->setStackPointer(currStackPointer);
@@ -530,6 +600,13 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 
 	// Compute expression
 	varStruct* result = visit(ctx->expr2());
+
+	// Check void errors
+	if (result->varType == "void") {
+		string message =  "Cannot perform operations on void";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return SymbolTable::dummyVarStruct;
+	}
 
     if (!result->isCorrect) {
 		cfg.getCurrentBB()->addInstr(Instr::ret, {}, symbolTable);
