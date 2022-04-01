@@ -316,7 +316,7 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	}
 	
 	// Write assembly instructions to save expression in variable 
-	cfg.getCurrentBB()->addInstr(Instr::copy, {result->varName, varName}, symbolTable);
+	cfg.getCurrentBB()->addInstr(Instr::aff, {result->varName, varName}, symbolTable);
 
 	// Create new temporary variable holding the result
 	varStruct* tmp = createTempVar(ctx, result->varType);
@@ -436,7 +436,7 @@ antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
 	}
 
 	// Mark it as used
-	symbolTable->getVar(varName)->isUsed = true;
+	symbolTable->getVar(varName,true)->isUsed = true;
 
 	// Return the variable
 	return symbolTable->getVar(varName);
@@ -585,13 +585,12 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	symbolTable->setStackPointer(currStackPointer);
 
 	// Write assembly instructions
-	cfg.getCurrentBB()->addInstr(Instr::copy, {result->varName, dVarName}, symbolTable);
+	cfg.getCurrentBB()->addInstr(Instr::aff, {result->varName, dVarName}, symbolTable);
 	
 	return 0;
 }
 
 antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
-	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 	symbolTable->setReturned(true);
 
@@ -746,7 +745,6 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) 
 
 
 antlrcpp::Any CodeGenVisitor::visitBeginBlock(ifccParser::BeginBlockContext *ctx) {
-
 	// Fetch parent symbol table
 	SymbolTable* parentSymbolTable = globalSymbolTable;
 	int startingStackPointer = 0;
@@ -792,8 +790,8 @@ varStruct* CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx, string 
 	return symbolTable->getVar(newVar);
 }
 
-antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *ctx) {
-	
+antlrcpp::Any CodeGenVisitor::visitIfelse(ifccParser::IfelseContext *ctx) {
+
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
 	// Fetch boolean expression of the if
@@ -838,9 +836,12 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 	
 		// Visit else body
 		cfg.setCurrentBB(elseBB);
+		visit(ctx->beginBlock(1));
 		visit(ctx->body(1));
 		// Write instruction to jump back to the following block
 		elseBB->addInstr(Instr::absolute_jump, {elseBB->getExitTrue()->getLabel()}, symbolTable);
+
+		visit(ctx->endBlock(1));
 
 	}
 	// If there's only a 'then' statement
@@ -860,9 +861,12 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 	
 	// Visit then body
 	cfg.setCurrentBB(thenBB);
+	visit(ctx->beginBlock(0));
 	visit(ctx->body(0));
 	// Write instruction to jump back to the following block
 	thenBB->addInstr(Instr::absolute_jump, {thenBB->getExitTrue()->getLabel()}, symbolTable);
+
+	visit(ctx->endBlock(0));
 
 	// Set the next current BB
 	cfg.setCurrentBB(endIfBB);

@@ -54,7 +54,7 @@ affect :
 ;
 
 ifelse :
-	'if' '(' expr2 ')' beginBlock body endBlock ('else' beginBlock body endBlock)?	#ifStatement
+	'if' '(' expr2 ')' beginBlock body endBlock ('else' beginBlock body endBlock)?
 ;
 
 whileStatement :

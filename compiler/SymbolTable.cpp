@@ -32,8 +32,7 @@ bool SymbolTable::hasFunc(string name) {
 	return hasFuncInOwnMap || hasFuncInParentMap;
 }
 
-varStruct* SymbolTable::getVar(string name) {
-	
+varStruct* SymbolTable::getVar(string name, bool searchParents) {
 	if (hasParam(name)) {
 		return getVar("^"+name);
 	}
@@ -42,8 +41,10 @@ varStruct* SymbolTable::getVar(string name) {
 	if (hasVarInOwnMap) {
 		return &varMap[name];
 	}
-	else {
+	else if(searchParents) {
 		return parentSymbolTable->getVar(name);
+	} else {
+		return nullptr;
 	}
 
 }
@@ -109,7 +110,7 @@ SymbolTable* SymbolTable::getParent() {
 	return parentSymbolTable; 
 }
 
-bool SymbolTable:: hasReturned() { 
+bool SymbolTable::hasReturned() { 
 	return returned; 
 }
 

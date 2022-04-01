@@ -14,7 +14,7 @@
 #include "generated/ifccBaseVisitor.h"
 #include "SymbolTable.h"
 #include "ErrorHandler.h"
-#include "IR.h"
+#include "IR/CFG.h"
 
 //------------------------------------------------------------------------
 // Goal of class <CodeGenVisitor>
@@ -54,7 +54,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitBeginBlock(ifccParser::BeginBlockContext *ctx) ;
 		virtual antlrcpp::Any visitEndBlock(ifccParser::EndBlockContext *ctx) ;
 		virtual antlrcpp::Any visitVtype(ifccParser::VtypeContext *ctx) ;
-		virtual antlrcpp::Any visitIfStatement(ifccParser::IfStatementContext *ctx) ;
+		virtual antlrcpp::Any visitIfelse(ifccParser::IfelseContext *ctx) ;
 		virtual antlrcpp::Any visitWhileStatement(ifccParser::WhileStatementContext *ctx) ;
         //virtual antlrcpp::Any visitExprEgalExpr(ifccParser::ExprEgalExprContext *ctx);
 		

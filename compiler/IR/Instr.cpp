@@ -1,110 +1,231 @@
 /*************************************************************************
-                          PLD Compiler : IR
+                          PLD Compiler : Instr
                           -----------------
     start   : 02/28/2022
     authors : Bastien B. Laetitia D. Arthur D. Loann L.
 			  Baptiste L. Amine L. Tom P. David T.
 *************************************************************************/
+#include "Instr.h"
 
-#include "IR.h"
-#include <iostream>
+class BasicBlock;
 
 using namespace std;
 
 unordered_map<string, string> Instr::AMD86_paramRegisters = {{"0", "%edi"}, {"1", "%esi"}, {"2", "%edx"}, {"3", "%ecx"}, {"4", "%r8d"}, {"5", "%r9d"}};
 
 /* --------------------------------------------------------------------- */
-//------------- Implementation of class <CFG> (file IR.cpp) --------------/
-/* --------------------------------------------------------------------- */
-
-CFG::CFG() {
-	setCurrentBB(createBB());
-}
-
-CFG::~CFG() {
-	for (BasicBlock* bb : bbList) {
-		delete bb;
-	}
-}
-
-BasicBlock* CFG::createBB() {
-	string bbName = "bb" + to_string(bbList.size());
-	BasicBlock* bb = new BasicBlock(this, bbName);
-	bbList.push_back(bb);
-	currentBB = bb;
-	return bb;
-}
-
-void CFG::generateASM(ostream& o) {
-	generateASMPrologue(o);
-	for (BasicBlock* bb : bbList) {
-		bb->generateASM(o);
-	}
-	generateASMEpilogue(o);
-}
-
-void CFG::generateASMPrologue(ostream& o) {
-	o << ".text" << endl;
-}
-void CFG::generateASMEpilogue(ostream& o) {
-}
-
-BasicBlock* CFG::getCurrentBB() {
-	return currentBB;
-}
-void CFG::setCurrentBB(BasicBlock* bb) {
-	currentBB = bb;
-}
-
-/* --------------------------------------------------------------------- */
-//--------- Implementation of class <BasicBlock> (file IR.cpp) -----------/
-/* --------------------------------------------------------------------- */
-
-BasicBlock::BasicBlock(CFG* cfg, string label) : cfg(cfg), label(label) { }
-
-BasicBlock::~BasicBlock() {
-	for (Instr* i : instrList) {
-		delete i;
-	}
-}
-
-void BasicBlock::addInstr(Instr::Operation op, vector<string> params, SymbolTable* sT) {
-	Instr* instr = new Instr(this, op, params, sT);
-	instrList.push_back(instr);
-}
-
-void BasicBlock::generateASM(ostream &o) {
-	cout << label << ":" << endl;
-	for (Instr* i : instrList) {
-		i->generateASM(o);
-	}
-}
-
-void BasicBlock::setExitTrue(BasicBlock* bb) {
-	this->exit_true = bb;
-}
-
-BasicBlock* BasicBlock::getExitTrue(){
-	return this->exit_true;
-}
-
-void BasicBlock::setExitFalse(BasicBlock* bb) {
-	this->exit_false = bb;
-}
-
-BasicBlock* BasicBlock::getExitFalse(){
-	return this->exit_false;
-}
-
-string BasicBlock::getLabel(){
-	return this->label;
-}
-
-/* --------------------------------------------------------------------- */
 //------------ Implementation of class <Instr> (file IR.cpp) -------------/
 /* --------------------------------------------------------------------- */
 
 Instr::Instr(BasicBlock* bb, Instr::Operation op, vector<string> params, SymbolTable* sT) : bb(bb), op(op), params(params), symbolTable(sT) {}
+
+
+bool Instr::propagateConst() {
+	/* 
+	* PROPAGATION OF CONST
+	* How it works:
+	* 
+	* Inside a scope, 
+	* whenever we try to create a tmp variable
+	* with only const variables, define tmp as const
+	*/
+	bool propagateConst = false;
+	switch (op) {
+        case Instr::aff:
+		case Instr::copy:
+		{
+            varStruct* s1 = symbolTable->getVar(params.at(0));
+            varStruct* s2 = symbolTable->getVar(params.at(1), false);
+            // If it is a scope variable assign with a const
+            if(s2 && s1->constPtr){
+                s2->constPtr = new int(*s1->constPtr);
+                propagateConst = true; 
+            } 
+			break;
+		}
+		case Instr::op_add:
+		{
+			varStruct* s1 = symbolTable->getVar(params.at(0));
+			varStruct* s2 = symbolTable->getVar(params.at(1));
+			varStruct* s3 = symbolTable->getVar(params.at(2));
+			if(s1->constPtr && s2->constPtr) {
+				int res = *s1->constPtr + *s2->constPtr;
+				s3->constPtr = new int(res);
+				propagateConst = true; 
+			}
+			break;
+		}
+
+		case Instr::op_sub:
+		{
+			varStruct* s1 = symbolTable->getVar(params.at(0));
+			varStruct* s2 = symbolTable->getVar(params.at(1));
+			varStruct* s3 = symbolTable->getVar(params.at(2));
+			if(s1->constPtr && s2->constPtr) {
+				int res = *s1->constPtr - *s2->constPtr;
+				s3->constPtr = new int(res);
+				propagateConst = true;
+			} 
+			break;
+		}
+
+		case Instr::op_xor:
+		{
+			varStruct* s1 = symbolTable->getVar(params.at(0));
+			varStruct* s2 = symbolTable->getVar(params.at(1));
+			varStruct* s3 = symbolTable->getVar(params.at(2));
+			if(s1->constPtr && s2->constPtr) {
+				int res = *s1->constPtr ^ *s2->constPtr;
+				s3->constPtr = new int(res);
+				propagateConst = true;
+			}
+			break;
+		}
+
+		case Instr::op_mul:
+		{
+			varStruct* s1 = symbolTable->getVar(params.at(0));
+			varStruct* s2 = symbolTable->getVar(params.at(1));
+			varStruct* s3 = symbolTable->getVar(params.at(2));
+			if(s1->constPtr && s2->constPtr) {
+				int res = *s1->constPtr * *s2->constPtr;
+				s3->constPtr = new int(res);
+				propagateConst = true;
+			}
+			break;
+		}
+
+		case Instr::op_div:
+		{
+			varStruct* s1 = symbolTable->getVar(params.at(0));
+			varStruct* s2 = symbolTable->getVar(params.at(1));
+			varStruct* s3 = symbolTable->getVar(params.at(2));
+			if(s1->constPtr && s2->constPtr) {
+				int res = *s1->constPtr / *s2->constPtr;
+				s3->constPtr = new int(res);
+				propagateConst = true;
+			}
+			break;
+		}
+
+		case Instr::op_mod:
+		{
+			varStruct* s1 = symbolTable->getVar(params.at(0));
+			varStruct* s2 = symbolTable->getVar(params.at(1));
+			varStruct* s3 = symbolTable->getVar(params.at(2));
+			if(s1->constPtr && s2->constPtr) {
+				int res = *s1->constPtr % *s2->constPtr;
+				s3->constPtr = new int(res);
+				propagateConst = true;
+			} 
+			break;
+		}
+
+		case Instr::op_and:
+		{
+			varStruct* s1 = symbolTable->getVar(params.at(0));
+			varStruct* s2 = symbolTable->getVar(params.at(1));
+			varStruct* s3 = symbolTable->getVar(params.at(2));
+			if(s1->constPtr && s2->constPtr) {
+				int res = *s1->constPtr & *s2->constPtr;
+				s3->constPtr = new int(res);
+				propagateConst = true;
+			}
+			break;
+		}
+
+		case Instr::op_or:
+		{
+			varStruct* s1 = symbolTable->getVar(params.at(0));
+			varStruct* s2 = symbolTable->getVar(params.at(1));
+			varStruct* s3 = symbolTable->getVar(params.at(2));
+			if(s1->constPtr && s2->constPtr) {
+				int res = *s1->constPtr | *s2->constPtr;
+				s3->constPtr = new int(res);
+				propagateConst = true;
+			}
+			break;
+		}
+
+		case Instr::op_not:
+		{
+			varStruct* s1 = symbolTable->getVar(params.at(0));
+			varStruct* s2 = symbolTable->getVar(params.at(1));
+			if(s1->constPtr) {
+				int res = !(*s1->constPtr);
+				s2->constPtr = new int(res);
+				propagateConst = true;
+			}
+			break;
+		}
+
+		case Instr::op_minus:
+		{
+			varStruct* s1 = symbolTable->getVar(params.at(0));
+			varStruct* s2 = symbolTable->getVar(params.at(1));
+ 
+			if(s1->constPtr){
+				int res = -(*s1->constPtr);
+				s2->constPtr = new int(res);
+				propagateConst = true;
+			}
+			break;
+		}
+
+		case Instr::cmp_eq:
+		{
+			varStruct* s1 = symbolTable->getVar(params.at(0));
+			varStruct* s2 = symbolTable->getVar(params.at(1));
+			varStruct* s3 = symbolTable->getVar(params.at(2));
+			if(s1->constPtr && s2->constPtr) {
+				int res = *s1->constPtr == *s2->constPtr;
+				s3->constPtr = new int(res);
+				propagateConst = true;
+			}
+			break;
+		}
+
+		case Instr::cmp_neq:
+		{
+			varStruct* s1 = symbolTable->getVar(params.at(0));
+			varStruct* s2 = symbolTable->getVar(params.at(1));
+			varStruct* s3 = symbolTable->getVar(params.at(2));
+			if(s1->constPtr && s2->constPtr) {
+				int res = *s1->constPtr != *s2->constPtr;
+				s3->constPtr = new int(res);
+				propagateConst = true;
+			}
+			break;
+		}
+
+		case Instr::cmp_lt:
+		{
+			varStruct* s1 = symbolTable->getVar(params.at(0));
+			varStruct* s2 = symbolTable->getVar(params.at(1));
+			varStruct* s3 = symbolTable->getVar(params.at(2));
+			if(s1->constPtr && s2->constPtr) {
+				int res = *s1->constPtr < *s2->constPtr;
+				s3->constPtr = new int(res);
+				propagateConst = true;
+			}
+			break;
+		}
+
+		case Instr::cmp_gt:
+		{
+			varStruct* s1 = symbolTable->getVar(params.at(0));
+			varStruct* s2 = symbolTable->getVar(params.at(1));
+			varStruct* s3 = symbolTable->getVar(params.at(2));
+			if(s1->constPtr && s2->constPtr) {
+				int res = *s1->constPtr > *s2->constPtr;
+				s3->constPtr = new int(res);
+				propagateConst = true;
+			}
+			break;
+		}
+	}
+	return propagateConst;
+}
 
 void Instr::generateASM(ostream &o) {
 
@@ -138,6 +259,7 @@ void Instr::generateASM(ostream &o) {
 			break;
 		}
 
+        case Instr::aff:
 		case Instr::copy:
 		{
 			// Get params
@@ -210,7 +332,10 @@ void Instr::generateASM(ostream &o) {
 			varStruct* s2 = symbolTable->getVar(var2);
 			varStruct* s3 = symbolTable->getVar(tmp);
 
-			// Check if const 
+			// move data to registers
+			string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
+			string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
+  
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr + *s2->constPtr;
 				s3->constPtr = new int(res);
@@ -220,14 +345,10 @@ void Instr::generateASM(ostream &o) {
 				string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
 				string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
 
-				o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax" \
-				<< "		# load " << var1 << " into " << "%eax" << endl;
-				o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx" \
-				<< "		# load " << var2 << " into " << "%edx" << endl;
-
+				o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax" << endl;
+				o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx" << endl;
 				o << "	addl	%edx, %eax" << endl;
-				o << "	movl	%eax, " << s3->memoryOffset << "(%rbp)" \
-				<< "		# load " << "%eax" << " into " << tmp << endl;
+				o << "	movl	%eax, " << s3->memoryOffset << "(%rbp)" << endl;
 			}
 			break;
 		}
@@ -244,7 +365,7 @@ void Instr::generateASM(ostream &o) {
 			varStruct* s2 = symbolTable->getVar(var2);
 			varStruct* s3 = symbolTable->getVar(tmp);
 
-			// Check if const 
+  
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr - *s2->constPtr;
 				s3->constPtr = new int(res);
@@ -263,6 +384,7 @@ void Instr::generateASM(ostream &o) {
 				o << "	movl	%eax, " << s3->memoryOffset << "(%rbp)" \
 				<< "		# load " << "%eax" << " into " << tmp << endl;
 			}
+
 			break;
 		}
 
@@ -278,7 +400,7 @@ void Instr::generateASM(ostream &o) {
 			varStruct* s2 = symbolTable->getVar(var2);
 			varStruct* s3 = symbolTable->getVar(tmp);
 
-			// Check if const
+ 
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr ^ *s2->constPtr;
 				s3->constPtr = new int(res);
@@ -313,7 +435,7 @@ void Instr::generateASM(ostream &o) {
 			varStruct* s2 = symbolTable->getVar(var2);
 			varStruct* s3 = symbolTable->getVar(tmp);
 
-			// Check if const
+ 
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr * *s2->constPtr;
 				s3->constPtr = new int(res);
@@ -347,7 +469,7 @@ void Instr::generateASM(ostream &o) {
 			varStruct* s1 = symbolTable->getVar(var1);
 			varStruct* s2 = symbolTable->getVar(var2);
 			varStruct* s3 = symbolTable->getVar(tmp);
-			// Check if const 
+  
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr / *s2->constPtr;
 				s3->constPtr = new int(res);
@@ -386,7 +508,7 @@ void Instr::generateASM(ostream &o) {
 			string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
 			string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
 
-			// Check if const 
+  
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr % *s2->constPtr;
 				s3->constPtr = new int(res);
@@ -417,7 +539,7 @@ void Instr::generateASM(ostream &o) {
 			varStruct* s2 = symbolTable->getVar(var2);
 			varStruct* s3 = symbolTable->getVar(tmp);
 
-			// Check if const 
+  
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr & *s2->constPtr;
 				s3->constPtr = new int(res);
@@ -447,7 +569,7 @@ void Instr::generateASM(ostream &o) {
 			varStruct* s2 = symbolTable->getVar(var2);
 			varStruct* s3 = symbolTable->getVar(tmp);
 
-			// Check if const 
+  
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr | *s2->constPtr;
 				s3->constPtr = new int(res);
@@ -475,7 +597,7 @@ void Instr::generateASM(ostream &o) {
 			varStruct* s2 = symbolTable->getVar(tmp);
 			string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
 			
-			// Check if const 
+  
 			if(s1->constPtr) {
 				int res = !(*s1->constPtr);
 				s2->constPtr = new int(res);
@@ -506,7 +628,7 @@ void Instr::generateASM(ostream &o) {
 			varStruct* s2 = symbolTable->getVar(tmp);
 			string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
 
-			// Check if const
+ 
 			if(s1->constPtr){
 				int res = -(*s1->constPtr);
 				s2->constPtr = new int(res);
@@ -535,7 +657,7 @@ void Instr::generateASM(ostream &o) {
 			varStruct* s2 = symbolTable->getVar(var2);
 			varStruct* s3 = symbolTable->getVar(tmp);
 
-			// Check if const
+ 
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr == *s2->constPtr;
 				s3->constPtr = new int(res);
@@ -567,7 +689,7 @@ void Instr::generateASM(ostream &o) {
 			varStruct* s2 = symbolTable->getVar(var2);
 			varStruct* s3 = symbolTable->getVar(tmp);
 
-			// Check if const
+ 
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr != *s2->constPtr;
 				s3->constPtr = new int(res);
@@ -599,7 +721,7 @@ void Instr::generateASM(ostream &o) {
 			varStruct* s2 = symbolTable->getVar(var2);
 			varStruct* s3 = symbolTable->getVar(tmp);
 
-			// Check if const
+ 
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr < *s2->constPtr;
 				s3->constPtr = new int(res);
@@ -631,7 +753,7 @@ void Instr::generateASM(ostream &o) {
 			varStruct* s2 = symbolTable->getVar(var2);
 			varStruct* s3 = symbolTable->getVar(tmp);
 
-			// Check if const
+ 
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr > *s2->constPtr;
 				s3->constPtr = new int(res);
@@ -710,7 +832,7 @@ void Instr::generateASM(ostream &o) {
 			string reg = Instr::AMD86_paramRegisters[paramNum];
 			varStruct* s1 = symbolTable->getVar(var);
 			
-			// Check if const 
+  
 			if(s1->constPtr){
 				o << "	movl	$" << *s1->constPtr << ", " << reg \
 				  << "		# load " << var << " into " << "%" << reg << endl;

@@ -8,7 +8,7 @@
 #include "generated/ifccParser.h"
 #include "generated/ifccBaseVisitor.h"
 #include "CodeGenVisitor.h"
-#include "IR.h"
+#include "IR/CFG.h"
 
 using namespace antlr4;
 using namespace std;
@@ -60,6 +60,9 @@ int main(int argn, const char **argv) {
         cout.flush();
         exit(1);
     }
+
+    // Try to optimize IR
+    controlFlowGraph.optimize();
 
     // Generate ASM instructions
     controlFlowGraph.generateASM(cout);

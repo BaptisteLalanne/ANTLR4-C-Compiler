@@ -68,7 +68,10 @@ class SymbolTable {
 		bool hasFunc(string name);
 
 		// Get the variable corresponding to the input variable name if it was found
-		varStruct* getVar(string name);
+		varStruct* getVar(string name, bool searchParents = true);
+
+		// Get the variable corresponding to the input variable name if it was found
+		varStruct* getVarCurrentBlock(string name);
 
 		// Get the function corresponding to the input function name if it was found
 		funcStruct* getFunc(string name);
