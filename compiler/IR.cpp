@@ -394,8 +394,8 @@ void Instr::generateASM(ostream &o) {
 			} else {
 				o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax" \
 				<< "		# load " << var1 << " into " << "%eax" << endl;
-				o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx" \
-				<< "		# load " << var2 << " into " << "%edx" << endl;
+				o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %ebx" \
+				<< "		# load " << var2 << " into " << "%ebx" << endl;
 
 				o << "	cltd" << endl;
 				o << "	idivl	%ebx" << endl; 
