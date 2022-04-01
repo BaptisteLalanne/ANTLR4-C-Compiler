@@ -7,6 +7,7 @@
 ifcc
 compiler/generated
 compiler/build
+compiler/ifcc-test-output
 tests/ifcc-test-output
 tests/testfiles_selection
 .main*

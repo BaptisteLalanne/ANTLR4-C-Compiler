@@ -226,7 +226,7 @@ antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprCo
 }
 
 antlrcpp::Any CodeGenVisitor::visitParExpr(ifccParser::ParExprContext *ctx) {
-	return visit(ctx->expr());
+	return visit(ctx->expr2());
 }
 
 antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
@@ -247,7 +247,7 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	int currStackPointer = symbolTable->getStackPointer();
 	
 	// Compute expression
-	varStruct* result = visit(ctx->expr());
+	varStruct* result = visit(ctx->expr2());
 
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
 	symbolTable->setStackPointer(currStackPointer);
@@ -509,7 +509,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	int currStackPointer = symbolTable->getStackPointer();
 
 	// Compute expression
-	varStruct* result = visit(ctx->expr());
+	varStruct* result = visit(ctx->expr2());
 	
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
 	symbolTable->setStackPointer(currStackPointer);
@@ -529,7 +529,7 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 	int currStackPointer = symbolTable->getStackPointer();
 
 	// Compute expression
-	varStruct* result = visit(ctx->expr());
+	varStruct* result = visit(ctx->expr2());
 
     if (!result->isCorrect) {
 		cfg.getCurrentBB()->addInstr(Instr::ret, {}, symbolTable);
@@ -718,7 +718,7 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
 	// Fetch boolean expression of the if
-	varStruct* testVar = visit(ctx->expr());
+	varStruct* testVar = visit(ctx->expr2());
 
 	//Check whether there is an else statment
 	bool hasElseStatment = ctx->body().size() == 2; 
@@ -807,7 +807,7 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 	BasicBlock* testBB = cfg.createBB();
 	// Fetch the condition of the while loop
 	cfg.setCurrentBB(testBB);
-	varStruct* testVar = visit(ctx->expr());
+	varStruct* testVar = visit(ctx->expr2());
 	//Stores the name of the boolean test variable within the basic block for the test
 	testBB->setTestVarName(testVar->varName);
 
@@ -840,3 +840,11 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 	return 0;
 
 }
+
+/*antlrcpp::Any CodeGenVisitor::visitExprEgalExpr(ifccParser::ExprEgalExprContext *ctx) {
+    varStruct* expr0 = visit(ctx->expr(0));
+    varStruct* expr1 = visit(ctx->expr(1));
+    string message =  "Function '" + expr0->varName + " = " + expr1->varName + " lvalue required as left operand of assignmentd";
+    errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+    return SymbolTable::dummyVarStruct;
+}*/

@@ -21,7 +21,7 @@ mainDeclr :
 
 body : 
 	declr ';' body 
-	| expr ';' body
+	| expr2 ';' body
 	| end ';' body
 	| ifelse body
 	| whileStatement body
@@ -29,14 +29,18 @@ body :
 	|
 ;
 
+expr2 :
+    affect
+    | expr
+;
+
 expr :
-	'(' expr ')' 								#parExpr
-	| UNARY=('-'|'!') expr 		   				#unaryExpr	
+	'(' expr2 ')' 								#parExpr
+	| UNARY=('-'|'!') expr 		   				#unaryExpr
 	| expr OP1=('*'|'/'|'%') expr 				#mulDivModExpr	
 	| expr OP2=('+'|'-') expr 					#addSubExpr
 	| expr CMP=('<' | '>') expr					#cmpLessOrGreaterExpr
 	| expr EQ=('=='|'!=') expr					#cmpEqualityExpr
-	| TOKENNAME '=' expr 						#affExpr
 	| expr '&' expr								#andExpr
 	| expr '^' expr								#xorExpr
 	| expr '|' expr								#orExpr
@@ -45,12 +49,16 @@ expr :
 	| TOKENNAME									#varExpr
 ;
 
+affect :
+    TOKENNAME '=' expr2                         #affExpr
+;
+
 ifelse :
-	'if' '(' expr ')' beginBlock body endBlock ('else' beginBlock body endBlock)?	#ifStatement
+	'if' '(' expr2 ')' beginBlock body endBlock ('else' beginBlock body endBlock)?	#ifStatement
 ;
 
 whileStatement :
-	'while' '(' expr ')' beginBlock body endBlock
+	'while' '(' expr2 ')' beginBlock body endBlock
 ;
 
 declr :
@@ -61,11 +69,11 @@ varDeclr :
 	vtype TOKENNAME (',' TOKENNAME)*
 ;
 varDeclrAndAffect :
-	vtype TOKENNAME '=' expr 
+	vtype TOKENNAME '=' expr2
 ;
 
 end :
-	RETURN expr									#exprEnd	
+	RETURN expr2								#exprEnd
 	| RETURN 									#emptyEnd
 ;
 

@@ -56,6 +56,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitVtype(ifccParser::VtypeContext *ctx) ;
 		virtual antlrcpp::Any visitIfStatement(ifccParser::IfStatementContext *ctx) ;
 		virtual antlrcpp::Any visitWhileStatement(ifccParser::WhileStatementContext *ctx) ;
+        //virtual antlrcpp::Any visitExprEgalExpr(ifccParser::ExprEgalExprContext *ctx);
 		
 	protected:
 
