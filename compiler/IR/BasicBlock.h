@@ -21,20 +21,18 @@ class BasicBlock {
 		void generateASM(ostream &o); 
 		void addInstr(Instr::Operation op, vector<string> params, SymbolTable* sT);
 		void optimization();
-		CFG* getCFG() { return cfg; };
         int loofForAffInstr(string varName, int countAffect = 0);
 		void setExitTrue(BasicBlock* bb);
 		BasicBlock* getExitTrue();
 		void setExitFalse(BasicBlock* bb);
 		BasicBlock* getExitFalse();
-        vector<Instr*> getInstrList() { return instrList; };
-		string getLabel();
 		void setTestVarName(string n) { testVarName = n; }
 		string getTestVarName() { return testVarName; }
-		/* Symbol table accessors */
-		varStruct getSymbol(string name);
-	
+        vector<Instr*> getInstrList() { return instrList; };
+		string getLabel();
+		CFG* getCFG() { return cfg; };
 
+	
 	protected:
 
 		/* Pointer to the next basic block, true branch. If nullptr, return from procedure */ 

@@ -654,9 +654,6 @@ antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) 
 	// Create default return instruction
     if (!newSymbolTable->hasReturned()) returnDefault();
 
-	// Create epilogue instructions
-	cfg.getCurrentBB()->addInstr(Instr::epilogue, {}, newSymbolTable); 
-
 	// Visit end (discard symbol table)
 	visit(ctx->endBlock());
 	
@@ -729,9 +726,6 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrBody(ifccParser::FuncDeclrContext *c
 	// Create default return instruction
 	if (!newSymbolTable->hasReturned()) returnDefault();
 
-	// Create epilogue instructions
-	cfg.getCurrentBB()->addInstr(Instr::epilogue, {}, newSymbolTable); 
-
 	// Visit end (discard symbol table)
 	visit(ctx->endBlock());
 
@@ -790,7 +784,7 @@ varStruct* CodeGenVisitor::createTempVar(antlr4::ParserRuleContext *ctx, string 
 	return symbolTable->getVar(newVar);
 }
 
-antlrcpp::Any CodeGenVisitor::visitIfelse(ifccParser::IfelseContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *ctx) {
 
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
@@ -898,7 +892,10 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 	BasicBlock* bodyBB = cfg.createBB();
 	// Visit body of the while loop
 	cfg.setCurrentBB(bodyBB);
+	visit(ctx->beginBlock());
 	visit(ctx->body());
+
+	visit(ctx->endBlock());
 
 	// Create a basic block that will contain the code after the while loop
 	BasicBlock* afterWhileBB = cfg.createBB();

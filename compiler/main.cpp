@@ -62,7 +62,7 @@ int main(int argn, const char **argv) {
     }
 
     // Try to optimize IR
-    controlFlowGraph.optimize();
+    //controlFlowGraph.optimize();
 
     // Generate ASM instructions
     controlFlowGraph.generateASM(cout);

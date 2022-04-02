@@ -23,9 +23,9 @@ body :
 	declr ';' body 
 	| expr2 ';' body
 	| end ';' body
-	| ifelse body
+	| ifStatement body
 	| whileStatement body
-	| beginBlock body endBlock body
+	| beginBlock body endBlock (';')? body
 	|
 ;
 
@@ -53,7 +53,7 @@ affect :
     TOKENNAME '=' expr2                         #affExpr
 ;
 
-ifelse :
+ifStatement :
 	'if' '(' expr2 ')' beginBlock body endBlock ('else' beginBlock body endBlock)?
 ;
 

@@ -23,7 +23,7 @@ CFG::~CFG() {
 }
 
 BasicBlock* CFG::createBB() {
-	string bbName = "bb" + to_string(bbList.size());
+	string bbName = ".bb" + to_string(bbList.size());
 	BasicBlock* bb = new BasicBlock(this, bbName);
 	bbList.push_back(bb);
 	currentBB = bb;
