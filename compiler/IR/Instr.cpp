@@ -305,6 +305,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 			}
 			break;
 		}
+
 	}
 	return deleteInstr;
 }
