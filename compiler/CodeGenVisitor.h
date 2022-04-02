@@ -14,6 +14,7 @@
 #include "generated/ifccBaseVisitor.h"
 #include "SymbolTable.h"
 #include "ErrorHandler.h"
+#include "IR/CFG.h"
 
 //------------------------------------------------------------------------
 // Goal of class <CodeGenVisitor>
@@ -25,10 +26,14 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 	public:
 
 		// Default constructor
-		CodeGenVisitor(SymbolTable& sT, ErrorHandler& eH) : symbolTable(sT), errorHandler(eH), returned(false), tempVarCounter(0) { }
+		CodeGenVisitor(ErrorHandler& eH, CFG& cfg) : errorHandler(eH), cfg(cfg) { globalSymbolTable = new SymbolTable(0, nullptr); }
 
 		// Linearising functions
-		virtual antlrcpp::Any visitMainHeader(ifccParser::MainHeaderContext *ctx);
+		virtual antlrcpp::Any visitProg(ifccParser::ProgContext *ctx);
+		virtual antlrcpp::Any visitMainDeclr(ifccParser::MainDeclrContext *ctx) ;
+		virtual antlrcpp::Any visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) ;
+		virtual antlrcpp::Any visitFuncDeclrHeader(ifccParser::FuncDeclrContext *ctx) ;
+		virtual antlrcpp::Any visitFuncDeclrBody(ifccParser::FuncDeclrContext *ctx) ;
 		virtual antlrcpp::Any visitUnaryExpr(ifccParser::UnaryExprContext *ctx) ;
 		virtual antlrcpp::Any visitAddSubExpr(ifccParser::AddSubExprContext *ctx) ;
 		virtual antlrcpp::Any visitMulDivModExpr(ifccParser::MulDivModExprContext *ctx) ;
@@ -38,36 +43,45 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitAffExpr(ifccParser::AffExprContext *ctx) ;
 		virtual antlrcpp::Any visitConstExpr(ifccParser::ConstExprContext *ctx) ;
 		virtual antlrcpp::Any visitVarExpr(ifccParser::VarExprContext *ctx) ;
+		virtual antlrcpp::Any visitFuncExpr(ifccParser::FuncExprContext *ctx) ;
 		virtual antlrcpp::Any visitVarDeclr(ifccParser::VarDeclrContext *ctx) ;
 		virtual antlrcpp::Any visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffectContext *ctx) ;
 		virtual antlrcpp::Any visitExprEnd(ifccParser::ExprEndContext *ctx) ;
 		virtual antlrcpp::Any visitEmptyEnd(ifccParser::EmptyEndContext *ctx) ;
-		// virtual antlrcpp::Any visitBwExpr(ifccParser::BwExprContext *ctx) ;
 		virtual antlrcpp::Any visitAndExpr(ifccParser::AndExprContext *ctx) ;
 		virtual antlrcpp::Any visitXorExpr(ifccParser::XorExprContext *ctx) ;
 		virtual antlrcpp::Any visitOrExpr(ifccParser::OrExprContext *ctx) ;
-
-		// Return 0 by default
-		void returnDefault();
-
-		// Whether the program has returned or not
-		bool hasReturned();
-		
-		// Return offset temp variable after created it
-		varStruct createTempVar(antlr4::ParserRuleContext *ctx);
+		virtual antlrcpp::Any visitBeginBlock(ifccParser::BeginBlockContext *ctx) ;
+		virtual antlrcpp::Any visitEndBlock(ifccParser::EndBlockContext *ctx) ;
+		virtual antlrcpp::Any visitVtype(ifccParser::VtypeContext *ctx) ;
+		virtual antlrcpp::Any visitIfStatement(ifccParser::IfStatementContext *ctx) ;
+		virtual antlrcpp::Any visitWhileStatement(ifccParser::WhileStatementContext *ctx) ;
+        //virtual antlrcpp::Any visitExprEgalExpr(ifccParser::ExprEgalExprContext *ctx);
 		
 	protected:
-
-		// The associated symbol table instance
-		SymbolTable& symbolTable;
 
 		// The associated error handler instance
 		ErrorHandler& errorHandler;
 
-		// Whether the function has returned
-		bool returned;		
+		// The associated IR instance
+		CFG& cfg;
 
 		// A temp variables counter for evaluating expressions
-		int tempVarCounter;
+		int tempVarCounter = 0;
+
+		// The currently visited symbol table to keep track of nested scopes
+		stack<SymbolTable*> symbolTablesStack;
+
+		// The current function
+		string currFunction = "";
+
+		// The global symbol table
+		SymbolTable* globalSymbolTable;
+		
+		// Return 0 by default
+		void returnDefault();
+		
+		// Return offset temp variable after created it
+		varStruct* createTempVar(antlr4::ParserRuleContext *ctx, string varType="int", int* constPtr = nullptr);
 
 };

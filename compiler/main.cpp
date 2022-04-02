@@ -8,6 +8,7 @@
 #include "generated/ifccParser.h"
 #include "generated/ifccBaseVisitor.h"
 #include "CodeGenVisitor.h"
+#include "IR/CFG.h"
 
 using namespace antlr4;
 using namespace std;
@@ -47,29 +48,24 @@ int main(int argn, const char **argv) {
         exit(1);
     }
     
-    // Create symbol table and error handler
-    SymbolTable symbolTable;
+    // Create error handler and IR
     ErrorHandler errorHandler;
-
-    // Print header instruction
-    cout << " .text" << endl;
+    CFG controlFlowGraph;
 
     // Visit tree and linearize
-    CodeGenVisitor v(symbolTable, errorHandler);
+    CodeGenVisitor v(errorHandler, controlFlowGraph);
     v.visit(tree);
-    
+
     if(errorHandler.hasError()) {
         cout.flush();
         exit(1);
     }
 
-    // Static Analysis
-	symbolTable.checkUsedVariables(errorHandler);
+    // Try to optimize IR
+    controlFlowGraph.optimize();
 
-    //In case the function has not returned, return 0 by default
-    if (!v.hasReturned()) {
-        v.returnDefault();
-    }
+    // Generate ASM instructions
+    controlFlowGraph.generateASM(cout);
 
     return 0;
 }

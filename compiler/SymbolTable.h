@@ -11,27 +11,30 @@
 
 //--------------------------------------------------- Called interfaces
 #include <unordered_map>
-#include <list>
+#include <vector>
 #include "ErrorHandler.h"
 using namespace std;
 
 //------------------------------------------------------------------ Types
 // Store all informations relvent for a variable
 struct varStruct {
-	int memoryOffset;	//Its offset (in memory) to the base pointer 
-	string varType;		//The type of the variable
-	string varScope;	//The variable scope (i.e. global, local, ou paramètre)
-	int varLine;		//The line of code where the variable is declared
-	bool isUsed;		//Whether the variable is used in the code
+	string varName; 	// Its name
+	int memoryOffset;	// Its offset (in memory) to the base pointer 
+	string varType;		// The type of the variable
+	int varLine;		// The line of code where the variable is declared
+	bool isUsed;		// Whether the variable is used in the code
     bool isCorrect; 	// False when a dummy struct is returned to avoid bad cast
+	int* constPtr;  	// Const pointer
 };
 
 // Store all informations relvent for a function
 struct funcStruct {
-	string returnType; 				//The return type of the function
-	int nbParameters;				//The number of input parameters
-	list<string> parameterTypes;	//The type of every input parameter
-	string code;					//The code inside the function
+	string funcName;				//Its name
+	string returnType; 				//Its return type 
+	size_t nbParameters;			//The number of input parameters
+	vector<string> parameterTypes;	//The type of every input parameter
+	vector<string> parameterNames; 	//The names of every parameter
+	int funcLine; 					// The line of code where the function is declared
 	bool isCalled;					//Whether the function is called
 };
 
@@ -45,54 +48,89 @@ class SymbolTable {
 	public:
 
 		// Constructor of SymbolTable
-		SymbolTable() : stackPointer(0) { }
+		SymbolTable(int sP = 0, SymbolTable* par = nullptr) : stackPointer(sP), parentSymbolTable(par) {
+			if (parentSymbolTable != nullptr) {
+				parentSymbolTable->childSymbolTables.push_back(this);
+			}
+		}
+
+		~SymbolTable() {
+			for(auto var: varMap) {
+				delete(var.second.constPtr);
+			}
+		};
 
 		// Tell whether a variable with a given name is present in the symbol table
 		bool hasVar(string name);
+		bool hasParam(string name);
 
 		// Tell whether a function with a given name is present in the symbol table
 		bool hasFunc(string name);
 
 		// Get the variable corresponding to the input variable name if it was found
-		varStruct& getVar(string name);
+		varStruct* getVar(string name, bool searchParents = true);
+
+		// Get the variable corresponding to the input variable name if it was found
+		varStruct* getVarCurrentBlock(string name);
 
 		// Get the function corresponding to the input function name if it was found
-		funcStruct& getFunc(string name);
+		funcStruct* getFunc(string name);
 
-		// Get the stack pointer 
-		int getStackPointer();
-
-		// Set the stack pointer
-		void setStackPointer(int s);
+		// Get the number of bytes needed to store the local variables of a given function
+		int getMemorySpace();
 
 		// Add a variable to the table of symbols
-		void addVar(string name, string vT, string vS, int vL);
+		void addVar(string name, string vT, int vL, int* constPtr = nullptr);
 
 		// Add a function to the table of symbols
-		void addFunc(string name, string rT, int nbP, list<string> pT, string c);
+		void addFunc(string name, string rT, vector<string> pT, vector<string> pN, int fL);
+
+		// Parent getter 
+		SymbolTable* getParent();
+
+		// Returned getter
+		bool hasReturned();
+
+		// Returned setter 
+		void setReturned(bool r);
+
+		// Stack pointer getter
+		int getStackPointer();
+
+		// Stack pointer setter
+		void setStackPointer(int s);
 		
-		// Perform static analysis
+		// Perform static analysis on variables
 		void checkUsedVariables(ErrorHandler& eH);
 
-		// Clean temporary variables
-		void cleanTempVars();
+		// Used for assembler
+		static int getCast(string type, int value);
 
 		// Hashtable containing the size in bytes of the different types (typeName : size)
 		static unordered_map<string, int> typeSizes;
+		static unordered_map<string, string> typeOpeMoves;
 
         // Dummy varStruct to handle parsing errors
-        varStruct dummyVarStruct = {0,"","",0,false,false};
-			
+        static varStruct dummyVarStruct;
+
 	protected:
 
 		// The current position of the memory stack pointer 
 		int stackPointer;	
+
+		// Whether the scope has a return statement
+		bool returned;
 		
-		// TODO: turn this into a MultiMap (or use a key containing the scope)
-		// Hashtable containing the encountered variables (varName : variable)
+		// Parent symbol table
+		SymbolTable* parentSymbolTable;
+
+		// Children symbol tables
+		vector<SymbolTable*> childSymbolTables;
+
+		// Hashtable containing the encountered variable declarations
 		unordered_map<string, varStruct> varMap;
 
-		// Hashtable containing the encountered functions (funcName : function)
+		// Hashtable containing the encountered function declarations
 		unordered_map<string, funcStruct> funcMap;
 
 };

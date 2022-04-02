@@ -162,6 +162,8 @@ if args.debug:
 ######################################################################################
 ## TEST step: actually compile all test-cases with both compilers
 all_jobs_passed = True
+nb_jobs_passed = 0
+failed_list = []
 
 for jobname in jobs:
     os.chdir(orig_cwd)
@@ -185,16 +187,19 @@ for jobname in jobs:
     if gccstatus != 0 and ifccstatus != 0:
         ## ifcc correctly rejects invalid program -> test-case ok
         print("TEST OK")
+        nb_jobs_passed += 1
         continue
     elif gccstatus != 0 and ifccstatus == 0:
         ## ifcc wrongly accepts invalid program -> error
         print("TEST FAIL (your compiler accepts an invalid program)")
         all_jobs_passed = False
+        failed_list.append(jobname + " : " + "your compiler accepts an invalid program")
         continue
     elif gccstatus == 0 and ifccstatus != 0:
         ## ifcc wrongly rejects valid program -> error
         print("TEST FAIL (your compiler rejects a valid program)")
         all_jobs_passed = False
+        failed_list.append(jobname + " : " + "your compiler rejects a valid program")
         if args.verbose:
             dumpfile("ifcc-compile.txt")
         continue
@@ -203,6 +208,7 @@ for jobname in jobs:
         ldstatus=command("gcc -o exe-ifcc asm-ifcc.s", "ifcc-link.txt")
         if ldstatus:
             print("TEST FAIL (your compiler produces incorrect assembly)")
+            failed_list.append(jobname + " : " + "your compiler produces incorrect assembly")
             all_jobs_passed = False
             if args.verbose:
                 dumpfile("ifcc-link.txt")
@@ -213,6 +219,7 @@ for jobname in jobs:
         
     command("./exe-ifcc","ifcc-execute.txt")
     if open("gcc-execute.txt").read() != open("ifcc-execute.txt").read() :
+        failed_list.append(jobname + " : " + "different results at execution")
         all_jobs_passed = False
         print("TEST FAIL (different results at execution)")
         if args.verbose:
@@ -224,6 +231,18 @@ for jobname in jobs:
 
     ## last but not least
     print("TEST OK")
+    nb_jobs_passed += 1
+
+print("\n\033[44m", "#######################################################################################################", "\033[0m")
+print("Score : " + str(round(100*nb_jobs_passed/len(jobs),2)) + "%.")
+if (len(jobs)-nb_jobs_passed) != 0:
+    print("\033[41m", str(len(jobs)-nb_jobs_passed) + " tests failed. ", "\033[0m", str(nb_jobs_passed) + " out of " + str(len(jobs)) + " passed.")
+    print("Failed tests :")
+    for i in range(len(failed_list)):
+        print("     " + failed_list[i])
+else:
+    print("\033[42m", str(len(jobs)-nb_jobs_passed) + " tests failed. ", "\033[0m", str(nb_jobs_passed) + " out of " + str(len(jobs)) + " passed.")
+print("\033[44m", "#######################################################################################################", "\033[0m")
 
 if(all_jobs_passed):
     sys.exit(0)
