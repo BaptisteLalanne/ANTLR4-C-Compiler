@@ -208,7 +208,6 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 		{
 			varStruct *s1 = symbolTable->getVar(params.at(0));
 			varStruct *s2 = symbolTable->getVar(params.at(1));
-
 			if (s1->constPtr)
 			{
 				int res = -(*s1->constPtr);
@@ -285,6 +284,27 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 			}
 			break;
 		}
+
+		case Instr::conditional_jump:
+		{
+			varStruct* s1 = symbolTable->getVar(params.at(0));
+			string falseBlock = params.at(1);
+			string trueBlock = params.at(2);
+			if (s1->constPtr)
+			{
+				int res = *s1->constPtr != 0;
+				if (res) {
+					Instr* newInstr = new Instr(bb, Instr::absolute_jump, {trueBlock}, (*it)->getSymbolTable());
+					instrList.insert(it, newInstr);
+				}
+				else {
+					Instr* newInstr = new Instr(bb, Instr::absolute_jump, {falseBlock}, (*it)->getSymbolTable());
+					instrList.insert(it, newInstr);
+				}
+				deleteInstr = true;
+			}
+			break;
+		}
 	}
 	return deleteInstr;
 }
@@ -304,7 +324,6 @@ void Instr::checkNeedForLoadConst(varStruct *s1, varStruct *s2, list<Instr*>::it
 	}
 
 }
-
 
 void Instr::generateASM(ostream &o)
 {
