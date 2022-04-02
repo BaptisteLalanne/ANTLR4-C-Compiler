@@ -21,45 +21,57 @@ BasicBlock::~BasicBlock() {
 	}
 }
 
+bool BasicBlock::evaluateConstInstr(list<Instr*>::iterator it) {
+	bool deleteInstr = false;
+	Instr* i = *it;
+	// If this is a aff instruction, check if there is another aff instruction with the same variable at the left
+	vector<string> params = i->getParams(); 
+	if (i->getOp() == Instr::aff) {
+		string varName = params[1];
+		unordered_set<BasicBlock*> bbVisited;
+		bool needsDefinition = (this->lookForAffInstr(varName,bbVisited) > 1);
+		// If there is no other aff with the same variable, we can propagate (and eventually delete)
+		deleteInstr = i->propagateConst(needsDefinition, it, instrList);
+	}  
+	else {
+		deleteInstr = i->propagateConst(false, it, instrList);
+	}
+	return deleteInstr;
+}
+
 void BasicBlock::optimization() {
 	
-	// Erase instructions where constants can be propagated
-	instrList.erase(remove_if(instrList.begin(), instrList.end(), 
-	[this](Instr* i) { 
-        bool deleteInstr = false;
-        // If this is a copy instruction, check if there is another copy instruction with the same variable at the left
-        vector<string> params = i->getParams(); 
-        if (i->getOp() == Instr::aff) {
-            string varName = params[1];
-            bool needsDefinition = (this->loofForAffInstr(varName) > 1);
-            // If there is no other copy with the same variable, we can try to propagate
-			deleteInstr = i->propagateConst(needsDefinition);
-        }  
-        else {
-            deleteInstr = i->propagateConst(false);
-        }
-        return deleteInstr;
-    }), instrList.end());
-	
-	// Erase trivial operational instructions
-	
-	// Erase redundant copies
+	list<Instr*>::iterator it = instrList.begin();
+
+	while(it != instrList.end()) {
+
+		bool deleteConstInstr = evaluateConstInstr(it);
+		bool deleteTrivialOperation = false;
+
+		if(deleteConstInstr) {
+			it = instrList.erase(it);
+		}
+		else if (deleteTrivialOperation) {
+			it = instrList.erase(it);
+		}
+		else ++it;
+
+	}
 
 }
 
-int BasicBlock::loofForAffInstr(string varName, int countAffect) {
-
+int BasicBlock::lookForAffInstr(string varName, unordered_set<BasicBlock*> & bbVisited, int countAffect) {
+	bbVisited.insert(this);
 	for (Instr* i : instrList) {
         if(i->getOp() == Instr::aff && i->getParams()[1] == varName) {
 			countAffect++;
         }
     }
-
-	if (exit_true && countAffect <= 1) {
-		countAffect += exit_true->loofForAffInstr(varName, countAffect);
+	if (exit_true && countAffect <= 1 && bbVisited.find(exit_true) == bbVisited.end()) {
+		countAffect += exit_true->lookForAffInstr(varName, bbVisited, countAffect);
 	} 
-    if (exit_false && countAffect <= 1) {
-		countAffect += exit_false->loofForAffInstr(varName, countAffect);
+    if (exit_false && countAffect <= 1 && bbVisited.find(exit_false) == bbVisited.end()) {
+		countAffect += exit_false->lookForAffInstr(varName, bbVisited, countAffect);
 	}
 
 	return countAffect;

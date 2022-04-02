@@ -1,8 +1,9 @@
 #include <vector>
 #include <string>
+#include <list>
 #include <iostream>
 #include <initializer_list>
-
+#include <unordered_set>
 #include "../SymbolTable.h"
 #include "Instr.h"
 
@@ -21,14 +22,15 @@ class BasicBlock {
 		void generateASM(ostream &o); 
 		void addInstr(Instr::Operation op, vector<string> params, SymbolTable* sT);
 		void optimization();
-        int loofForAffInstr(string varName, int countAffect = 0);
+		bool evaluateConstInstr(list<Instr*>::iterator it);
+        int lookForAffInstr(string varName, unordered_set<BasicBlock*> & bbVisited,int countAffect = 0);
 		void setExitTrue(BasicBlock* bb);
 		BasicBlock* getExitTrue();
 		void setExitFalse(BasicBlock* bb);
 		BasicBlock* getExitFalse();
 		void setTestVarName(string n) { testVarName = n; }
 		string getTestVarName() { return testVarName; }
-        vector<Instr*> getInstrList() { return instrList; };
+        list<Instr*> getInstrList() { return instrList; };
 		string getLabel();
 		CFG* getCFG() { return cfg; };
 
@@ -48,7 +50,7 @@ class BasicBlock {
 		CFG* cfg; 
 
 		/* The instructions themselves */
-		vector<Instr*> instrList; 
+		list<Instr*> instrList; 
 
 		/* When generating IR code for an if(expr) or while(expr) etc, store here the name of the variable that holds the value of expr */
 		string testVarName;  

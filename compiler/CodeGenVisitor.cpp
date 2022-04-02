@@ -409,11 +409,11 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 	if (constStr[0] == '\'') {
 		int* constPtr = new int(constValue);
 		tmp = createTempVar(ctx, "char", constPtr);
-		cfg.getCurrentBB()->addInstr(Instr::ldconst, {"\'" + to_string(constValue), tmp->varName}, symbolTable);
+		// cfg.getCurrentBB()->addInstr(Instr::ldconst, {"\'" + to_string(constValue), tmp->varName}, symbolTable);
 	} else {
 		int* constPtr = new int(constValue);
 		tmp = createTempVar(ctx, "int", constPtr);
-		cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp->varName}, symbolTable);
+		// cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp->varName}, symbolTable);
 	}
 
 	// Return the temporary variable
@@ -903,6 +903,10 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 	afterWhileBB->setExitTrue(beforeWhileBB->getExitTrue());
 	afterWhileBB->setExitFalse(beforeWhileBB->getExitFalse());
 	
+	// Set beforeWhileBB exit to testBB
+	beforeWhileBB->setExitTrue(testBB);
+	beforeWhileBB->setExitFalse(nullptr);
+
 	// Set the tue exit pointer of the test block to the body block
 	testBB->setExitTrue(bodyBB);
 	// Set the false exit pointer of the test block to the block after the while

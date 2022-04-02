@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <list>
 
 class BasicBlock;
 
@@ -49,8 +50,11 @@ class Instr {
 
         vector<string> getParams() { return params; };
 
-		bool propagateConst(bool needsDefinition);
+		bool propagateConst(bool needsDefinition, list<Instr*>::iterator it, list<Instr*> instrList);
 
+		void checkNeedForLoadConst(varStruct *s1, varStruct *s2, list<Instr*>::iterator it, list<Instr*> instrList);
+
+		SymbolTable* getSymbolTable(){ return symbolTable; };
 	private:
 
 		/* The BB this instruction belongs to, which provides a pointer to the CFG this instruction belong to */
