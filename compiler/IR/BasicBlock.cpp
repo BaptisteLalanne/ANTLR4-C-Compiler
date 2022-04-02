@@ -26,21 +26,19 @@ void BasicBlock::optimization() {
 	// Erase instructions where constants can be propagated
 	instrList.erase(remove_if(instrList.begin(), instrList.end(), 
 	[this](Instr* i) { 
-        bool canPropagate = false;
+        bool deleteInstr = false;
         // If this is a copy instruction, check if there is another copy instruction with the same variable at the left
         vector<string> params = i->getParams(); 
-        if (i->getOp() == Instr::copy) {
-            string varName = params[0];
-            bool needsDefinition = this->lookForCopyInstr(varName);
+        if (i->getOp() == Instr::aff) {
+            string varName = params[1];
+            bool needsDefinition = (this->loofForAffInstr(varName) > 1);
             // If there is no other copy with the same variable, we can try to propagate
-            if(!needsDefinition) {
-                canPropagate = i->propagateConst();
-            }
+			deleteInstr = i->propagateConst(needsDefinition);
         }  
         else {
-            canPropagate = i->propagateConst();
+            deleteInstr = i->propagateConst(false);
         }
-        return canPropagate;
+        return deleteInstr;
     }), instrList.end());
 	
 	// Erase trivial operational instructions
@@ -49,24 +47,22 @@ void BasicBlock::optimization() {
 
 }
 
-bool BasicBlock::lookForCopyInstr(string varName) {
-    
-	bool needsDefinition = false;
+int BasicBlock::loofForAffInstr(string varName, int countAffect) {
 
 	for (Instr* i : instrList) {
-        if(i->getOp() == Instr::aff) {
-            needsDefinition = true;
+        if(i->getOp() == Instr::aff && i->getParams()[1] == varName) {
+			countAffect++;
         }
     }
 
-	if (exit_true && !needsDefinition) {
-		needsDefinition = exit_true->lookForCopyInstr(varName);
+	if (exit_true && countAffect <= 1) {
+		countAffect += exit_true->loofForAffInstr(varName, countAffect);
 	} 
-    if (exit_false && !needsDefinition) {
-		needsDefinition = exit_false->lookForCopyInstr(varName);
+    if (exit_false && countAffect <= 1) {
+		countAffect += exit_false->loofForAffInstr(varName, countAffect);
 	}
-	
-	return needsDefinition;
+
+	return countAffect;
 }
 
 void BasicBlock::addInstr(Instr::Operation op, vector<string> params, SymbolTable* sT) {

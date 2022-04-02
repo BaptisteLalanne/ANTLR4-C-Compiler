@@ -22,7 +22,7 @@ class BasicBlock {
 		void addInstr(Instr::Operation op, vector<string> params, SymbolTable* sT);
 		void optimization();
 		CFG* getCFG() { return cfg; };
-        bool lookForCopyInstr(string varName);
+        int loofForAffInstr(string varName, int countAffect = 0);
 		void setExitTrue(BasicBlock* bb);
 		BasicBlock* getExitTrue();
 		void setExitFalse(BasicBlock* bb);

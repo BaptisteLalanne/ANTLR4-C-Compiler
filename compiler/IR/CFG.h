@@ -7,7 +7,6 @@
 #include <initializer_list>
 #include "BasicBlock.h"
 
-
 class CFG {
 
 	public:

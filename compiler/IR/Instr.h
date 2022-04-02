@@ -50,7 +50,7 @@ class Instr {
 
         vector<string> getParams() { return params; };
 
-		bool propagateConst();
+		bool propagateConst(bool needsDefinition);
 
 	private:
 

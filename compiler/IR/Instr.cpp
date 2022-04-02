@@ -20,7 +20,7 @@ unordered_map<string, string> Instr::AMD86_paramRegisters = {{"0", "%edi"}, {"1"
 Instr::Instr(BasicBlock* bb, Instr::Operation op, vector<string> params, SymbolTable* sT) : bb(bb), op(op), params(params), symbolTable(sT) {}
 
 
-bool Instr::propagateConst() {
+bool Instr::propagateConst(bool needsDefinition) {
 	/* 
 	* PROPAGATION OF CONST
 	* How it works:
@@ -29,7 +29,7 @@ bool Instr::propagateConst() {
 	* whenever we try to create a tmp variable
 	* with only const variables, define tmp as const
 	*/
-	bool propagateConst = false;
+	bool deleteInstr = false;
 	switch (op) {
         case Instr::aff:
 		case Instr::copy:
@@ -39,7 +39,9 @@ bool Instr::propagateConst() {
             // If it is a scope variable assign with a const
             if(s2 && s1->constPtr){
                 s2->constPtr = new int(*s1->constPtr);
-                propagateConst = true; 
+				if(!needsDefinition){
+                	deleteInstr = true; 
+				}
             } 
 			break;
 		}
@@ -51,7 +53,7 @@ bool Instr::propagateConst() {
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr + *s2->constPtr;
 				s3->constPtr = new int(res);
-				propagateConst = true; 
+				deleteInstr = true; 
 			}
 			break;
 		}
@@ -64,7 +66,7 @@ bool Instr::propagateConst() {
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr - *s2->constPtr;
 				s3->constPtr = new int(res);
-				propagateConst = true;
+				deleteInstr = true;
 			} 
 			break;
 		}
@@ -77,7 +79,7 @@ bool Instr::propagateConst() {
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr ^ *s2->constPtr;
 				s3->constPtr = new int(res);
-				propagateConst = true;
+				deleteInstr = true;
 			}
 			break;
 		}
@@ -90,7 +92,7 @@ bool Instr::propagateConst() {
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr * *s2->constPtr;
 				s3->constPtr = new int(res);
-				propagateConst = true;
+				deleteInstr = true;
 			}
 			break;
 		}
@@ -103,7 +105,7 @@ bool Instr::propagateConst() {
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr / *s2->constPtr;
 				s3->constPtr = new int(res);
-				propagateConst = true;
+				deleteInstr = true;
 			}
 			break;
 		}
@@ -116,7 +118,7 @@ bool Instr::propagateConst() {
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr % *s2->constPtr;
 				s3->constPtr = new int(res);
-				propagateConst = true;
+				deleteInstr = true;
 			} 
 			break;
 		}
@@ -129,7 +131,7 @@ bool Instr::propagateConst() {
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr & *s2->constPtr;
 				s3->constPtr = new int(res);
-				propagateConst = true;
+				deleteInstr = true;
 			}
 			break;
 		}
@@ -142,7 +144,7 @@ bool Instr::propagateConst() {
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr | *s2->constPtr;
 				s3->constPtr = new int(res);
-				propagateConst = true;
+				deleteInstr = true;
 			}
 			break;
 		}
@@ -154,7 +156,7 @@ bool Instr::propagateConst() {
 			if(s1->constPtr) {
 				int res = !(*s1->constPtr);
 				s2->constPtr = new int(res);
-				propagateConst = true;
+				deleteInstr = true;
 			}
 			break;
 		}
@@ -167,7 +169,7 @@ bool Instr::propagateConst() {
 			if(s1->constPtr){
 				int res = -(*s1->constPtr);
 				s2->constPtr = new int(res);
-				propagateConst = true;
+				deleteInstr = true;
 			}
 			break;
 		}
@@ -180,7 +182,7 @@ bool Instr::propagateConst() {
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr == *s2->constPtr;
 				s3->constPtr = new int(res);
-				propagateConst = true;
+				deleteInstr = true;
 			}
 			break;
 		}
@@ -193,7 +195,7 @@ bool Instr::propagateConst() {
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr != *s2->constPtr;
 				s3->constPtr = new int(res);
-				propagateConst = true;
+				deleteInstr = true;
 			}
 			break;
 		}
@@ -206,7 +208,7 @@ bool Instr::propagateConst() {
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr < *s2->constPtr;
 				s3->constPtr = new int(res);
-				propagateConst = true;
+				deleteInstr = true;
 			}
 			break;
 		}
@@ -219,12 +221,12 @@ bool Instr::propagateConst() {
 			if(s1->constPtr && s2->constPtr) {
 				int res = *s1->constPtr > *s2->constPtr;
 				s3->constPtr = new int(res);
-				propagateConst = true;
+				deleteInstr = true;
 			}
 			break;
 		}
 	}
-	return propagateConst;
+	return deleteInstr;
 }
 
 void Instr::generateASM(ostream &o) {
