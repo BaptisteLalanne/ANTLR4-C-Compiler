@@ -12,6 +12,19 @@
 
 using namespace std;
 
+CodeGenVisitor::CodeGenVisitor(ErrorHandler& eH, CFG& cfg) : errorHandler(eH), cfg(cfg) {
+	globalSymbolTable = new SymbolTable(0, nullptr);
+	this->addSymbolPutchar();
+	this->addSymbolGetchar();
+}
+
+void CodeGenVisitor::addSymbolPutchar() {
+	globalSymbolTable->addFunc("putchar", "int", {"char"}, {"c"}, 0);
+}
+
+void CodeGenVisitor::addSymbolGetchar() {
+	globalSymbolTable->addFunc("getchar", "int", {}, {}, 0);
+}
 
 antlrcpp::Any CodeGenVisitor::visitProg(ifccParser::ProgContext *ctx) {
 

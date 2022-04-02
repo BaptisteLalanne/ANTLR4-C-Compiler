@@ -24,6 +24,11 @@ class CFG {
 
 	protected:
 
+		/* Generate ASM for standard functions */
+		void generateStandardFunctions(ostream& o);
+		void generatePutchar(ostream& o);
+		void generateGetchar(ostream& o);
+
 		/* Generate ASM prologue and epilogues */
 		void generateASMPrologue(ostream& o);
 		void generateASMEpilogue(ostream& o);

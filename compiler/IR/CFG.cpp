@@ -32,6 +32,7 @@ BasicBlock* CFG::createBB() {
 
 void CFG::generateASM(ostream& o) {
 	generateASMPrologue(o);
+	generateStandardFunctions(o);
 	for (BasicBlock* bb : bbList) {
 		bb->generateASM(o);
 	}
@@ -55,4 +56,42 @@ BasicBlock* CFG::getCurrentBB() {
 }
 void CFG::setCurrentBB(BasicBlock* bb) {
 	currentBB = bb;
+}
+
+
+void CFG::generateStandardFunctions(ostream& o) {
+	this->generatePutchar(o);
+	this->generateGetchar(o);
+}
+
+void CFG::generatePutchar(ostream& o) {
+	o << "putchar:" << endl;
+	o << "	pushq 	%rbp" << endl;
+	o << "	movq 	%rsp, %rbp" << endl;
+	o << "	pushq	%rdi" << endl;
+	o << "	mov     $1, %rax" << endl;
+	o << "	mov     $1, %rdi" << endl;
+	o << "	mov     %rsp, %rsi" << endl;
+	o << "	mov     $1, %rdx" << endl;
+	o << "	syscall" << endl;
+	o << "	add     $8, %rsp" << endl;
+	o << "	movl	$1, %eax" << endl;
+	o << "	leave" << endl;
+	o << "	ret" << endl << endl;
+}
+
+void CFG::generateGetchar(ostream& o) {
+	o << "getchar:" << endl;
+	o << "	pushq 	%rbp" << endl;
+	o << "	movq	%rsp, %rbp" << endl;
+	o << "	xor		%eax, %eax" << endl;
+	o << "	xor		%edi, %edi" << endl;
+	o << "	movq	8(%rsp), %r8" << endl;
+	o << "	lea		8(%rsp), %rsi" << endl;
+	o << "	movl	$1, %edx" << endl;
+	o << "	syscall" << endl;
+	o << "	movzbl	8(%rsp), %eax" << endl;
+	o << "	movq	%r8, 8(%rsp)" << endl;
+	o << "	leave" << endl;
+	o << "	ret" << endl << endl;
 }

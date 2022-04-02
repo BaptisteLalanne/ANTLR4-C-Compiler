@@ -26,7 +26,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 	public:
 
 		// Default constructor
-		CodeGenVisitor(ErrorHandler& eH, CFG& cfg) : errorHandler(eH), cfg(cfg) { globalSymbolTable = new SymbolTable(0, nullptr); }
+		CodeGenVisitor(ErrorHandler& eH, CFG& cfg);
 
 		// Linearising functions
 		virtual antlrcpp::Any visitProg(ifccParser::ProgContext *ctx);
@@ -83,5 +83,10 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		
 		// Return offset temp variable after created it
 		varStruct* createTempVar(antlr4::ParserRuleContext *ctx, string varType="int", int* constPtr = nullptr);
+
+	private:
+
+		void addSymbolPutchar();
+		void addSymbolGetchar();
 
 };
