@@ -23,6 +23,7 @@ class BasicBlock {
 		void addInstr(Instr::Operation op, vector<string> params, SymbolTable* sT);
 		void optimization();
 		bool evaluateConstInstr(list<Instr*>::iterator it);
+		bool evaluateTrivialOperationInstr(list<Instr*>::iterator it);
         int lookForAffInstr(string varName, unordered_set<BasicBlock*> & bbVisited,int countAffect = 0);
 		void setExitTrue(BasicBlock* bb);
 		BasicBlock* getExitTrue();
@@ -34,7 +35,6 @@ class BasicBlock {
 		string getLabel();
 		CFG* getCFG() { return cfg; };
 
-	
 	protected:
 
 		/* Pointer to the next basic block, true branch. If nullptr, return from procedure */ 
