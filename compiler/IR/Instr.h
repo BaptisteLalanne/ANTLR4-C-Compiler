@@ -35,7 +35,6 @@ class Instr {
 			op_minus,
 			ret,
 			prologue,
-			epilogue,
 			conditional_jump,
 			absolute_jump
 		} Operation;
