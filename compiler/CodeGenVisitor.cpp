@@ -479,13 +479,6 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 		return SymbolTable::dummyVarStruct;
 	}
 
-	// TEMPORARY Error message if there are more than 6 params
-	if (numParams > 6) {
-		string message =  "Sorry, this compiler does not support more than 6 parameters yet";
-		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
-	}
-
 	// Save current stack pointer
 	int currStackPointer = symbolTable->getStackPointer();
 
@@ -514,7 +507,13 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 
 	// Write assembly instructions to put the evaluated params into a param register
 	for (int i = 0; i < numParams; i++) {
-		cfg.getCurrentBB()->addInstr(Instr::wparam, {params[i]->varName, to_string(i)}, symbolTable);
+		if (i < 6) {
+			cfg.getCurrentBB()->addInstr(Instr::wparam, {params[i]->varName, to_string(i)}, symbolTable);
+		}
+		else {
+			varStruct* paramVar = createTempVar(ctx, params[i]->varType, params[i]->constPtr);
+			cfg.getCurrentBB()->addInstr(Instr::wparam, {params[i]->varName, to_string(i), paramVar->varName}, symbolTable);
+		}
 	}
 
 	// Write call instruction
@@ -730,8 +729,10 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrBody(ifccParser::FuncDeclrContext *c
 	cfg.getCurrentBB()->addInstr(Instr::prologue, {funcName}, newSymbolTable); 
 	
 	// Create instruction that loads register into variable
-	for(int i = 0 ; i < func->nbParameters ; i++) {
-		cfg.getCurrentBB()->addInstr(Instr::rparam, {func->parameterNames[i], to_string(i)}, newSymbolTable);
+	int currOffset = 0;
+	for(int i = func->nbParameters-1 ; i >= 0 ; i--) {
+		cfg.getCurrentBB()->addInstr(Instr::rparam, {func->parameterNames[i], to_string(i), to_string(currOffset)}, newSymbolTable);
+		currOffset += SymbolTable::typeSizes[func->parameterTypes[i]];
 	}
 
 	// Create body instructions

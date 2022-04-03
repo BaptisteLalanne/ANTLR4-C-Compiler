@@ -780,13 +780,11 @@ void Instr::generateASM(ostream &o)
 		// Get param
 		string label = params.at(0);
 
-		o << endl;
 		o << ".globl " << label << endl;
 		o << ".type	" << label << ", @function" << endl;
 
 		// Write ASM instructions
-		o << label << ":" << endl
-		  << endl;
+		o << label << ":" << endl;
 		o << "	pushq 	%rbp " << endl;
 		o << "	movq 	%rsp, %rbp" << endl;
 
@@ -808,9 +806,7 @@ void Instr::generateASM(ostream &o)
 		// Write ASM instructions
 		o << "	call 	" << label << endl;
 		o << "	movl	%eax, " << symbolTable->getVar(tmp)->memoryOffset << "(%rbp)"
-		  << "		# [call] load "
-		  << "%eax"
-		  << " into " << tmp << endl;
+		  << "		# [call] load " << "%eax" << " into " << tmp << endl;
 
 		break;
 	}
@@ -822,21 +818,47 @@ void Instr::generateASM(ostream &o)
 		string paramNum = params.at(1);
 		varStruct *s1 = symbolTable->getVar(var);
 
-		// Get param register
-		string reg = Instr::AMD86_paramRegisters[paramNum];
+		// Use registers for less than 6 parameters
+		if (stoi(paramNum) < 6) {
 
-		if (s1->constPtr)
-		{
-			o << "	movl	$" << *s1->constPtr << ", " << reg
-			  << "		# [wparam] load " << var << " into "
-			  << "%" << reg << endl;
-		}
-		else
-		{
+			// Get param register
+			string reg = Instr::AMD86_paramRegisters[paramNum];
+
 			// Write ASM instructions
-			o << "	movl	" << s1->memoryOffset << "(%rbp), " << reg
-			  << "		# [wparam] load " << var << " into "
-			  << "%" << reg << endl;
+			if (s1->constPtr)
+			{
+				o << "	movl	$" << *s1->constPtr << ", " << reg \
+				  << "		# [wparam] load " << var << " into " << reg << endl;
+			}
+			else
+			{
+				o << "	movl	" << s1->memoryOffset << "(%rbp), " << reg \
+				  << "		# [wparam] load " << var << " into " << reg << endl;
+			}	
+
+		}
+
+		// Pass parameters on the stack if more than 6 parameters
+		else {
+
+			// Fetch variable saved on stack
+			string paramVar = params.at(2);
+			varStruct *s2 = symbolTable->getVar(paramVar);
+
+			// Write ASM instructions
+			if (s1->constPtr)
+			{
+				o << "	movl	$" << *s1->constPtr << ", %eax" \
+				  << "		# [wparam] load " << var << " into " << "%eax" << endl;
+			}
+			else
+			{
+				o << "	movl	" << s1->memoryOffset << "(%rbp), %eax" \
+				  << "		# [wparam] load " << var << " into " << "%eax" << endl;
+			}	
+			o << "	movl	%eax, " << s2->memoryOffset << "(%rbp)" \
+			  << "		# [wparam] load " << "%eax" << " into " << paramVar << endl;
+
 		}
 
 		break;
@@ -847,15 +869,30 @@ void Instr::generateASM(ostream &o)
 		// Get params
 		string var = params.at(0);
 		string paramNum = params.at(1);
+		int offset = 16 + stoi(params.at(2));
 
-		// Get param register
-		string reg = Instr::AMD86_paramRegisters[paramNum];
+		// Use registers for less than 6 parameters
+		if (stoi(paramNum) < 6) {
 
-		// Write ASM instructions
-		o << "	movl	" << reg << ", " << symbolTable->getVar(var)->memoryOffset << "(%rbp)"
-		  << "		# [rparam] load "
-		  << "%" << reg << " into "
-		  << "^" + var << endl;
+			// Get param register
+			string reg = Instr::AMD86_paramRegisters[paramNum];
+
+			// Write ASM instructions
+			o << "	movl	" << reg << ", " << symbolTable->getVar(var)->memoryOffset << "(%rbp)"
+			  << "		# [rparam] load " << reg << " into " << "^" + var << endl;
+
+		}
+
+		// Load parameters from stack if more than 6 parameters 
+		else {
+
+			// Write ASM instructions
+			o << "	movl	" << offset << "(%rbp), %eax" 
+			  << "		# [rparam] load param " << paramNum << " into " << "%eax" << endl;
+			o << "	movl	%eax, " << symbolTable->getVar(var)->memoryOffset << "(%rbp)"
+			  << "		# [rparam] load %eax into " << "^" + var << endl;
+
+		}
 
 		break;
 	}
