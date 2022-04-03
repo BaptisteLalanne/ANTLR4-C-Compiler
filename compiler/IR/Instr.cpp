@@ -341,22 +341,18 @@ void Instr::generateASM(ostream &o)
 		// Get constant value
 		int constValue;
 		string movInstr;
-		bool isChar = (constant[0] == '\'');
-		bool isInt = (constant[0] == '$');
+		
+		// bool isChar = (constant[0] == '\'');
+		// bool isInt = (constant[0] == '$');
 
-		if (isChar)
-		{
-			constValue = stoi(constant.substr(1, constant.size() - 1));
-			movInstr = "movb";
-		}
-		else if (isInt)
-		{
-			constValue = stoi(constant.substr(1, constant.size() - 1));
-			movInstr = "movl";
-		}
+		varStruct* sVar = symbolTable->getVar(var);
+		bool isChar = sVar->varType == "char";
+
+		constValue = stoi(constant.substr(1, constant.size() - 1));
+		movInstr = isChar ? "movb" : "movl";
 
 		// Write ASM instructions
-		o << "	" << movInstr << "	$" << constValue << ", " << symbolTable->getVar(var)->memoryOffset << "(%rbp)"
+		o << "	" << movInstr << "	$" << constValue << ", " << sVar->memoryOffset << "(%rbp)"
 		  << "		# [ldconst] load " << constValue << " into " << var << endl;
 
 		break;
