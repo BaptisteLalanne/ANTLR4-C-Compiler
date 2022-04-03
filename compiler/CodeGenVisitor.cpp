@@ -19,7 +19,7 @@ CodeGenVisitor::CodeGenVisitor(ErrorHandler& eH, CFG& cfg) : errorHandler(eH), c
 }
 
 void CodeGenVisitor::addSymbolPutchar() {
-	globalSymbolTable->addFunc("putchar", "int", {"char"}, {"c"}, 0);
+	globalSymbolTable->addFunc("putchar", "int", {"int"}, {"c"}, 0);
 }
 
 void CodeGenVisitor::addSymbolGetchar() {
@@ -497,11 +497,12 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 		varStruct* result = visit(ctx->expr(i));
 
 		// Check param types
-		if (result->varType != func->parameterTypes[i]) {
+		if (result->varType != func->parameterTypes[i] && !(result->varType == "char" && func->parameterTypes[i] == "int")) {
 			string message =  "Function '" + funcName + "' is called with the wrong parameter types";
 			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 			return SymbolTable::dummyVarStruct;
 		}
+		
 		
 		// Save the param results
 		params.push_back(result);

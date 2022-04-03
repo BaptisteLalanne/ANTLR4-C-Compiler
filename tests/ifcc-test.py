@@ -34,7 +34,10 @@ def command(string, logfile=None):
 
     if logfile:
         f=open(logfile,'w')
-        print(output.decode(sys.stdout.encoding)+'\n'+'return code: '+str(ret),file=f)
+        try:
+            print(output.decode(sys.stdout.encoding)+'\n'+'return code: '+str(ret),file=f)
+        except:
+            print(str(output)+'\n'+'return code: '+str(ret),file=f)
         f.close()
 
     return ret
