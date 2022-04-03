@@ -3,10 +3,11 @@ int toto(int a, int b, int c, int d, int e, int f, int g, int h, int i) {
 }
 
 int main() {
-    int a = 0;
-    int c = 0;
-    while (c < 5) {
-        c = c+1;
+    int p = 0;
+    while (p < 10) {
+        p = p+1;
     }
-    return toto(0, 1, 5, 1, 12, c, 5, 79, a);
+    int a = toto(5, 1, 1, 1, 1, 1, p, 20, 50);
+    int b = a*2;
+    return b-5;
 }

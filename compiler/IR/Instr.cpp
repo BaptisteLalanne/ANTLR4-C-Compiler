@@ -11,7 +11,7 @@ class BasicBlock;
 
 using namespace std;
 
-unordered_map<string, string> Instr::AMD86_paramRegisters = {{"0", "%edi"}, {"1", "%esi"}, {"2", "%edx"}, {"3", "%ecx"}, {"4", "%r8d"}, {"5", "%r9d"}};
+vector<string> Instr::AMD86_paramRegisters = {"%edi", "%esi", "%edx", "%ecx", "%r8d", "%r9d"};
 
 /* --------------------------------------------------------------------- */
 //------------ Implementation of class <Instr> (file IR.cpp) -------------/
@@ -798,9 +798,11 @@ void Instr::generateASM(ostream &o)
 		// Get params
 		string label = params.at(0);
 		string tmp = params.at(1);
+		int numParams = stoi(params.at(2));
 
 		// Write ASM instructions
 		o << "	call 	" << label << endl;
+		o << "	subq	$" << max((numParams-6)*8, 0) << ", %rsp" << endl;
 		o << "	movl	%eax, " << symbolTable->getVar(tmp)->memoryOffset << "(%rbp)"
 		  << "		# [call] load " << "%eax" << " into " << tmp << endl;
 
@@ -811,11 +813,11 @@ void Instr::generateASM(ostream &o)
 	{
 		// Get params
 		string var = params.at(0);
-		string paramNum = params.at(1);
+		int paramNum = stoi(params.at(1));
 		varStruct *s1 = symbolTable->getVar(var);
 
 		// Use registers for less than 6 parameters
-		if (stoi(paramNum) < 6) {
+		if (paramNum < 6) {
 
 			// Get param register
 			string reg = Instr::AMD86_paramRegisters[paramNum];
@@ -837,23 +839,17 @@ void Instr::generateASM(ostream &o)
 		// Pass parameters on the stack if more than 6 parameters
 		else {
 
-			// Fetch variable saved on stack
-			string paramVar = params.at(2);
-			varStruct *s2 = symbolTable->getVar(paramVar);
-
 			// Write ASM instructions
 			if (s1->constPtr)
 			{
-				o << "	movl	$" << *s1->constPtr << ", %eax" \
-				  << "		# [wparam] load " << var << " into " << "%eax" << endl;
+				o << "	pushq	$" << *s1->constPtr \
+				  << "		# [wparam] push " << *s1->constPtr << " onto the stack" << endl;
 			}
 			else
 			{
-				o << "	movl	" << s1->memoryOffset << "(%rbp), %eax" \
-				  << "		# [wparam] load " << var << " into " << "%eax" << endl;
+				o << "	pushq	" << s1->memoryOffset << "(%rbp)" \
+				  << "		# [wparam] push " << var << " onto the stack" << endl;
 			}	
-			o << "	movl	%eax, " << s2->memoryOffset << "(%rbp)" \
-			  << "		# [wparam] load " << "%eax" << " into " << paramVar << endl;
 
 		}
 
@@ -864,11 +860,11 @@ void Instr::generateASM(ostream &o)
 	{
 		// Get params
 		string var = params.at(0);
-		string paramNum = params.at(1);
-		int offset = 16 + stoi(params.at(2));
+		int paramNum = stoi(params.at(1));
+		int offset = stoi(params.at(2));
 
 		// Use registers for less than 6 parameters
-		if (stoi(paramNum) < 6) {
+		if (paramNum < 6) {
 
 			// Get param register
 			string reg = Instr::AMD86_paramRegisters[paramNum];

@@ -506,19 +506,13 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 	symbolTable->setStackPointer(currStackPointer);
 
 	// Write assembly instructions to put the evaluated params into a param register
-	for (int i = 0; i < numParams; i++) {
-		if (i < 6) {
+	for (int i = numParams-1; i >= 0; i--) {
 			cfg.getCurrentBB()->addInstr(Instr::wparam, {params[i]->varName, to_string(i)}, symbolTable);
-		}
-		else {
-			varStruct* paramVar = createTempVar(ctx, params[i]->varType, params[i]->constPtr);
-			cfg.getCurrentBB()->addInstr(Instr::wparam, {params[i]->varName, to_string(i), paramVar->varName}, symbolTable);
-		}
 	}
 
 	// Write call instruction
 	varStruct* tmp = createTempVar(ctx, func->returnType);
-	cfg.getCurrentBB()->addInstr(Instr::call, {funcName, tmp->varName}, symbolTable);
+	cfg.getCurrentBB()->addInstr(Instr::call, {funcName, tmp->varName, to_string(numParams)}, symbolTable);
 
 	return tmp;
 
@@ -528,7 +522,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
-	// Number of variable to declare
+	// Number of variable to declarer
 	int numVariable = ctx->TOKENNAME().size();
 
 	// Fetch type
@@ -729,10 +723,10 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrBody(ifccParser::FuncDeclrContext *c
 	cfg.getCurrentBB()->addInstr(Instr::prologue, {funcName}, newSymbolTable); 
 	
 	// Create instruction that loads register into variable
-	int currOffset = 0;
+	int paramStackOffset = 16; // The size of the return adress stored on the stack when calling the function
 	for(int i = func->nbParameters-1 ; i >= 0 ; i--) {
-		cfg.getCurrentBB()->addInstr(Instr::rparam, {func->parameterNames[i], to_string(i), to_string(currOffset)}, newSymbolTable);
-		currOffset += SymbolTable::typeSizes[func->parameterTypes[i]];
+		cfg.getCurrentBB()->addInstr(Instr::rparam, {func->parameterNames[i], to_string(i), to_string(paramStackOffset)}, newSymbolTable);
+		paramStackOffset += 8 + 0*SymbolTable::typeSizes[func->parameterTypes[i]];
 	}
 
 	// Create body instructions
