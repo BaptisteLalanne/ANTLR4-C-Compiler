@@ -41,6 +41,7 @@ expr :
 	| expr OP2=('+'|'-') expr 					#addSubExpr
 	| expr CMP=('<' | '>') expr					#cmpLessOrGreaterExpr
 	| expr EQ=('=='|'!=') expr					#cmpEqualityExpr
+	| expr EQLG=('<='|'>=') expr				#cmpEqualityLessGreaterExpr
 	| expr '&' expr								#andExpr
 	| expr '^' expr								#xorExpr
 	| expr '|' expr								#orExpr

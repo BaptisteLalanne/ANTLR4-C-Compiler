@@ -285,6 +285,40 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 			break;
 		}
 
+		case Instr::cmp_eqlt:
+		{
+			varStruct *s1 = symbolTable->getVar(params.at(0));
+			varStruct *s2 = symbolTable->getVar(params.at(1));
+			varStruct *s3 = symbolTable->getVar(params.at(2));
+			if (s1->constPtr && s2->constPtr)
+			{
+				int res = *s1->constPtr <= *s2->constPtr;
+				s3->constPtr = new int(res);
+				deleteInstr = true;
+			}
+			else {
+				checkNeedForLoadConst(s1, s2, it, instrList);
+			}
+			break;
+		}
+
+		case Instr::cmp_eqgt:
+		{
+			varStruct *s1 = symbolTable->getVar(params.at(0));
+			varStruct *s2 = symbolTable->getVar(params.at(1));
+			varStruct *s3 = symbolTable->getVar(params.at(2));
+			if (s1->constPtr && s2->constPtr)
+			{
+				int res = *s1->constPtr >= *s2->constPtr ;
+				s3->constPtr = new int(res);
+				deleteInstr = true;
+			}
+			else {
+				checkNeedForLoadConst(s1, s2, it, instrList);
+			}
+			break;
+		}
+		
 		case Instr::conditional_jump:
 		{
 			varStruct* s1 = symbolTable->getVar(params.at(0));

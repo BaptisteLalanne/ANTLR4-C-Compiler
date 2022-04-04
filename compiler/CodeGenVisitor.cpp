@@ -246,6 +246,41 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 	return tmp;
 }
 
+antlrcpp::Any CodeGenVisitor::visitCmpEqualityLessGreaterExpr (ifccParser::CmpEqualityLessGreaterExprContext *ctx) {
+	
+	SymbolTable* symbolTable = symbolTablesStack.top();
+
+	// Fetch sub-expressions
+	varStruct* var1 = visit(ctx->expr(0));
+	varStruct* var2 = visit(ctx->expr(1));
+	varStruct* tmp = createTempVar(ctx);
+
+	// Check void errors
+	if (var1->varType == "void" || var2->varType == "void") {
+		string message =  "Cannot perform operations on void";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return SymbolTable::dummyVarStruct;
+	}
+
+    if(!var1->isCorrect || !var2->isCorrect) {
+        return SymbolTable::dummyVarStruct;
+    }
+
+	// Apply the operators
+	char op = ctx->EQLG->getText()[0];
+	switch (op) {
+		case '<':
+			cfg.getCurrentBB()->addInstr(Instr::cmp_eqlt, {var1->varName, var2->varName, tmp->varName}, symbolTable);
+			break;
+		case '>':
+			cfg.getCurrentBB()->addInstr(Instr::cmp_eqgt, {var1->varName, var2->varName, tmp->varName}, symbolTable);
+			break;
+	}
+	
+	// Return the temporary variable
+	return tmp;
+}
+
 antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprContext *ctx) {
 		
 	SymbolTable* symbolTable = symbolTablesStack.top();
