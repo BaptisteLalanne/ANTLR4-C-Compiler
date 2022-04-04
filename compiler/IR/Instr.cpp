@@ -11,7 +11,7 @@ class BasicBlock;
 
 using namespace std;
 
-vector<string> Instr::AMD86_paramRegisters = {"%edi", "%esi", "%edx", "%ecx", "%r8d", "%r9d"};
+unordered_map<string, vector<string>> Instr::AMD86_paramRegisters = {{"int", {"%edi", "%esi", "%edx", "%ecx", "%r8d", "%r9d"}}, {"char", {"%dil", "%sil", "%dl", "%cl", "%r8b", "%r9b"}}};
 
 /* --------------------------------------------------------------------- */
 //------------ Implementation of class <Instr> (file IR.cpp) -------------/
@@ -773,23 +773,24 @@ void Instr::generateASM(ostream &o)
 		// Get params
 		string var = params.at(0);
 		int paramNum = stoi(params.at(1));
-		varStruct *s1 = symbolTable->getVar(var);
+		varStruct *s = symbolTable->getVar(var);
 
 		// Use registers for less than 6 parameters
 		if (paramNum < 6) {
 
 			// Get param register
-			string reg = Instr::AMD86_paramRegisters[paramNum];
+			string reg = Instr::AMD86_paramRegisters[s->varType][paramNum];
+			string movInstr = (s->varType == "char") ? "movb" : "movl";
 
 			// Write ASM instructions
-			if (s1->constPtr)
+			if (s->constPtr)
 			{
-				o << "	movl	$" << *s1->constPtr << ", " << reg \
+				o << "	" << movInstr << "	$" << *s->constPtr << ", " << reg \
 				  << "		# [wparam] load " << var << " into " << reg << endl;
 			}
 			else
 			{
-				o << "	movl	" << s1->memoryOffset << "(%rbp), " << reg \
+				o << "	" << movInstr << "	" << s->memoryOffset << "(%rbp), " << reg \
 				  << "		# [wparam] load " << var << " into " << reg << endl;
 			}	
 
@@ -799,27 +800,27 @@ void Instr::generateASM(ostream &o)
 		else {
 
 			// Write ASM instructions
-			if (s1->constPtr)
+			if (s->constPtr)
 			{
-				if (s1->varType == "char") {
-					o << "	movb	$" << *s1->constPtr << ", %al" << endl;
+				if (s->varType == "char") {
+					o << "	movb	$" << *s->constPtr << ", %al" << endl;
 					o << "	pushq	%rax" \
-				 	  << "		# [wparam] push " << *s1->constPtr << " onto the stack" << endl;
+				 	  << "		# [wparam] push " << *s->constPtr << " onto the stack" << endl;
 				}
 				else {
-					o << "	pushq	$" << *s1->constPtr \
-					  << "		# [wparam] push " << *s1->constPtr << " onto the stack" << endl;
+					o << "	pushq	$" << *s->constPtr \
+					  << "		# [wparam] push " << *s->constPtr << " onto the stack" << endl;
 				}
 			}
 			else
 			{
-				if (s1->varType == "char") { 
-					o << "	movzbl " << s1->memoryOffset << "(%rbp)" << ", %eax" << endl;
+				if (s->varType == "char") { 
+					o << "	movzbl " << s->memoryOffset << "(%rbp)" << ", %eax" << endl;
 					o << "	pushq	%rax" \
 				 	  << "		# [wparam] push " << var << " onto the stack" << endl;
 				}
 				else {
-					o << "	pushq	" << s1->memoryOffset << "(%rbp)" \
+					o << "	pushq	" << s->memoryOffset << "(%rbp)" \
 				 	  << "		# [wparam] push " << var << " onto the stack" << endl;
 				}
 				
@@ -842,10 +843,11 @@ void Instr::generateASM(ostream &o)
 		if (paramNum < 6) {
 
 			// Get param register
-			string reg = Instr::AMD86_paramRegisters[paramNum];
+			string reg = Instr::AMD86_paramRegisters[s->varType][paramNum];
+			string movInstr = (s->varType == "char") ? "movb" : "movl";
 
 			// Write ASM instructions
-			o << "	movl	" << reg << ", " << s->memoryOffset << "(%rbp)"
+			o << "	" << movInstr << "	" << reg << ", " << s->memoryOffset << "(%rbp)"
 			  << "		# [rparam] load " << reg << " into " << "^" + var << endl;
 
 		}

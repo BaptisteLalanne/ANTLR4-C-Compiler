@@ -44,7 +44,7 @@ class Instr {
 
 		void generateASM(ostream &o); 
 
-		static vector<string> AMD86_paramRegisters;
+		static unordered_map<string, vector<string>> AMD86_paramRegisters;
 
 		Operation getOp() { return op; };
 
