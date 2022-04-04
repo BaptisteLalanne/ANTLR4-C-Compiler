@@ -733,7 +733,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrBody(ifccParser::FuncDeclrContext *c
 	int paramStackOffset = 16; // The size of the return adress stored on the stack when calling the function
 	for(int i = func->nbParameters-1 ; i >= 0 ; i--) {
 		cfg.getCurrentBB()->addInstr(Instr::rparam, {func->parameterNames[i], to_string(i), to_string(paramStackOffset)}, newSymbolTable);
-		paramStackOffset += 8 + 0*SymbolTable::typeSizes[func->parameterTypes[i]];
+		paramStackOffset += 8;
 	}
 
 	// Create body instructions
