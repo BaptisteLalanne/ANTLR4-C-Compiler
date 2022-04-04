@@ -285,6 +285,40 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 			break;
 		}
 
+		case Instr::cmp_eqlt:
+		{
+			varStruct *s1 = symbolTable->getVar(params.at(0));
+			varStruct *s2 = symbolTable->getVar(params.at(1));
+			varStruct *s3 = symbolTable->getVar(params.at(2));
+			if (s1->constPtr && s2->constPtr)
+			{
+				int res = *s1->constPtr <= *s2->constPtr;
+				s3->constPtr = new int(res);
+				deleteInstr = true;
+			}
+			else {
+				checkNeedForLoadConst(s1, s2, it, instrList);
+			}
+			break;
+		}
+
+		case Instr::cmp_eqgt:
+		{
+			varStruct *s1 = symbolTable->getVar(params.at(0));
+			varStruct *s2 = symbolTable->getVar(params.at(1));
+			varStruct *s3 = symbolTable->getVar(params.at(2));
+			if (s1->constPtr && s2->constPtr)
+			{
+				int res = *s1->constPtr >= *s2->constPtr ;
+				s3->constPtr = new int(res);
+				deleteInstr = true;
+			}
+			else {
+				checkNeedForLoadConst(s1, s2, it, instrList);
+			}
+			break;
+		}
+		
 		case Instr::conditional_jump:
 		{
 			varStruct* s1 = symbolTable->getVar(params.at(0));
@@ -774,6 +808,50 @@ void Instr::generateASM(ostream &o)
 		o << "	movl	%eax, " << s3->memoryOffset << "(%rbp)" << endl;
 		break;
 	}
+
+	case Instr::cmp_eqlt:
+	{
+		// Get params
+		string var1 = params.at(0);
+		string var2 = params.at(1);
+		string tmp = params.at(2);
+		varStruct *s1 = symbolTable->getVar(var1);
+		varStruct *s2 = symbolTable->getVar(var2);
+		varStruct *s3 = symbolTable->getVar(tmp);
+
+		string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
+		string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
+		o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax" << endl;
+		o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx" << endl;
+		o << "	cmpl	%edx, %eax" << endl;
+		o << "	setle	%al" << endl;
+		o << "	movzbl	%al, %eax" << endl;
+		o << "	movl	%eax, " << s3->memoryOffset << "(%rbp)" << endl;
+
+		break;
+	}
+
+	case Instr::cmp_eqgt:
+	{
+		// Get params
+		string var1 = params.at(0);
+		string var2 = params.at(1);
+		string tmp = params.at(2);
+		varStruct *s1 = symbolTable->getVar(var1);
+		varStruct *s2 = symbolTable->getVar(var2);
+		varStruct *s3 = symbolTable->getVar(tmp);
+
+		string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
+		string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
+		o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax" << endl;
+		o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx" << endl;
+		o << "	cmpl	%edx, %eax" << endl;
+		o << "	setge	%al" << endl;
+		o << "	movzbl	%al, %eax" << endl;
+		o << "	movl	%eax, " << s3->memoryOffset << "(%rbp)" << endl;
+		break;
+	}
+
 
 	case Instr::prologue:
 	{
