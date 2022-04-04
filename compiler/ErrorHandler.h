@@ -29,8 +29,8 @@ class ErrorHandler {
         
     protected:
         static string errorValues[2];
-        bool error;
-        bool warning;
+        bool error = false;
+        bool warning = false;
         void generateMessage(int severity, string message, int lineNumber);
         
 };

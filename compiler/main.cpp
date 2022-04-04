@@ -83,7 +83,8 @@ int main(int argc, char *argv[])
     CodeGenVisitor v(errorHandler, controlFlowGraph);
     v.visit(tree);
 
-    if (errorHandler.hasError())
+    bool hasErrors = errorHandler.hasError();
+    if (hasErrors)
     {
         cout.flush();
         exit(1);

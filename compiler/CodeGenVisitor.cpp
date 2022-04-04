@@ -18,6 +18,19 @@ CodeGenVisitor::CodeGenVisitor(ErrorHandler& eH, CFG& cfg) : errorHandler(eH), c
 	this->addSymbolGetchar();
 }
 
+CodeGenVisitor::~CodeGenVisitor() {
+	delete globalSymbolTable;
+	
+	while (!symbolTableGarbage.empty()) {
+		SymbolTable* _st = symbolTableGarbage.top();
+		if (_st != nullptr) {
+			delete _st;
+			symbolTableGarbage.pop();
+		}
+	}
+
+}
+
 void CodeGenVisitor::addSymbolPutchar() {
 	globalSymbolTable->addFunc("putchar", "int", {"int"}, {"c"}, 0);
 }
@@ -789,6 +802,7 @@ antlrcpp::Any CodeGenVisitor::visitEndBlock(ifccParser::EndBlockContext *ctx) {
 	}
 
 	// Remove symbol table from stack
+	symbolTableGarbage.push(symbolTable);
 	symbolTablesStack.pop();
 
 	return 0;
