@@ -1,5 +1,6 @@
 #include "../SymbolTable.h"
 
+#include <sstream>
 #include <iostream>
 #include <algorithm>
 #include <list>

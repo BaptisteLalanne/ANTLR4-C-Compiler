@@ -2,6 +2,7 @@
 #include <string>
 #include <list>
 #include <iostream>
+#include <sstream>
 #include <initializer_list>
 #include <unordered_set>
 #include "../SymbolTable.h"
@@ -21,9 +22,8 @@ class BasicBlock {
 
 		void generateASM(ostream &o); 
 		void addInstr(Instr::Operation op, vector<string> params, SymbolTable* sT);
-		void optimization();
+		void optimizeIR();
 		bool evaluateConstInstr(list<Instr*>::iterator it);
-		bool evaluateTrivialOperationInstr(list<Instr*>::iterator it);
         int lookForAffInstr(string varName, unordered_set<BasicBlock*> & bbVisited,int countAffect = 0);
 		void setExitTrue(BasicBlock* bb);
 		BasicBlock* getExitTrue();

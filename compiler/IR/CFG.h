@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <sstream>
+#include <stack>
 #include <initializer_list>
 #include "BasicBlock.h"
 
@@ -19,7 +21,8 @@ class CFG {
 		void setCurrentBB(BasicBlock* bb);
 
 		void generateASM(ostream& o);
-		void optimize();
+		void optimizeIR();
+		void optimizeASM(stringstream& iS, ostream& oS);
 		void initStandardFunctions(SymbolTable* st);
 
 		bool getOptimized() { return optimized; };
@@ -44,6 +47,9 @@ class CFG {
 
 		/* The current basic block*/
 		BasicBlock* currentBB;
+
+		/* Helper functions to split a stream in sublines*/
+		vector<string> splitString(string str, string separator);
 	
 	private:
 

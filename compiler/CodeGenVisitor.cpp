@@ -753,7 +753,6 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) 
 	return 0;
 }	
 
-
 antlrcpp::Any CodeGenVisitor::visitBeginBlock(ifccParser::BeginBlockContext *ctx) {
 	// Fetch parent symbol table
 	SymbolTable* parentSymbolTable = globalSymbolTable;
