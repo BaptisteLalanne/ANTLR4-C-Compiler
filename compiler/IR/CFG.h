@@ -13,14 +13,14 @@ class CFG {
 
 		CFG();
 		~CFG();
-
+		
 		BasicBlock* createBB(); 
 		BasicBlock* getCurrentBB();
 		void setCurrentBB(BasicBlock* bb);
 
 		void generateASM(ostream& o);
-
 		void optimize();
+		void initStandardFunctions(SymbolTable* st);
 
 	protected:
 
@@ -38,6 +38,11 @@ class CFG {
 
 		/* The current basic block*/
 		BasicBlock* currentBB;
+	
+	private:
+
+		bool mustWritePutchar = false;
+		bool mustWriteGetchar = false;
 };
 
 #endif

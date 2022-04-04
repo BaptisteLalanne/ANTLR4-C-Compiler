@@ -513,6 +513,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 	// Write call instruction
 	varStruct* tmp = createTempVar(ctx, func->returnType);
 	cfg.getCurrentBB()->addInstr(Instr::call, {funcName, tmp->varName, to_string(numParams)}, symbolTable);
+	func->isCalled = true;
 
 	return tmp;
 
@@ -932,6 +933,10 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 
 	return 0;
 
+}
+
+SymbolTable* CodeGenVisitor::getGlobalSymbolTable() {
+	return this->globalSymbolTable;
 }
 
 /*antlrcpp::Any CodeGenVisitor::visitExprEgalExpr(ifccParser::ExprEgalExprContext *ctx) {

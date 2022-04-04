@@ -48,7 +48,7 @@ int main(int argn, const char **argv) {
         exit(1);
     }
     
-    // Create error handler and IR
+    // Create error handler
     ErrorHandler errorHandler;
     CFG controlFlowGraph;
 
@@ -60,6 +60,8 @@ int main(int argn, const char **argv) {
         cout.flush();
         exit(1);
     }
+
+    controlFlowGraph.initStandardFunctions(v.getGlobalSymbolTable());
 
     // Try to optimize IR
     controlFlowGraph.optimize();
