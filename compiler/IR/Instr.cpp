@@ -11,7 +11,7 @@ class BasicBlock;
 
 using namespace std;
 
-unordered_map<string, string> Instr::AMD86_paramRegisters = {{"0", "%edi"}, {"1", "%esi"}, {"2", "%edx"}, {"3", "%ecx"}, {"4", "%r8d"}, {"5", "%r9d"}};
+vector<string> Instr::AMD86_paramRegisters = {"%edi", "%esi", "%edx", "%ecx", "%r8d", "%r9d"};
 
 /* --------------------------------------------------------------------- */
 //------------ Implementation of class <Instr> (file IR.cpp) -------------/
@@ -813,13 +813,11 @@ void Instr::generateASM(ostream &o)
 		// Get param
 		string label = params.at(0);
 
-		o << endl;
 		o << ".globl " << label << endl;
 		o << ".type	" << label << ", @function" << endl;
 
 		// Write ASM instructions
-		o << label << ":" << endl
-		  << endl;
+		o << label << ":" << endl;
 		o << "	pushq 	%rbp " << endl;
 		o << "	movq 	%rsp, %rbp" << endl;
 
@@ -837,13 +835,13 @@ void Instr::generateASM(ostream &o)
 		// Get params
 		string label = params.at(0);
 		string tmp = params.at(1);
+		int numParams = stoi(params.at(2));
 
 		// Write ASM instructions
 		o << "	call 	" << label << endl;
+		o << "	subq	$" << max((numParams-6)*8, 0) << ", %rsp" << endl;
 		o << "	movl	%eax, " << symbolTable->getVar(tmp)->memoryOffset << "(%rbp)"
-		  << "		# [call] load "
-		  << "%eax"
-		  << " into " << tmp << endl;
+		  << "		# [call] load " << "%eax" << " into " << tmp << endl;
 
 		break;
 	}
@@ -852,24 +850,44 @@ void Instr::generateASM(ostream &o)
 	{
 		// Get params
 		string var = params.at(0);
-		string paramNum = params.at(1);
+		int paramNum = stoi(params.at(1));
 		varStruct *s1 = symbolTable->getVar(var);
 
-		// Get param register
-		string reg = Instr::AMD86_paramRegisters[paramNum];
+		// Use registers for less than 6 parameters
+		if (paramNum < 6) {
 
-		if (s1->constPtr)
-		{
-			o << "	movl	$" << *s1->constPtr << ", " << reg
-			  << "		# [wparam] load " << var << " into "
-			  << "%" << reg << endl;
-		}
-		else
-		{
+			// Get param register
+			string reg = Instr::AMD86_paramRegisters[paramNum];
+
 			// Write ASM instructions
-			o << "	movl	" << s1->memoryOffset << "(%rbp), " << reg
-			  << "		# [wparam] load " << var << " into "
-			  << "%" << reg << endl;
+			if (s1->constPtr)
+			{
+				o << "	movl	$" << *s1->constPtr << ", " << reg \
+				  << "		# [wparam] load " << var << " into " << reg << endl;
+			}
+			else
+			{
+				o << "	movl	" << s1->memoryOffset << "(%rbp), " << reg \
+				  << "		# [wparam] load " << var << " into " << reg << endl;
+			}	
+
+		}
+
+		// Pass parameters on the stack if more than 6 parameters
+		else {
+
+			// Write ASM instructions
+			if (s1->constPtr)
+			{
+				o << "	pushq	$" << *s1->constPtr \
+				  << "		# [wparam] push " << *s1->constPtr << " onto the stack" << endl;
+			}
+			else
+			{
+				o << "	pushq	" << s1->memoryOffset << "(%rbp)" \
+				  << "		# [wparam] push " << var << " onto the stack" << endl;
+			}	
+
 		}
 
 		break;
@@ -879,16 +897,31 @@ void Instr::generateASM(ostream &o)
 	{
 		// Get params
 		string var = params.at(0);
-		string paramNum = params.at(1);
+		int paramNum = stoi(params.at(1));
+		int offset = stoi(params.at(2));
 
-		// Get param register
-		string reg = Instr::AMD86_paramRegisters[paramNum];
+		// Use registers for less than 6 parameters
+		if (paramNum < 6) {
 
-		// Write ASM instructions
-		o << "	movl	" << reg << ", " << symbolTable->getVar(var)->memoryOffset << "(%rbp)"
-		  << "		# [rparam] load "
-		  << "%" << reg << " into "
-		  << "^" + var << endl;
+			// Get param register
+			string reg = Instr::AMD86_paramRegisters[paramNum];
+
+			// Write ASM instructions
+			o << "	movl	" << reg << ", " << symbolTable->getVar(var)->memoryOffset << "(%rbp)"
+			  << "		# [rparam] load " << reg << " into " << "^" + var << endl;
+
+		}
+
+		// Load parameters from stack if more than 6 parameters 
+		else {
+
+			// Write ASM instructions
+			o << "	movl	" << offset << "(%rbp), %eax" 
+			  << "		# [rparam] load param " << paramNum << " into " << "%eax" << endl;
+			o << "	movl	%eax, " << symbolTable->getVar(var)->memoryOffset << "(%rbp)"
+			  << "		# [rparam] load %eax into " << "^" + var << endl;
+
+		}
 
 		break;
 	}

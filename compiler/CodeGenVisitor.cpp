@@ -485,13 +485,6 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 		return SymbolTable::dummyVarStruct;
 	}
 
-	// TEMPORARY Error message if there are more than 6 params
-	if (numParams > 6) {
-		string message =  "Sorry, this compiler does not support more than 6 parameters yet";
-		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
-	}
-
 	// Save current stack pointer
 	int currStackPointer = symbolTable->getStackPointer();
 
@@ -519,13 +512,14 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 	symbolTable->setStackPointer(currStackPointer);
 
 	// Write assembly instructions to put the evaluated params into a param register
-	for (int i = 0; i < numParams; i++) {
-		cfg.getCurrentBB()->addInstr(Instr::wparam, {params[i]->varName, to_string(i)}, symbolTable);
+	for (int i = numParams-1; i >= 0; i--) {
+			cfg.getCurrentBB()->addInstr(Instr::wparam, {params[i]->varName, to_string(i)}, symbolTable);
 	}
 
 	// Write call instruction
 	varStruct* tmp = createTempVar(ctx, func->returnType);
-	cfg.getCurrentBB()->addInstr(Instr::call, {funcName, tmp->varName}, symbolTable);
+	cfg.getCurrentBB()->addInstr(Instr::call, {funcName, tmp->varName, to_string(numParams)}, symbolTable);
+	func->isCalled = true;
 
 	return tmp;
 
@@ -535,7 +529,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
-	// Number of variable to declare
+	// Number of variable to declarer
 	int numVariable = ctx->TOKENNAME().size();
 
 	// Fetch type
@@ -736,8 +730,10 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrBody(ifccParser::FuncDeclrContext *c
 	cfg.getCurrentBB()->addInstr(Instr::prologue, {funcName}, newSymbolTable); 
 	
 	// Create instruction that loads register into variable
-	for(int i = 0 ; i < func->nbParameters ; i++) {
-		cfg.getCurrentBB()->addInstr(Instr::rparam, {func->parameterNames[i], to_string(i)}, newSymbolTable);
+	int paramStackOffset = 16; // The size of the return adress stored on the stack when calling the function
+	for(int i = func->nbParameters-1 ; i >= 0 ; i--) {
+		cfg.getCurrentBB()->addInstr(Instr::rparam, {func->parameterNames[i], to_string(i), to_string(paramStackOffset)}, newSymbolTable);
+		paramStackOffset += 8 + 0*SymbolTable::typeSizes[func->parameterTypes[i]];
 	}
 
 	// Create body instructions
@@ -1122,6 +1118,10 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 	return 0;
 
 }*/
+
+SymbolTable* CodeGenVisitor::getGlobalSymbolTable() {
+	return this->globalSymbolTable;
+}
 
 /*antlrcpp::Any CodeGenVisitor::visitExprEgalExpr(ifccParser::ExprEgalExprContext *ctx) {
     varStruct* expr0 = visit(ctx->expr(0));

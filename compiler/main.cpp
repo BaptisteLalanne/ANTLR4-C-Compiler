@@ -75,8 +75,8 @@ int main(int argc, char *argv[])
         cout.flush();
         exit(1);
     }
-
-    // Create error handler and IR
+    
+    // Create error handler
     ErrorHandler errorHandler;
 
     // Visit tree and linearize
@@ -88,9 +88,14 @@ int main(int argc, char *argv[])
         cout.flush();
         exit(1);
     }
+
+    controlFlowGraph.initStandardFunctions(v.getGlobalSymbolTable());
+
+    // Try to optimize IR
     if(controlFlowGraph.getOptimized()){
         controlFlowGraph.optimize();
     }
+
     // Generate ASM instructions
     controlFlowGraph.generateASM(cout);
 

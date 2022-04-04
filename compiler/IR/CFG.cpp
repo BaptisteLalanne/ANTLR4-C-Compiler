@@ -23,6 +23,14 @@ CFG::~CFG() {
 	}
 }
 
+void CFG::initStandardFunctions(SymbolTable* st) {
+	funcStruct* sPutchar = st->getFunc("putchar");
+	funcStruct* sGetchar = st->getFunc("getchar");
+
+	this->mustWritePutchar = sPutchar->isCalled;
+	this->mustWriteGetchar = sGetchar->isCalled;
+}
+
 BasicBlock* CFG::createBB() {
 	string bbName = ".bb" + to_string(bbList.size());
 	BasicBlock* bb = new BasicBlock(this, bbName);
@@ -61,8 +69,13 @@ void CFG::setCurrentBB(BasicBlock* bb) {
 
 
 void CFG::generateStandardFunctions(ostream& o) {
-	this->generatePutchar(o);
-	this->generateGetchar(o);
+	if (this->mustWritePutchar) {
+		this->generatePutchar(o);
+	}
+
+	if (this->mustWriteGetchar) {
+		this->generateGetchar(o);
+	}
 }
 
 void CFG::generatePutchar(ostream& o) {
