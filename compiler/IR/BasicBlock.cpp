@@ -121,34 +121,11 @@ void BasicBlock::addInstr(Instr::Operation op, vector<string> params, SymbolTabl
 }
 
 void BasicBlock::generateASM(ostream &o) {
-	cout << label << ":" << endl;
+	o << label << ":" << endl;
 	for (Instr* i : instrList) {
 		i->generateASM(o);
 	}
-	/*if (exit_false) {
-		cout << "	cmpl    $0, " << testVarMemoryOffset << "(%rbp)" << endl;
-		cout << "	je    " << exit_false->label << endl;
-	}
-	if (exit_true){
-		cout << "	jmp    " << this->exit_true->label << endl;
-	}*/
 }
-
-/*
-void BasicBlock::generateASM(ostream &o) {
-	cout << label << ":" << endl;
-	for (Instr* i : instrList) {
-		i->generateASM(o);
-	}
-	if (exit_false) {
-		cout << "	cmpl    $0, " << getSymbol(test_var_name).memoryOffset << "(%rbp)" << endl;
-		cout << "	je    " << exit_false->label << endl;
-	}
-	if (exit_true){
-		cout << "	jmp    " << this->exit_true->label << endl;
-	}
-}
-*/
 
 void BasicBlock::setExitTrue(BasicBlock* bb) {
 	this->exit_true = bb;
