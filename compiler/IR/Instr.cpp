@@ -67,7 +67,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -84,7 +84,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -101,7 +101,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -118,7 +118,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -135,7 +135,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -152,7 +152,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -169,7 +169,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -186,7 +186,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -229,7 +229,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -246,7 +246,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -263,7 +263,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -280,7 +280,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -310,20 +310,57 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 	return deleteInstr;
 }
 
-void Instr::checkNeedForLoadConst(varStruct *s1, varStruct *s2, list<Instr*>::iterator it, list<Instr*> instrList) {
-
+bool Instr::checkNeedForLoadConst(varStruct *s1, varStruct *s2, varStruct *s3, list<Instr*>::iterator it, list<Instr*> instrList, Instr::Operation op) {
+	bool deleteInstr = false;
 	Instr* currInstr = *it;
 	SymbolTable* sT = currInstr->getSymbolTable();
 
-	if(s1->constPtr) {
-		Instr* newInstr = new Instr(bb, Instr::ldconst, {"$" + to_string(*s1->constPtr), s1->varName}, sT);
-		instrList.insert(it, newInstr);
-	} 
-	else if(s2->constPtr) {
-		Instr* newInstr = new Instr(bb, Instr::ldconst, {"$" + to_string(*s2->constPtr), s2->varName}, sT);
-		instrList.insert(it, newInstr);
+	// Operation between variable and const can sometimes be removed
+	// Ex: a * 1   -   a + 0   -   a / 1 
+	switch(op) {
+		case Instr::op_add:
+		case Instr::op_sub:
+			s1 = sT->getVar(params[0]);
+			s2 = sT->getVar(params[1]);
+			if ((s1->constPtr && *s1->constPtr == 0)){
+				*s3=*s2;
+				deleteInstr = true;
+			} else if (s2->constPtr && *s2->constPtr == 0) {
+				*s3=*s1;
+				deleteInstr = true;
+			}
+			break;
+		case Instr::op_mul:
+			s1 = sT->getVar(params[0]);
+			s2 = sT->getVar(params[1]);
+			if ((s1->constPtr && *s1->constPtr == 1)){
+				*s3=*s2;
+				deleteInstr = true;
+			} else if (s2->constPtr && *s2->constPtr == 1) {
+				*s3=*s1;
+				deleteInstr = true;
+			}
+			break;
+		case Instr::op_div:
+			s2 = sT->getVar(params[1]);
+			if (s2->constPtr && *s2->constPtr == 1) {
+				*s3=*s1;
+				deleteInstr = true;
+			}
+			break;
+	}
+	if(!deleteInstr) {
+		if(s1->constPtr) {
+			Instr* newInstr = new Instr(bb, Instr::ldconst, {"$" + to_string(*s1->constPtr), s1->varName}, sT);
+			instrList.insert(it, newInstr);
+		} 
+		else if(s2->constPtr) {
+			Instr* newInstr = new Instr(bb, Instr::ldconst, {"$" + to_string(*s2->constPtr), s2->varName}, sT);
+			instrList.insert(it, newInstr);
+		}
 	}
 
+	return deleteInstr;
 }
 
 void Instr::generateASM(ostream &o)
@@ -352,7 +389,7 @@ void Instr::generateASM(ostream &o)
 		movInstr = isChar ? "movb" : "movl";
 
 		// Write ASM instructions
-		o << "	" << movInstr << "	$" << constValue << ", " << sVar->memoryOffset << "(%rbp)"
+		o << "	" << movInstr << "	$" << SymbolTable::getCast(sVar->varType ,constValue) << ", " << sVar->memoryOffset << "(%rbp)"
 		  << "		# [ldconst] load " << constValue << " into " << var << endl;
 
 		break;
@@ -404,7 +441,7 @@ void Instr::generateASM(ostream &o)
 			movInstr2 = "movl";
 			reg2 = "eax";
 		}
-
+		
 		// Write ASM instructions
 		o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %" << reg1
 		  << "		# [copy/aff] load " << var1 << " into "

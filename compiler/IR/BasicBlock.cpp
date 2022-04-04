@@ -85,17 +85,6 @@ void BasicBlock::optimization() {
 		}
 		else ++it;
 	}
-	/*
-	it = instrList.begin();
-	while(it != instrList.end()) {
-		bool deleteTrivialOperation = evaluateTrivialOperationInstr(it);
-		if(deleteTrivialOperation) {
-			it = instrList.erase(it);
-		}
-		else ++it;
-	}
-	*/
-	
 }
 
 int BasicBlock::lookForAffInstr(string varName, unordered_set<BasicBlock*> & bbVisited, int countAffect) {

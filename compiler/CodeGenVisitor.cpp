@@ -422,11 +422,17 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 	if (constStr[0] == '\'') {
 		int* constPtr = new int(constValue);
 		tmp = createTempVar(ctx, "char", constPtr);
-		// cfg.getCurrentBB()->addInstr(Instr::ldconst, {"\'" + to_string(constValue), tmp->varName}, symbolTable);
+		// Load each const if we do not add the optimize option
+		if(cfg.getOptimized()){
+			cfg.getCurrentBB()->addInstr(Instr::ldconst, {"\'" + to_string(constValue), tmp->varName}, symbolTable);
+		}
 	} else {
 		int* constPtr = new int(constValue);
 		tmp = createTempVar(ctx, "int", constPtr);
-		// cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp->varName}, symbolTable);
+		// Load each const if we do not add the optimize option
+		if(cfg.getOptimized()){
+			cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp->varName}, symbolTable);
+		}
 	}
 
 	// Return the temporary variable

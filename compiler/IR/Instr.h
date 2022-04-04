@@ -52,7 +52,7 @@ class Instr {
 
 		bool propagateConst(bool needsDefinition, list<Instr*>::iterator it, list<Instr*> instrList);
 
-		void checkNeedForLoadConst(varStruct *s1, varStruct *s2, list<Instr*>::iterator it, list<Instr*> instrList);
+		bool checkNeedForLoadConst(varStruct *s1, varStruct *s2, varStruct *s3, list<Instr*>::iterator it, list<Instr*> instrList, Instr::Operation op);
 
 		SymbolTable* getSymbolTable(){ return symbolTable; };
 	private:

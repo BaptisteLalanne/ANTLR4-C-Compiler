@@ -22,6 +22,9 @@ class CFG {
 
 		void optimize();
 
+		bool getOptimized() { return optimized; };
+		void setOptimized(bool o) { optimized=o; };
+
 	protected:
 
 		/* Generate ASM for standard functions */
@@ -35,6 +38,9 @@ class CFG {
 		
 		/* The list of basic blocks */
 		vector<BasicBlock*> bbList; 
+
+		/* Option to add optimization */
+		bool optimized;
 
 		/* The current basic block*/
 		BasicBlock* currentBB;

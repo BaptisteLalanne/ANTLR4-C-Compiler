@@ -14,6 +14,7 @@ using namespace std;
 
 CFG::CFG() {
 	setCurrentBB(createBB());
+	optimized=false;
 }
 
 CFG::~CFG() {
