@@ -62,7 +62,6 @@ void CFG::optimizeASM(stringstream& iS, ostream& oS) {
 	string previousInstr = "";
 
 	// Fetch lines
-	//vector<string> inputLines = splitString(iS.str(), "\n");
 	string line;
 	while (getline(iS, line)) {
 		

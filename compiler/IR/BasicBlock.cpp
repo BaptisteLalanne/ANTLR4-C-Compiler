@@ -76,7 +76,7 @@ void BasicBlock::addInstr(Instr::Operation op, vector<string> params, SymbolTabl
 }
 
 void BasicBlock::generateASM(ostream &o) {
-	cout << label << ":" << endl;
+	o << label << ":" << endl;
 	for (Instr* i : instrList) {
 		i->generateASM(o);
 	}
