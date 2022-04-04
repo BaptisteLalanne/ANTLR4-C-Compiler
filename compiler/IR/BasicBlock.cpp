@@ -85,17 +85,6 @@ void BasicBlock::optimization() {
 		}
 		else ++it;
 	}
-	/*
-	it = instrList.begin();
-	while(it != instrList.end()) {
-		bool deleteTrivialOperation = evaluateTrivialOperationInstr(it);
-		if(deleteTrivialOperation) {
-			it = instrList.erase(it);
-		}
-		else ++it;
-	}
-	*/
-	
 }
 
 int BasicBlock::lookForAffInstr(string varName, unordered_set<BasicBlock*> & bbVisited, int countAffect) {
@@ -125,7 +114,30 @@ void BasicBlock::generateASM(ostream &o) {
 	for (Instr* i : instrList) {
 		i->generateASM(o);
 	}
+	/*if (exit_false) {
+		cout << "	cmpl    $0, " << testVarMemoryOffset << "(%rbp)" << endl;
+		cout << "	je    " << exit_false->label << endl;
+	}
+	if (exit_true){
+		cout << "	jmp    " << this->exit_true->label << endl;
+	}*/
 }
+
+/*
+void BasicBlock::generateASM(ostream &o) {
+	cout << label << ":" << endl;
+	for (Instr* i : instrList) {
+		i->generateASM(o);
+	}
+	if (exit_false) {
+		cout << "	cmpl    $0, " << getSymbol(test_var_name).memoryOffset << "(%rbp)" << endl;
+		cout << "	je    " << exit_false->label << endl;
+	}
+	if (exit_true){
+		cout << "	jmp    " << this->exit_true->label << endl;
+	}
+}
+*/
 
 void BasicBlock::setExitTrue(BasicBlock* bb) {
 	this->exit_true = bb;

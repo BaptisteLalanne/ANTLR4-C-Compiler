@@ -45,7 +45,7 @@ class Instr {
 
 		void generateASM(ostream &o); 
 
-		static unordered_map<string, string> AMD86_paramRegisters;
+		static unordered_map<string, vector<string>> AMD86_paramRegisters;
 
 		Operation getOp() { return op; };
 
@@ -53,7 +53,7 @@ class Instr {
 
 		bool propagateConst(bool needsDefinition, list<Instr*>::iterator it, list<Instr*> instrList);
 
-		void checkNeedForLoadConst(varStruct *s1, varStruct *s2, list<Instr*>::iterator it, list<Instr*> instrList);
+		bool checkNeedForLoadConst(varStruct *s1, varStruct *s2, varStruct *s3, list<Instr*>::iterator it, list<Instr*> instrList, Instr::Operation op);
 
 		SymbolTable* getSymbolTable(){ return symbolTable; };
 	private:

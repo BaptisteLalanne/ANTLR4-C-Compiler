@@ -57,7 +57,8 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitIfStatement(ifccParser::IfStatementContext *ctx) ;
 		virtual antlrcpp::Any visitWhileStatement(ifccParser::WhileStatementContext *ctx) ;
         virtual antlrcpp::Any visitPlusEqual(ifccParser::PlusEqualContext *ctx) ;
-		
+		SymbolTable* getGlobalSymbolTable();
+
 	protected:
 
 		// The associated error handler instance

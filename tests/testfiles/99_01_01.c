@@ -1,7 +1,9 @@
 #include <stdio.h>
 
-int alphabet(int n)
+int main()
 {
+    int n = 15;
+
     char a;
     a='A';
     while (a<'A'+n)
@@ -10,11 +12,4 @@ int alphabet(int n)
         a=a+1;
     }
     return a;
-}
-
-int main()
-{
-    int c;
-    c = alphabet(15);
-    return c;
 }

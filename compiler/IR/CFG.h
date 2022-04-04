@@ -13,14 +13,17 @@ class CFG {
 
 		CFG();
 		~CFG();
-
+		
 		BasicBlock* createBB(); 
 		BasicBlock* getCurrentBB();
 		void setCurrentBB(BasicBlock* bb);
 
 		void generateASM(ostream& o);
-
 		void optimize();
+		void initStandardFunctions(SymbolTable* st);
+
+		bool getOptimized() { return optimized; };
+		void setOptimized(bool o) { optimized=o; };
 
 	protected:
 
@@ -36,8 +39,16 @@ class CFG {
 		/* The list of basic blocks */
 		vector<BasicBlock*> bbList; 
 
+		/* Option to add optimization */
+		bool optimized;
+
 		/* The current basic block*/
 		BasicBlock* currentBB;
+	
+	private:
+
+		bool mustWritePutchar = false;
+		bool mustWriteGetchar = false;
 };
 
 #endif

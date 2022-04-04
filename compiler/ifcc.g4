@@ -1,7 +1,7 @@
 
 grammar ifcc;
 
-axiom : prog ;
+axiom : prog EOF;
 
 vtype: TINT | TCHAR ;
 beginBlock : '{' ;
