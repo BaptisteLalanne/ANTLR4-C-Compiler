@@ -72,6 +72,20 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 			break;
 		}
 
+        case Instr::op_plus_equal:
+        {
+            varStruct *s1 = symbolTable->getVar(params.at(0));
+            varStruct *s2 = symbolTable->getVar(params.at(1));
+            if (s1->constPtr && s2->constPtr)
+            {
+                int res = *s1->constPtr + *s2->constPtr;
+                s1->constPtr = new int(res);
+                deleteInstr = true;
+            } else {
+            }
+            break;
+        }
+
 		case Instr::op_sub:
 		{
 			varStruct *s1 = symbolTable->getVar(params.at(0));
@@ -683,6 +697,24 @@ void Instr::generateASM(ostream &o)
 		  << " into " << tmp << endl;
 		break;
 	}
+
+    case Instr::op_plus_equal:
+    {
+        string dvar = params.at(0);
+        string ivar = params.at(1);
+
+        varStruct *s1 = symbolTable->getVar(dvar);
+        varStruct *s2 = symbolTable->getVar(ivar);
+        string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
+        string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
+
+
+        o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax" << endl;
+        o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx" << endl;
+        o << "	addl	%edx, %eax" << endl;
+        o << "	" << movInstr1 << " %eax, " << s1->memoryOffset << "(%rbp)" << endl;
+        break;
+    }
 
 	case Instr::cmp_eq:
 	{

@@ -422,11 +422,11 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 	if (constStr[0] == '\'') {
 		int* constPtr = new int(constValue);
 		tmp = createTempVar(ctx, "char", constPtr);
-		// cfg.getCurrentBB()->addInstr(Instr::ldconst, {"\'" + to_string(constValue), tmp->varName}, symbolTable);
+		cfg.getCurrentBB()->addInstr(Instr::ldconst, {"\'" + to_string(constValue), tmp->varName}, symbolTable);
 	} else {
 		int* constPtr = new int(constValue);
 		tmp = createTempVar(ctx, "int", constPtr);
-		// cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp->varName}, symbolTable);
+		cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp->varName}, symbolTable);
 	}
 
 	// Return the temporary variable
@@ -939,10 +939,17 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 
 }
 
-/*antlrcpp::Any CodeGenVisitor::visitExprEgalExpr(ifccParser::ExprEgalExprContext *ctx) {
-    varStruct* expr0 = visit(ctx->expr(0));
-    varStruct* expr1 = visit(ctx->expr(1));
-    string message =  "Function '" + expr0->varName + " = " + expr1->varName + " lvalue required as left operand of assignmentd";
-    errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-    return SymbolTable::dummyVarStruct;
-}*/
+antlrcpp::Any CodeGenVisitor::visitPlusEqual(ifccParser::PlusEqualContext *ctx) {
+
+    // Fetch constant's info
+    varStruct* rExpr = visit(ctx->expr());
+    // Fetch variable
+    string lExpr = ctx->TOKENNAME()->getText();
+
+    // Add the instruction to the IR
+    SymbolTable* symbolTable = symbolTablesStack.top();
+    cfg.getCurrentBB()->addInstr(Instr::op_plus_equal, {lExpr, rExpr->varName}, symbolTable);
+
+    return symbolTable->getVar(lExpr);
+
+}

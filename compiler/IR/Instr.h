@@ -34,6 +34,7 @@ class Instr {
 			op_mod,
 			op_not,
 			op_minus,
+            op_plus_equal,
 			ret,
 			prologue,
 			conditional_jump,

@@ -51,6 +51,7 @@ expr :
 
 affect :
     TOKENNAME '=' expr2                         #affExpr
+    | TOKENNAME '+=' expr                       #plusEqual
 ;
 
 ifStatement :
