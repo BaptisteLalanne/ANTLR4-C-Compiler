@@ -28,6 +28,9 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		// Default constructor
 		CodeGenVisitor(ErrorHandler& eH, CFG& cfg);
 
+		// Default destructor
+		~CodeGenVisitor();
+
 		// Linearising functions
 		virtual antlrcpp::Any visitProg(ifccParser::ProgContext *ctx);
 		virtual antlrcpp::Any visitMainDeclr(ifccParser::MainDeclrContext *ctx) ;
@@ -72,6 +75,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 
 		// The currently visited symbol table to keep track of nested scopes
 		stack<SymbolTable*> symbolTablesStack;
+		stack<SymbolTable*> symbolTableGarbage;
 
 		// The current function
 		string currFunction = "";

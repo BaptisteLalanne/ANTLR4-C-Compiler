@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
 
     
     int c;
+    controlFlowGraph.setOptimized(true);
     char* arg_o = nullptr;
     while ((c = getopt(argc, argv, "o")) != -1)
     {
@@ -83,7 +84,8 @@ int main(int argc, char *argv[])
     CodeGenVisitor v(errorHandler, controlFlowGraph);
     v.visit(tree);
 
-    if (errorHandler.hasError())
+    bool hasErrors = errorHandler.hasError();
+    if (hasErrors)
     {
         cout.flush();
         exit(1);
@@ -91,13 +93,22 @@ int main(int argc, char *argv[])
 
     controlFlowGraph.initStandardFunctions(v.getGlobalSymbolTable());
 
-    // Try to optimize IR
-    if(controlFlowGraph.getOptimized()){
-        controlFlowGraph.optimize();
+    // Optimize IR
+    if(controlFlowGraph.getOptimized()) {
+        controlFlowGraph.optimizeIR();
     }
 
     // Generate ASM instructions
-    controlFlowGraph.generateASM(cout);
+    stringstream out;
+    controlFlowGraph.generateASM(out);
+
+    // Optimize ASM instructions
+    if(controlFlowGraph.getOptimized()) {
+        controlFlowGraph.optimizeASM(out, cout);
+    }
+    else {
+        cout << out.str();
+    }
 
     return 0;
 }

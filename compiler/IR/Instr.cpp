@@ -82,6 +82,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
                 s1->constPtr = new int(res);
                 deleteInstr = true;
             } else {
+                deleteInstr = checkNeedForLoadConst(s1, s2, s1, it, instrList, op);
             }
             break;
         }
@@ -362,6 +363,11 @@ bool Instr::checkNeedForLoadConst(varStruct *s1, varStruct *s2, varStruct *s3, l
 				deleteInstr = true;
 			}
 			break;
+        case Instr::op_plus_equal:
+            if (s2->constPtr && *s2->constPtr == 0) {
+                deleteInstr = true;
+            }
+            break;
 	}
 	if(!deleteInstr) {
 		if(s1->constPtr) {
@@ -705,10 +711,13 @@ void Instr::generateASM(ostream &o)
         string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
 
 
-        o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax" << endl;
-        o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx" << endl;
+        o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax"
+          << "		# [op_plus_equal] load " << dvar << " into " << "%eax" << endl;
+        o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx"
+        << "		# [op_plus_equal] load " << ivar << " into " << "%edx" << endl;
         o << "	addl	%edx, %eax" << endl;
-        o << "	" << movInstr1 << " %eax, " << s1->memoryOffset << "(%rbp)" << endl;
+        o << "	" << movInstr1 << "	%eax, " << s1->memoryOffset << "(%rbp)"
+        << "		# [op_plus_equal] load %eax into " << dvar << endl;
         break;
     }
 

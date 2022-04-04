@@ -39,41 +39,7 @@ bool BasicBlock::evaluateConstInstr(list<Instr*>::iterator it) {
 	return deleteInstr;
 }
 
-bool BasicBlock::evaluateTrivialOperationInstr(list<Instr*>::iterator it) {
-	bool deleteInstr = false;
-	Instr* i = *it;
-	SymbolTable* sT = i->getSymbolTable();
-	vector<string> params = i->getParams(); 
-	// If this is a trivial operation (add or sub 0, mul 1, div by 1), delete the instruction 
-	varStruct* s1;
-	varStruct* s2;
-	switch(i->getOp()) {
-		case Instr::op_add:
-		case Instr::op_sub:
-			s1 = sT->getVar(params[0]);
-			s2 = sT->getVar(params[1]);
-			if ((s1->constPtr && *s1->constPtr == 0) || (s2->constPtr && *s2->constPtr == 0)) {
-				deleteInstr = true;
-			}
-			break;
-		case Instr::op_mul:
-			s1 = sT->getVar(params[0]);
-			s2 = sT->getVar(params[1]);
-			if ((s1->constPtr && *s1->constPtr == 1) || (s2->constPtr && *s2->constPtr == 1)) {
-				deleteInstr = true;
-			}
-			break;
-		case Instr::op_div:
-			s2 = sT->getVar(params[1]);
-			if (s2->constPtr && *s2->constPtr == 1) {
-				deleteInstr = true;
-			}
-			break;
-	}
-	return deleteInstr;
-}
-
-void BasicBlock::optimization() {
+void BasicBlock::optimizeIR() {
 	
 	list<Instr*>::iterator it;
 	
@@ -110,34 +76,11 @@ void BasicBlock::addInstr(Instr::Operation op, vector<string> params, SymbolTabl
 }
 
 void BasicBlock::generateASM(ostream &o) {
-	cout << label << ":" << endl;
+	o << label << ":" << endl;
 	for (Instr* i : instrList) {
 		i->generateASM(o);
 	}
-	/*if (exit_false) {
-		cout << "	cmpl    $0, " << testVarMemoryOffset << "(%rbp)" << endl;
-		cout << "	je    " << exit_false->label << endl;
-	}
-	if (exit_true){
-		cout << "	jmp    " << this->exit_true->label << endl;
-	}*/
 }
-
-/*
-void BasicBlock::generateASM(ostream &o) {
-	cout << label << ":" << endl;
-	for (Instr* i : instrList) {
-		i->generateASM(o);
-	}
-	if (exit_false) {
-		cout << "	cmpl    $0, " << getSymbol(test_var_name).memoryOffset << "(%rbp)" << endl;
-		cout << "	je    " << exit_false->label << endl;
-	}
-	if (exit_true){
-		cout << "	jmp    " << this->exit_true->label << endl;
-	}
-}
-*/
 
 void BasicBlock::setExitTrue(BasicBlock* bb) {
 	this->exit_true = bb;
