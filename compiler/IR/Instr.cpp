@@ -11,7 +11,7 @@ class BasicBlock;
 
 using namespace std;
 
-unordered_map<string, string> Instr::AMD86_paramRegisters = {{"0", "%edi"}, {"1", "%esi"}, {"2", "%edx"}, {"3", "%ecx"}, {"4", "%r8d"}, {"5", "%r9d"}};
+unordered_map<string, vector<string>> Instr::AMD86_paramRegisters = {{"int", {"%edi", "%esi", "%edx", "%ecx", "%r8d", "%r9d"}}, {"char", {"%dil", "%sil", "%dl", "%cl", "%r8b", "%r9b"}}};
 
 /* --------------------------------------------------------------------- */
 //------------ Implementation of class <Instr> (file IR.cpp) -------------/
@@ -48,7 +48,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				} 
 				else {
 					// Assign a const to a variable
-					// Switch aff/copy to load const
+                    // Switch aff/copy to load const
 					op = Instr::ldconst;
 					params[0] = "$" + to_string(*s1->constPtr);
 				}
@@ -67,10 +67,70 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
+
+        case Instr::op_plus_equal:
+        {
+            varStruct *s1 = symbolTable->getVar(params.at(0));
+            varStruct *s2 = symbolTable->getVar(params.at(1));
+            if (s1->constPtr && s2->constPtr)
+            {
+                int res = *s1->constPtr + *s2->constPtr;
+                s1->constPtr = new int(res);
+                deleteInstr = true;
+            } else {
+                deleteInstr = checkNeedForLoadConst(s1, s2, s1, it, instrList, op);
+            }
+            break;
+        }
+
+        case Instr::op_sub_equal:
+        {
+            varStruct *s1 = symbolTable->getVar(params.at(0));
+            varStruct *s2 = symbolTable->getVar(params.at(1));
+            if (s1->constPtr && s2->constPtr)
+            {
+                int res = *s1->constPtr - *s2->constPtr;
+                s1->constPtr = new int(res);
+                deleteInstr = true;
+            } else {
+                deleteInstr = checkNeedForLoadConst(s1, s2, s1, it, instrList, op);
+            }
+            break;
+        }
+
+        case Instr::op_mult_equal:
+        {
+            varStruct *s1 = symbolTable->getVar(params.at(0));
+            varStruct *s2 = symbolTable->getVar(params.at(1));
+            if (s1->constPtr && s2->constPtr)
+            {
+                int res = *s1->constPtr * *s2->constPtr;
+                s1->constPtr = new int(res);
+                deleteInstr = true;
+            } else {
+                deleteInstr = checkNeedForLoadConst(s1, s2, s1, it, instrList, op);
+            }
+            break;
+        }
+
+        case Instr::op_div_equal:
+        {
+            varStruct *s1 = symbolTable->getVar(params.at(0));
+            varStruct *s2 = symbolTable->getVar(params.at(1));
+            if (s1->constPtr && s2->constPtr)
+            {
+                int res = (int)(*s1->constPtr / *s2->constPtr);
+                s1->constPtr = new int(res);
+                deleteInstr = true;
+            } else {
+                deleteInstr = checkNeedForLoadConst(s1, s2, s1, it, instrList, op);
+            }
+            break;
+        }
 
 		case Instr::op_sub:
 		{
@@ -84,7 +144,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -101,7 +161,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -118,7 +178,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -135,7 +195,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -152,7 +212,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -169,7 +229,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -186,7 +246,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -229,7 +289,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -246,7 +306,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -263,7 +323,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
@@ -280,11 +340,45 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				deleteInstr = true;
 			}
 			else {
-				checkNeedForLoadConst(s1, s2, it, instrList);
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
 			}
 			break;
 		}
 
+		case Instr::cmp_eqlt:
+		{
+			varStruct *s1 = symbolTable->getVar(params.at(0));
+			varStruct *s2 = symbolTable->getVar(params.at(1));
+			varStruct *s3 = symbolTable->getVar(params.at(2));
+			if (s1->constPtr && s2->constPtr)
+			{
+				int res = *s1->constPtr <= *s2->constPtr;
+				s3->constPtr = new int(res);
+				deleteInstr = true;
+			}
+			else {
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
+			}
+			break;
+		}
+
+		case Instr::cmp_eqgt:
+		{
+			varStruct *s1 = symbolTable->getVar(params.at(0));
+			varStruct *s2 = symbolTable->getVar(params.at(1));
+			varStruct *s3 = symbolTable->getVar(params.at(2));
+			if (s1->constPtr && s2->constPtr)
+			{
+				int res = *s1->constPtr >= *s2->constPtr ;
+				s3->constPtr = new int(res);
+				deleteInstr = true;
+			}
+			else {
+				deleteInstr = checkNeedForLoadConst(s1, s2, s3, it, instrList, op);
+			}
+			break;
+		}
+		
 		case Instr::conditional_jump:
 		{
 			varStruct* s1 = symbolTable->getVar(params.at(0));
@@ -310,20 +404,69 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 	return deleteInstr;
 }
 
-void Instr::checkNeedForLoadConst(varStruct *s1, varStruct *s2, list<Instr*>::iterator it, list<Instr*> instrList) {
-
+bool Instr::checkNeedForLoadConst(varStruct *s1, varStruct *s2, varStruct *s3, list<Instr*>::iterator it, list<Instr*> instrList, Instr::Operation op) {
+	bool deleteInstr = false;
 	Instr* currInstr = *it;
 	SymbolTable* sT = currInstr->getSymbolTable();
 
-	if(s1->constPtr) {
-		Instr* newInstr = new Instr(bb, Instr::ldconst, {"$" + to_string(*s1->constPtr), s1->varName}, sT);
-		instrList.insert(it, newInstr);
-	} 
-	else if(s2->constPtr) {
-		Instr* newInstr = new Instr(bb, Instr::ldconst, {"$" + to_string(*s2->constPtr), s2->varName}, sT);
-		instrList.insert(it, newInstr);
+	// Operation between variable and const can sometimes be removed
+	// Ex: a * 1   -   a + 0   -   a / 1 
+	switch(op) {
+		case Instr::op_add:
+		case Instr::op_sub:
+			s1 = sT->getVar(params[0]);
+			s2 = sT->getVar(params[1]);
+			if ((s1->constPtr && *s1->constPtr == 0)){
+				*s3=*s2;
+				deleteInstr = true;
+			} else if (s2->constPtr && *s2->constPtr == 0) {
+				*s3=*s1;
+				deleteInstr = true;
+			}
+			break;
+		case Instr::op_mul:
+			s1 = sT->getVar(params[0]);
+			s2 = sT->getVar(params[1]);
+			if ((s1->constPtr && *s1->constPtr == 1)){
+				*s3=*s2;
+				deleteInstr = true;
+			} else if (s2->constPtr && *s2->constPtr == 1) {
+				*s3=*s1;
+				deleteInstr = true;
+			}
+			break;
+		case Instr::op_div:
+			s2 = sT->getVar(params[1]);
+			if (s2->constPtr && *s2->constPtr == 1) {
+				*s3=*s1;
+				deleteInstr = true;
+			}
+			break;
+        case Instr::op_sub_equal:
+        case Instr::op_plus_equal:
+            if (s2->constPtr && *s2->constPtr == 0) {
+                deleteInstr = true;
+            }
+            break;
+        case Instr::op_mult_equal:
+        case Instr::op_div_equal:
+            if (s2->constPtr && *s2->constPtr == 1) {
+                deleteInstr = true;
+            }
+            break;
+	}
+	if(!deleteInstr) {
+		if(s1->constPtr) {
+			Instr* newInstr = new Instr(bb, Instr::ldconst, {"$" + to_string(*s1->constPtr), s1->varName}, sT);
+			instrList.insert(it, newInstr);
+		} 
+		else if(s2->constPtr) {
+			Instr* newInstr = new Instr(bb, Instr::ldconst, {"$" + to_string(*s2->constPtr), s2->varName}, sT);
+			instrList.insert(it, newInstr);
+		}
 	}
 
+	return deleteInstr;
 }
 
 void Instr::generateASM(ostream &o)
@@ -352,7 +495,7 @@ void Instr::generateASM(ostream &o)
 		movInstr = isChar ? "movb" : "movl";
 
 		// Write ASM instructions
-		o << "	" << movInstr << "	$" << constValue << ", " << sVar->memoryOffset << "(%rbp)"
+		o << "	" << movInstr << "	$" << SymbolTable::getCast(sVar->varType ,constValue) << ", " << sVar->memoryOffset << "(%rbp)"
 		  << "		# [ldconst] load " << constValue << " into " << var << endl;
 
 		break;
@@ -368,7 +511,7 @@ void Instr::generateASM(ostream &o)
 		varStruct *s2 = symbolTable->getVar(var2);
 
 		string movInstr1, movInstr2;
-		string reg1, reg2;
+		string reg;
 
 		// var2 = var1
 
@@ -376,42 +519,36 @@ void Instr::generateASM(ostream &o)
 		{
 			// int = int : movl
 			movInstr1 = "movl";
-			reg1 = "eax";
 			movInstr2 = "movl";
-			reg2 = "eax";
+			reg = "eax";
 		}
 		else if (s2->varType == "char" && s1->varType == "char")
 		{
 			// char = char : movb
 			movInstr1 = "movb";
-			reg1 = "al";
 			movInstr2 = "movb";
-			reg2 = "al";
+			reg = "al";
 		}
 		else if (s2->varType == "char" && s1->varType == "int")
 		{
 			// char = int : movb
 			movInstr1 = "movb";
-			reg1 = "al";
 			movInstr2 = "movb";
-			reg2 = "al";
+			reg = "al";
 		}
 		else if (s2->varType == "int" && s1->varType == "char")
 		{
 			// int = char : movzbl
 			movInstr1 = "movzbl";
-			reg1 = "eax";
 			movInstr2 = "movl";
-			reg2 = "eax";
+			reg = "eax";
 		}
-
+		
 		// Write ASM instructions
-		o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %" << reg1
-		  << "		# [copy/aff] load " << var1 << " into "
-		  << "%" << reg1 << endl;
-		o << "	" << movInstr2 << "	%" << reg2 << ", " << s2->memoryOffset << "(%rbp)"
-		  << "		# [copy/aff] load "
-		  << "%" << reg2 << " into " << var2 << endl;
+		o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %" << reg
+		  << "		# [copy/aff] load " << var1 << " into " << "%" << reg << endl;
+		o << "	" << movInstr2 << "	%" << reg << ", " << s2->memoryOffset << "(%rbp)"
+		  << "		# [copy/aff] load " << "%" << reg << " into " << var2 << endl;
 
 		break;
 	}
@@ -441,16 +578,12 @@ void Instr::generateASM(ostream &o)
 		string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
 		string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
 		o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax"
-		  << "		# [op_add] load " << var1 << " into "
-		  << "%eax" << endl;
+		  << "		# [op_add] load " << var1 << " into " << "%eax" << endl;
 		o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx"
-		  << "		# [op_add] load " << var2 << " into "
-		  << "%edx" << endl;
+		  << "		# [op_add] load " << var2 << " into " << "%edx" << endl;
 		o << "	addl	%edx, %eax" << endl;
 		o << "	movl	%eax, " << s3->memoryOffset << "(%rbp)"
-		  << "		# [op_add] load "
-		  << "%eax"
-		  << " into " << tmp << endl;
+		  << "		# [op_add] load " << "%eax" << " into " << tmp << endl;
 		break;
 	}
 
@@ -467,16 +600,12 @@ void Instr::generateASM(ostream &o)
 		string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
 		string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
 		o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax"
-		  << "		# [op_sub] load " << var1 << " into "
-		  << "%eax" << endl;
+		  << "		# [op_sub] load " << var1 << " into " << "%eax" << endl;
 		o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx"
-		  << "		# [op_sub] load " << var2 << " into "
-		  << "%edx" << endl;
+		  << "		# [op_sub] load " << var2 << " into " << "%edx" << endl;
 		o << "	subl	%edx, %eax" << endl;
 		o << "	movl	%eax, " << s3->memoryOffset << "(%rbp)"
-		  << "		# [op_sub] load "
-		  << "%eax"
-		  << " into " << tmp << endl;
+		  << "		# [op_sub] load " << "%eax" << " into " << tmp << endl;
 
 		break;
 	}
@@ -494,16 +623,12 @@ void Instr::generateASM(ostream &o)
 		string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
 		string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
 		o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax"
-		  << "		# [op_xor] load " << var1 << " into "
-		  << "%eax" << endl;
+		  << "		# [op_xor] load " << var1 << " into " << "%eax" << endl;
 		o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx"
-		  << "		# [op_xor] load " << var2 << " into "
-		  << "%edx" << endl;
+		  << "		# [op_xor] load " << var2 << " into " << "%edx" << endl;
 		o << "	xorl	%edx, %eax" << endl;
 		o << "	movl	%eax, " << s3->memoryOffset << "(%rbp)"
-		  << "		# [op_xor] load "
-		  << "%eax"
-		  << " into " << tmp << endl;
+		  << "		# [op_xor] load " << "%eax" << " into " << tmp << endl;
 
 		break;
 	}
@@ -521,16 +646,12 @@ void Instr::generateASM(ostream &o)
 		string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
 		string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
 		o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax"
-		  << "		# [op_mul] load " << var1 << " into "
-		  << "%eax" << endl;
+		  << "		# [op_mul] load " << var1 << " into " << "%eax" << endl;
 		o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx"
-		  << "		# [op_mul] load " << var2 << " into "
-		  << "%edx" << endl;
+		  << "		# [op_mul] load " << var2 << " into " << "%edx" << endl;
 		o << "	imull	%edx, %eax" << endl;
 		o << "	movl	%eax, " << s3->memoryOffset << "(%rbp)"
-		  << "		# [op_mul] load "
-		  << "%eax"
-		  << " into " << tmp << endl;
+		  << "		# [op_mul] load " << "%eax" << " into " << tmp << endl;
 
 		break;
 	}
@@ -548,17 +669,13 @@ void Instr::generateASM(ostream &o)
 		string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
 		string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
 		o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax"
-		  << "		# [op_div] load " << var1 << " into "
-		  << "%eax" << endl;
+		  << "		# [op_div] load " << var1 << " into " << "%eax" << endl;
 		o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx"
-		  << "		# [op_div] load " << var2 << " into "
-		  << "%edx" << endl;
+		  << "		# [op_div] load " << var2 << " into " << "%edx" << endl;
 		o << "	cltd" << endl;
 		o << "	idivl	" << s2->memoryOffset << "(%rbp)" << endl;
 		o << "	movl	%eax, " << s3->memoryOffset << "(%rbp)"
-		  << "		# [op_div] load "
-		  << "%eax"
-		  << " into " << tmp << endl;
+		  << "		# [op_div] load " << "%eax" << " into " << tmp << endl;
 
 		break;
 	}
@@ -577,17 +694,13 @@ void Instr::generateASM(ostream &o)
 		string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
 
 		o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax"
-		  << "		# [op_mod] load " << var1 << " into "
-		  << "%eax" << endl;
+		  << "		# [op_mod] load " << var1 << " into " << "%eax" << endl;
 		o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %ebx"
-		  << "		# [op_mod] load " << var2 << " into "
-		  << "%ebx" << endl;
+		  << "		# [op_mod] load " << var2 << " into " << "%ebx" << endl;
 		o << "	cltd" << endl;
 		o << "	idivl	%ebx" << endl;
 		o << "	movl	%edx, " << s3->memoryOffset << "(%rbp)"
-		  << "		# [op_mod] load "
-		  << "%eax"
-		  << " into " << tmp << endl;
+		  << "		# [op_mod] load " << "%eax" << " into " << tmp << endl;
 		break;
 	}
 
@@ -602,15 +715,11 @@ void Instr::generateASM(ostream &o)
 		varStruct *s3 = symbolTable->getVar(tmp);
 
 		o << "	movl	" << s1->memoryOffset << "(%rbp), %eax"
-		  << "		# [op_and] load " << var1 << " into "
-		  << "%eax" << endl;
+		  << "		# [op_and] load " << var1 << " into " << "%eax" << endl;
 		o << "	andl	" << s2->memoryOffset << "(%rbp), %eax"
-		  << "		# [op_and] and(" << var2 << ", "
-		  << "%eax)" << endl;
+		  << "		# [op_and] and(" << var2 << ", " << "%eax)" << endl;
 		o << "	movl	%eax, " << s3->memoryOffset << "(%rbp)"
-		  << "		# [op_and] load "
-		  << "%eax"
-		  << " into " << tmp << endl;
+		  << "		# [op_and] load " << "%eax" << " into " << tmp << endl;
 
 		break;
 	}
@@ -626,15 +735,11 @@ void Instr::generateASM(ostream &o)
 		varStruct *s3 = symbolTable->getVar(tmp);
 
 		o << "	movl	" << s1->memoryOffset << "(%rbp), %eax"
-		  << "		# [op_or] load " << var1 << " into "
-		  << "%eax" << endl;
+		  << "		# [op_or] load " << var1 << " into " << "%eax" << endl;
 		o << "	orl	" << s2->memoryOffset << "(%rbp), %eax"
-		  << "		# [op_or] or(" << var2 << ", "
-		  << "%eax)" << endl;
+		  << "		# [op_or] or(" << var2 << ", " << "%eax)" << endl;
 		o << "	movl	%eax, " << symbolTable->getVar(tmp)->memoryOffset << "(%rbp)"
-		  << "		# [op_or] load "
-		  << "%eax"
-		  << " into " << tmp << endl;
+		  << "		# [op_or] load " << "%eax" << " into " << tmp << endl;
 		break;
 	}
 
@@ -649,16 +754,13 @@ void Instr::generateASM(ostream &o)
 		string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
 		string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
 
-		o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax"
-		  << "		# [op_not] load " << var << " into "
-		  << "%eax" << endl;
+		o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax" \
+		  << "		# [op_not] load " << var << " into " << "%eax" << endl;
 		o << "	cmpl	$0, %eax" << endl;
 		o << "	sete	%al" << endl;
 		o << "	movzbl	%al, %eax" << endl;
-		o << "	" << movInstr2 << "	%eax, " << s2->memoryOffset << "(%rbp)"
-		  << "		# [op_not] load "
-		  << "%eax"
-		  << " into " << tmp << endl;
+		o << "	" << movInstr2 << "	%eax, " << s2->memoryOffset << "(%rbp)" \
+		  << "		# [op_not] load " << "%eax" << " into " << tmp << endl;
 		break;
 	}
 
@@ -683,6 +785,91 @@ void Instr::generateASM(ostream &o)
 		  << " into " << tmp << endl;
 		break;
 	}
+
+    case Instr::op_plus_equal:
+    {
+        string dvar = params.at(0);
+        string ivar = params.at(1);
+
+        varStruct *s1 = symbolTable->getVar(dvar);
+        varStruct *s2 = symbolTable->getVar(ivar);
+        string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
+        string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
+
+
+        o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax"
+          << "		# [op_plus_equal] load " << dvar << " into " << "%eax" << endl;
+        o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx"
+        << "		# [op_plus_equal] load " << ivar << " into " << "%edx" << endl;
+        o << "	addl	%edx, %eax" << endl;
+        o << "	" << movInstr1 << "	%eax, " << s1->memoryOffset << "(%rbp)"
+        << "		# [op_plus_equal] load %eax into " << dvar << endl;
+        break;
+    }
+
+    case Instr::op_sub_equal:
+    {
+        string dvar = params.at(0);
+        string ivar = params.at(1);
+
+        varStruct *s1 = symbolTable->getVar(dvar);
+        varStruct *s2 = symbolTable->getVar(ivar);
+        string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
+        string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
+
+
+        o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax"
+          << "		# [op_sub_equal] load " << dvar << " into " << "%eax" << endl;
+        o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx"
+          << "		# [op_sub_equal] load " << ivar << " into " << "%edx" << endl;
+        o << "	subl	%edx, %eax" << endl;
+        o << "	" << movInstr1 << "	%eax, " << s1->memoryOffset << "(%rbp)"
+          << "		# [op_sub_equal] load %eax into " << dvar << endl;
+        break;
+    }
+
+    case Instr::op_mult_equal:
+    {
+        string dvar = params.at(0);
+        string ivar = params.at(1);
+
+        varStruct *s1 = symbolTable->getVar(dvar);
+        varStruct *s2 = symbolTable->getVar(ivar);
+        string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
+        string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
+
+
+        o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax"
+          << "		# [op_mult_equal] load " << dvar << " into " << "%eax" << endl;
+        o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx"
+          << "		# [op_mult_equal] load " << ivar << " into " << "%edx" << endl;
+        o << "	imull	%edx, %eax" << endl;
+        o << "	" << movInstr1 << "	%eax, " << s1->memoryOffset << "(%rbp)"
+          << "		# [op_mult_equal] load %eax into " << dvar << endl;
+        break;
+    }
+
+    case Instr::op_div_equal:
+    {
+        string dvar = params.at(0);
+        string ivar = params.at(1);
+
+        varStruct *s1 = symbolTable->getVar(dvar);
+        varStruct *s2 = symbolTable->getVar(ivar);
+        string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
+        string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
+
+
+        o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax"
+          << "		# [op_div_equal] load " << dvar << " into " << "%eax" << endl;
+        o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx"
+          << "		# [op_div_equal] load " << ivar << " into " << "%edx" << endl;
+        o << "	cltd" << endl;
+        o << "	idivl "	<< s2->memoryOffset << "(%rbp)" << endl;
+        o << "	" << movInstr1 << "	%eax, " << s1->memoryOffset << "(%rbp)"
+          << "		# [op_div_equal] load %eax into " << dvar << endl;
+        break;
+    }
 
 	case Instr::cmp_eq:
 	{
@@ -771,18 +958,60 @@ void Instr::generateASM(ostream &o)
 		break;
 	}
 
+	case Instr::cmp_eqlt:
+	{
+		// Get params
+		string var1 = params.at(0);
+		string var2 = params.at(1);
+		string tmp = params.at(2);
+		varStruct *s1 = symbolTable->getVar(var1);
+		varStruct *s2 = symbolTable->getVar(var2);
+		varStruct *s3 = symbolTable->getVar(tmp);
+
+		string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
+		string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
+		o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax" << endl;
+		o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx" << endl;
+		o << "	cmpl	%edx, %eax" << endl;
+		o << "	setle	%al" << endl;
+		o << "	movzbl	%al, %eax" << endl;
+		o << "	movl	%eax, " << s3->memoryOffset << "(%rbp)" << endl;
+
+		break;
+	}
+
+	case Instr::cmp_eqgt:
+	{
+		// Get params
+		string var1 = params.at(0);
+		string var2 = params.at(1);
+		string tmp = params.at(2);
+		varStruct *s1 = symbolTable->getVar(var1);
+		varStruct *s2 = symbolTable->getVar(var2);
+		varStruct *s3 = symbolTable->getVar(tmp);
+
+		string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
+		string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
+		o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax" << endl;
+		o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx" << endl;
+		o << "	cmpl	%edx, %eax" << endl;
+		o << "	setge	%al" << endl;
+		o << "	movzbl	%al, %eax" << endl;
+		o << "	movl	%eax, " << s3->memoryOffset << "(%rbp)" << endl;
+		break;
+	}
+
+
 	case Instr::prologue:
 	{
 		// Get param
 		string label = params.at(0);
 
-		o << endl;
 		o << ".globl " << label << endl;
 		o << ".type	" << label << ", @function" << endl;
 
 		// Write ASM instructions
-		o << label << ":" << endl
-		  << endl;
+		o << label << ":" << endl;
 		o << "	pushq 	%rbp " << endl;
 		o << "	movq 	%rsp, %rbp" << endl;
 
@@ -800,13 +1029,13 @@ void Instr::generateASM(ostream &o)
 		// Get params
 		string label = params.at(0);
 		string tmp = params.at(1);
+		int numParams = stoi(params.at(2));
 
 		// Write ASM instructions
 		o << "	call 	" << label << endl;
+		o << "	subq	$" << max((numParams-6)*8, 0) << ", %rsp" << endl;
 		o << "	movl	%eax, " << symbolTable->getVar(tmp)->memoryOffset << "(%rbp)"
-		  << "		# [call] load "
-		  << "%eax"
-		  << " into " << tmp << endl;
+		  << "		# [call] load " << "%eax" << " into " << tmp << endl;
 
 		break;
 	}
@@ -815,24 +1044,60 @@ void Instr::generateASM(ostream &o)
 	{
 		// Get params
 		string var = params.at(0);
-		string paramNum = params.at(1);
-		varStruct *s1 = symbolTable->getVar(var);
+		int paramNum = stoi(params.at(1));
+		varStruct *s = symbolTable->getVar(var);
 
-		// Get param register
-		string reg = Instr::AMD86_paramRegisters[paramNum];
+		// Use registers for less than 6 parameters
+		if (paramNum < 6) {
 
-		if (s1->constPtr)
-		{
-			o << "	movl	$" << *s1->constPtr << ", " << reg
-			  << "		# [wparam] load " << var << " into "
-			  << "%" << reg << endl;
-		}
-		else
-		{
+			// Get param register
+			string reg = Instr::AMD86_paramRegisters[s->varType][paramNum];
+			string movInstr = (s->varType == "char") ? "movb" : "movl";
+
 			// Write ASM instructions
-			o << "	movl	" << s1->memoryOffset << "(%rbp), " << reg
-			  << "		# [wparam] load " << var << " into "
-			  << "%" << reg << endl;
+			if (s->constPtr)
+			{
+				o << "	" << movInstr << "	$" << *s->constPtr << ", " << reg \
+				  << "		# [wparam] load " << var << " into " << reg << endl;
+			}
+			else
+			{
+				o << "	" << movInstr << "	" << s->memoryOffset << "(%rbp), " << reg \
+				  << "		# [wparam] load " << var << " into " << reg << endl;
+			}	
+
+		}
+
+		// Pass parameters on the stack if more than 6 parameters
+		else {
+
+			// Write ASM instructions
+			if (s->constPtr)
+			{
+				if (s->varType == "char") {
+					o << "	movb	$" << *s->constPtr << ", %al" << endl;
+					o << "	pushq	%rax" \
+				 	  << "		# [wparam] push " << *s->constPtr << " onto the stack" << endl;
+				}
+				else {
+					o << "	pushq	$" << *s->constPtr \
+					  << "		# [wparam] push " << *s->constPtr << " onto the stack" << endl;
+				}
+			}
+			else
+			{
+				if (s->varType == "char") { 
+					o << "	movzbl " << s->memoryOffset << "(%rbp)" << ", %eax" << endl;
+					o << "	pushq	%rax" \
+				 	  << "		# [wparam] push " << var << " onto the stack" << endl;
+				}
+				else {
+					o << "	pushq	" << s->memoryOffset << "(%rbp)" \
+				 	  << "		# [wparam] push " << var << " onto the stack" << endl;
+				}
+				
+			}	
+
 		}
 
 		break;
@@ -842,16 +1107,53 @@ void Instr::generateASM(ostream &o)
 	{
 		// Get params
 		string var = params.at(0);
-		string paramNum = params.at(1);
+		int paramNum = stoi(params.at(1));
+		int offset = stoi(params.at(2));
+		varStruct* s = symbolTable->getVar(var);
 
-		// Get param register
-		string reg = Instr::AMD86_paramRegisters[paramNum];
+		// Use registers for less than 6 parameters
+		if (paramNum < 6) {
 
-		// Write ASM instructions
-		o << "	movl	" << reg << ", " << symbolTable->getVar(var)->memoryOffset << "(%rbp)"
-		  << "		# [rparam] load "
-		  << "%" << reg << " into "
-		  << "^" + var << endl;
+			// Get param register
+			string reg = Instr::AMD86_paramRegisters[s->varType][paramNum];
+			string movInstr = (s->varType == "char") ? "movb" : "movl";
+
+			// Write ASM instructions
+			o << "	" << movInstr << "	" << reg << ", " << s->memoryOffset << "(%rbp)"
+			  << "		# [rparam] load " << reg << " into " << "^" + var << endl;
+
+		}
+
+		// Load parameters from stack if more than 6 parameters 
+		else {
+
+			string movInstr1, movInstr2;
+			string reg;
+
+			// var2 = var1
+
+			if (s->varType == "int")
+			{
+				// int = int : movl
+				movInstr1 = "movl";
+				movInstr2 = "movl";
+				reg = "eax";
+			}
+			else if (s->varType == "char")
+			{
+				// char = char : movb
+				movInstr1 = "movb";
+				movInstr2 = "movb";
+				reg = "al";
+			}
+
+			// Write ASM instructions
+			o << "	" << movInstr1 << "	" << offset << "(%rbp), %" << reg
+			<< "		# [rparam] load param " << paramNum << " into " << "%" << reg << endl;
+			o << "	" << movInstr2 << "	%" << reg << ", " << s->memoryOffset << "(%rbp)"
+			<< "		# [rparam] load " << "%" << reg << " into " << "^" + var << endl;
+
+		}
 
 		break;
 	}

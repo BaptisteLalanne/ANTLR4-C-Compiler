@@ -18,6 +18,19 @@ CodeGenVisitor::CodeGenVisitor(ErrorHandler& eH, CFG& cfg) : errorHandler(eH), c
 	this->addSymbolGetchar();
 }
 
+CodeGenVisitor::~CodeGenVisitor() {
+	delete globalSymbolTable;
+
+	while (!symbolTableGarbage.empty()) {
+		SymbolTable* _st = symbolTableGarbage.top();
+		if (_st != nullptr) {
+			delete _st;
+			symbolTableGarbage.pop();
+		}
+	}
+
+}
+
 void CodeGenVisitor::addSymbolPutchar() {
 	globalSymbolTable->addFunc("putchar", "int", {"int"}, {"c"}, 0);
 }
@@ -259,6 +272,41 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 	return tmp;
 }
 
+antlrcpp::Any CodeGenVisitor::visitCmpEqualityLessGreaterExpr (ifccParser::CmpEqualityLessGreaterExprContext *ctx) {
+	
+	SymbolTable* symbolTable = symbolTablesStack.top();
+
+	// Fetch sub-expressions
+	varStruct* var1 = visit(ctx->expr(0));
+	varStruct* var2 = visit(ctx->expr(1));
+	varStruct* tmp = createTempVar(ctx);
+
+	// Check void errors
+	if (var1->varType == "void" || var2->varType == "void") {
+		string message =  "Cannot perform operations on void";
+		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
+		return SymbolTable::dummyVarStruct;
+	}
+
+    if(!var1->isCorrect || !var2->isCorrect) {
+        return SymbolTable::dummyVarStruct;
+    }
+
+	// Apply the operators
+	char op = ctx->EQLG->getText()[0];
+	switch (op) {
+		case '<':
+			cfg.getCurrentBB()->addInstr(Instr::cmp_eqlt, {var1->varName, var2->varName, tmp->varName}, symbolTable);
+			break;
+		case '>':
+			cfg.getCurrentBB()->addInstr(Instr::cmp_eqgt, {var1->varName, var2->varName, tmp->varName}, symbolTable);
+			break;
+	}
+	
+	// Return the temporary variable
+	return tmp;
+}
+
 antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprContext *ctx) {
 		
 	SymbolTable* symbolTable = symbolTablesStack.top();
@@ -422,11 +470,17 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 	if (constStr[0] == '\'') {
 		int* constPtr = new int(constValue);
 		tmp = createTempVar(ctx, "char", constPtr);
-		// cfg.getCurrentBB()->addInstr(Instr::ldconst, {"\'" + to_string(constValue), tmp->varName}, symbolTable);
+		// Load each const if we do not add the optimize option
+		if(!cfg.getOptimized()){
+			cfg.getCurrentBB()->addInstr(Instr::ldconst, {"\'" + to_string(constValue), tmp->varName}, symbolTable);
+		}
 	} else {
 		int* constPtr = new int(constValue);
 		tmp = createTempVar(ctx, "int", constPtr);
-		// cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp->varName}, symbolTable);
+		// Load each const if we do not add the optimize option
+		if(!cfg.getOptimized()){
+			cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp->varName}, symbolTable);
+		}
 	}
 
 	// Return the temporary variable
@@ -479,13 +533,6 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 		return SymbolTable::dummyVarStruct;
 	}
 
-	// TEMPORARY Error message if there are more than 6 params
-	if (numParams > 6) {
-		string message =  "Sorry, this compiler does not support more than 6 parameters yet";
-		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
-	}
-
 	// Save current stack pointer
 	int currStackPointer = symbolTable->getStackPointer();
 
@@ -513,13 +560,14 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 	symbolTable->setStackPointer(currStackPointer);
 
 	// Write assembly instructions to put the evaluated params into a param register
-	for (int i = 0; i < numParams; i++) {
-		cfg.getCurrentBB()->addInstr(Instr::wparam, {params[i]->varName, to_string(i)}, symbolTable);
+	for (int i = numParams-1; i >= 0; i--) {
+			cfg.getCurrentBB()->addInstr(Instr::wparam, {params[i]->varName, to_string(i)}, symbolTable);
 	}
 
 	// Write call instruction
 	varStruct* tmp = createTempVar(ctx, func->returnType);
-	cfg.getCurrentBB()->addInstr(Instr::call, {funcName, tmp->varName}, symbolTable);
+	cfg.getCurrentBB()->addInstr(Instr::call, {funcName, tmp->varName, to_string(numParams)}, symbolTable);
+	func->isCalled = true;
 
 	return tmp;
 
@@ -529,7 +577,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
-	// Number of variable to declare
+	// Number of variable to declarer
 	int numVariable = ctx->TOKENNAME().size();
 
 	// Fetch type
@@ -730,8 +778,10 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrBody(ifccParser::FuncDeclrContext *c
 	cfg.getCurrentBB()->addInstr(Instr::prologue, {funcName}, newSymbolTable); 
 	
 	// Create instruction that loads register into variable
-	for(int i = 0 ; i < func->nbParameters ; i++) {
-		cfg.getCurrentBB()->addInstr(Instr::rparam, {func->parameterNames[i], to_string(i)}, newSymbolTable);
+	int paramStackOffset = 16; // The size of the return adress stored on the stack when calling the function
+	for(int i = func->nbParameters-1 ; i >= 0 ; i--) {
+		cfg.getCurrentBB()->addInstr(Instr::rparam, {func->parameterNames[i], to_string(i), to_string(paramStackOffset)}, newSymbolTable);
+		paramStackOffset += 8;
 	}
 
 	// Create body instructions
@@ -750,7 +800,6 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrBody(ifccParser::FuncDeclrContext *c
 antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) {
 	return 0;
 }	
-
 
 antlrcpp::Any CodeGenVisitor::visitBeginBlock(ifccParser::BeginBlockContext *ctx) {
 	// Fetch parent symbol table
@@ -788,6 +837,7 @@ antlrcpp::Any CodeGenVisitor::visitEndBlock(ifccParser::EndBlockContext *ctx) {
 	}
 
 	// Remove symbol table from stack
+	symbolTableGarbage.push(symbolTable);
 	symbolTablesStack.pop();
 
 	return 0;
@@ -981,4 +1031,33 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 
 	return 0;
 
+}
+antlrcpp::Any CodeGenVisitor::visitPmmdEqual(ifccParser::PmmdEqualContext *ctx) {
+
+    // Fetch constant's info
+    varStruct* rExpr = visit(ctx->expr());
+    // Fetch variable
+    string lExpr = ctx->TOKENNAME()->getText();
+    // Get op
+    string op = ctx->OPPMMD->getText();
+
+    // Add the instruction to the IR
+    SymbolTable* symbolTable = symbolTablesStack.top();
+
+    if (op == "+=") {
+        cfg.getCurrentBB()->addInstr(Instr::op_plus_equal, {lExpr, rExpr->varName}, symbolTable);
+    } else if (op == "-=") {
+        cfg.getCurrentBB()->addInstr(Instr::op_sub_equal, {lExpr, rExpr->varName}, symbolTable);
+    } else if (op == "*=") {
+        cfg.getCurrentBB()->addInstr(Instr::op_mult_equal, {lExpr, rExpr->varName}, symbolTable);
+    } else {
+        cfg.getCurrentBB()->addInstr(Instr::op_div_equal, {lExpr, rExpr->varName}, symbolTable);
+    }
+
+    return symbolTable->getVar(lExpr);
+
+}
+
+SymbolTable* CodeGenVisitor::getGlobalSymbolTable() {
+	return this->globalSymbolTable;
 }

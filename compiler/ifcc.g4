@@ -1,7 +1,7 @@
 
 grammar ifcc;
 
-axiom : prog ;
+axiom : prog EOF;
 
 vtype: TINT | TCHAR ;
 beginBlock : '{' ;
@@ -41,6 +41,7 @@ expr :
 	| expr OP2=('+'|'-') expr 					#addSubExpr
 	| expr CMP=('<' | '>') expr					#cmpLessOrGreaterExpr
 	| expr EQ=('=='|'!=') expr					#cmpEqualityExpr
+	| expr EQLG=('<='|'>=') expr				#cmpEqualityLessGreaterExpr
 	| expr '&' expr								#andExpr
 	| expr '^' expr								#xorExpr
 	| expr '|' expr								#orExpr
@@ -51,6 +52,7 @@ expr :
 
 affect :
     TOKENNAME '=' expr2                         #affExpr
+    | TOKENNAME OPPMMD=('+='|'-='|'*='|'/=') expr      #pmmdEqual
 ;
 
 ifStatement :
