@@ -131,13 +131,13 @@ void SymbolTable::checkUsedVariables(ErrorHandler& eH) {
 		if (!v.second.isUsed) {
 			string message = "";
 			if (v.first[0] == '^') {
-				message =  "Parameter " + v.first.substr(1) + " is not used";
+				message =  "Parameter '" + v.first.substr(1) + "' is not used";
 			}
 			else {
-				message =  "Variable " + v.first + " is not used";
+				message =  "Variable '" + v.first + "' declared at line " + to_string(v.second.varLine) + " is not used";
 				
 			}
-			eH.signal(WARNING, message, v.second.varLine);
+			eH.signal(WARNING, message, -1);
 		}
 	}
 }

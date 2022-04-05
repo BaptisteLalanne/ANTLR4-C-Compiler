@@ -72,7 +72,7 @@ antlrcpp::Any CodeGenVisitor::visitUnaryExpr(ifccParser::UnaryExprContext *ctx) 
 	if (var->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
 	// Apply the operators
@@ -103,7 +103,7 @@ antlrcpp::Any CodeGenVisitor::visitAndExpr(ifccParser::AndExprContext *ctx) {
 	if (var1->varType == "void" || var2->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
 	// Apply the operator
@@ -127,7 +127,7 @@ antlrcpp::Any CodeGenVisitor::visitXorExpr(ifccParser::XorExprContext *ctx) {
 	if (var1->varType == "void" || var2->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
 	// Apply the operator
@@ -151,7 +151,7 @@ antlrcpp::Any CodeGenVisitor::visitOrExpr(ifccParser::OrExprContext *ctx) {
 	if (var1->varType == "void" || var2->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 	
 	// Apply the operator
@@ -175,11 +175,11 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 	if (var1->varType == "void" || var2->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
     if(!var1->isCorrect || !var2->isCorrect) {
-        return SymbolTable::dummyVarStruct;
+        return &SymbolTable::dummyVarStruct;
     }
 
 	// Apply the operators
@@ -211,11 +211,11 @@ antlrcpp::Any CodeGenVisitor::visitMulDivModExpr(ifccParser::MulDivModExprContex
 	if (var1->varType == "void" || var2->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
     if(!var1->isCorrect || !var2->isCorrect) {
-        return SymbolTable::dummyVarStruct;
+        return &SymbolTable::dummyVarStruct;
     }
 
 	// Apply the operators
@@ -250,11 +250,11 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 	if (var1->varType == "void" || var2->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
     if(!var1->isCorrect || !var2->isCorrect) {
-        return SymbolTable::dummyVarStruct;
+        return &SymbolTable::dummyVarStruct;
     }
 
 	// Apply the operators
@@ -285,11 +285,11 @@ antlrcpp::Any CodeGenVisitor::visitCmpEqualityLessGreaterExpr(ifccParser::CmpEqu
 	if (var1->varType == "void" || var2->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
     if(!var1->isCorrect || !var2->isCorrect) {
-        return SymbolTable::dummyVarStruct;
+        return &SymbolTable::dummyVarStruct;
     }
 
 	// Apply the operators
@@ -320,11 +320,11 @@ antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprCo
 	if (var1->varType == "void" || var2->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
     if(!var1->isCorrect || !var2->isCorrect) {
-        return SymbolTable::dummyVarStruct;
+        return &SymbolTable::dummyVarStruct;
     }
 
 	// Apply the operators
@@ -357,7 +357,7 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	if (!symbolTable->hasVar(varName) && !symbolTable->hasParam(varName)) {
 		string message =  "Variable '" + varName + "' has not been declared";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 		
 	// Save current stack pointer
@@ -373,7 +373,7 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	if (result->varType == "void") {
 		string message =  "Cannot assign on void type";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
 	// Write assembly instructions to save expression in variable 
@@ -497,7 +497,7 @@ antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
 	if (!symbolTable->hasVar(varName) && !symbolTable->hasParam(varName)) {
 		string message =  "Variable '" + varName + "' has not been declared";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
 	// Mark it as used
@@ -518,7 +518,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 	if (!globalSymbolTable->hasFunc(funcName)) {
 		string message =  "Function '" + funcName + "' has not been declared";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
 	funcStruct* func = globalSymbolTable->getFunc(funcName);
@@ -531,32 +531,21 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 
 	// Check param number
 	int numParams = ctx->expr().size();
-	if (numParams != func->nbParameters) {
+	bool hasVoid = func->nbParameters < 0;
+	if ((func->nbParameters > 0 && numParams != func->nbParameters) || (hasVoid && numParams > 0)) {
 		string message =  "Function '" + funcName + "' is called with the wrong number of parameters";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
 	// Save current stack pointer
 	int currStackPointer = symbolTable->getStackPointer();
 
-	// Iterate through parameters to evaluate them
+	// Iterate through parameters to evaluate and save them
 	vector<varStruct*> params;
 	for(int i = 0 ; i < numParams ; i++) {
-		
-		// Compute param expression
 		varStruct* result = visit(ctx->expr(i));
-
-		// Check param types
-		if (result->varType != func->parameterTypes[i] && !(result->varType == "char" && func->parameterTypes[i] == "int")) {
-			string message =  "Function '" + funcName + "' is called with the wrong parameter types";
-			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-			return SymbolTable::dummyVarStruct;
-		}
-		
-		// Save the param results
 		params.push_back(result);
-		
 	}
 
 	// Reset the stack pointer after having evaluated the expression
@@ -643,7 +632,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	if (result->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 	
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
@@ -669,7 +658,7 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 	if (result->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
     if (!result->isCorrect) {
@@ -782,6 +771,9 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrHeader(ifccParser::FuncDeclrContext 
 		string paramType = ctx->vtype(i)->getText();
 		paramTypes.push_back(paramType);
 		paramNames.push_back(paramName);
+	}
+	if (ctx->TVOID().size() != 0) {
+		numParams = -1;
 	}
 
 	// Fetch return type
