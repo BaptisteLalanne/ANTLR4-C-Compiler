@@ -48,7 +48,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				} 
 				else {
 					// Assign a const to a variable
-					// Switch aff/copy to load const
+                    // Switch aff/copy to load const
 					op = Instr::ldconst;
 					params[0] = "$" + to_string(*s1->constPtr);
 				}
@@ -79,6 +79,51 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
             if (s1->constPtr && s2->constPtr)
             {
                 int res = *s1->constPtr + *s2->constPtr;
+                s1->constPtr = new int(res);
+                deleteInstr = true;
+            } else {
+                deleteInstr = checkNeedForLoadConst(s1, s2, s1, it, instrList, op);
+            }
+            break;
+        }
+
+        case Instr::op_sub_equal:
+        {
+            varStruct *s1 = symbolTable->getVar(params.at(0));
+            varStruct *s2 = symbolTable->getVar(params.at(1));
+            if (s1->constPtr && s2->constPtr)
+            {
+                int res = *s1->constPtr - *s2->constPtr;
+                s1->constPtr = new int(res);
+                deleteInstr = true;
+            } else {
+                deleteInstr = checkNeedForLoadConst(s1, s2, s1, it, instrList, op);
+            }
+            break;
+        }
+
+        case Instr::op_mult_equal:
+        {
+            varStruct *s1 = symbolTable->getVar(params.at(0));
+            varStruct *s2 = symbolTable->getVar(params.at(1));
+            if (s1->constPtr && s2->constPtr)
+            {
+                int res = *s1->constPtr * *s2->constPtr;
+                s1->constPtr = new int(res);
+                deleteInstr = true;
+            } else {
+                deleteInstr = checkNeedForLoadConst(s1, s2, s1, it, instrList, op);
+            }
+            break;
+        }
+
+        case Instr::op_div_equal:
+        {
+            varStruct *s1 = symbolTable->getVar(params.at(0));
+            varStruct *s2 = symbolTable->getVar(params.at(1));
+            if (s1->constPtr && s2->constPtr)
+            {
+                int res = (int)(*s1->constPtr / *s2->constPtr);
                 s1->constPtr = new int(res);
                 deleteInstr = true;
             } else {
@@ -363,8 +408,15 @@ bool Instr::checkNeedForLoadConst(varStruct *s1, varStruct *s2, varStruct *s3, l
 				deleteInstr = true;
 			}
 			break;
+        case Instr::op_sub_equal:
         case Instr::op_plus_equal:
             if (s2->constPtr && *s2->constPtr == 0) {
+                deleteInstr = true;
+            }
+            break;
+        case Instr::op_mult_equal:
+        case Instr::op_div_equal:
+            if (s2->constPtr && *s2->constPtr == 1) {
                 deleteInstr = true;
             }
             break;
@@ -718,6 +770,70 @@ void Instr::generateASM(ostream &o)
         o << "	addl	%edx, %eax" << endl;
         o << "	" << movInstr1 << "	%eax, " << s1->memoryOffset << "(%rbp)"
         << "		# [op_plus_equal] load %eax into " << dvar << endl;
+        break;
+    }
+
+    case Instr::op_sub_equal:
+    {
+        string dvar = params.at(0);
+        string ivar = params.at(1);
+
+        varStruct *s1 = symbolTable->getVar(dvar);
+        varStruct *s2 = symbolTable->getVar(ivar);
+        string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
+        string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
+
+
+        o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax"
+          << "		# [op_sub_equal] load " << dvar << " into " << "%eax" << endl;
+        o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx"
+          << "		# [op_sub_equal] load " << ivar << " into " << "%edx" << endl;
+        o << "	subl	%edx, %eax" << endl;
+        o << "	" << movInstr1 << "	%eax, " << s1->memoryOffset << "(%rbp)"
+          << "		# [op_sub_equal] load %eax into " << dvar << endl;
+        break;
+    }
+
+    case Instr::op_mult_equal:
+    {
+        string dvar = params.at(0);
+        string ivar = params.at(1);
+
+        varStruct *s1 = symbolTable->getVar(dvar);
+        varStruct *s2 = symbolTable->getVar(ivar);
+        string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
+        string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
+
+
+        o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax"
+          << "		# [op_mult_equal] load " << dvar << " into " << "%eax" << endl;
+        o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx"
+          << "		# [op_mult_equal] load " << ivar << " into " << "%edx" << endl;
+        o << "	imull	%edx, %eax" << endl;
+        o << "	" << movInstr1 << "	%eax, " << s1->memoryOffset << "(%rbp)"
+          << "		# [op_mult_equal] load %eax into " << dvar << endl;
+        break;
+    }
+
+    case Instr::op_div_equal:
+    {
+        string dvar = params.at(0);
+        string ivar = params.at(1);
+
+        varStruct *s1 = symbolTable->getVar(dvar);
+        varStruct *s2 = symbolTable->getVar(ivar);
+        string movInstr1 = SymbolTable::typeOpeMoves.at(s1->varType);
+        string movInstr2 = SymbolTable::typeOpeMoves.at(s2->varType);
+
+
+        o << "	" << movInstr1 << "	" << s1->memoryOffset << "(%rbp), %eax"
+          << "		# [op_div_equal] load " << dvar << " into " << "%eax" << endl;
+        o << "	" << movInstr2 << "	" << s2->memoryOffset << "(%rbp), %edx"
+          << "		# [op_div_equal] load " << ivar << " into " << "%edx" << endl;
+        o << "	cltd" << endl;
+        o << "	idivl "	<< s2->memoryOffset << "(%rbp)" << endl;
+        o << "	" << movInstr1 << "	%eax, " << s1->memoryOffset << "(%rbp)"
+          << "		# [op_div_equal] load %eax into " << dvar << endl;
         break;
     }
 

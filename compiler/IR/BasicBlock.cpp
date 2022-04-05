@@ -29,7 +29,7 @@ bool BasicBlock::evaluateConstInstr(list<Instr*>::iterator it) {
 	if (i->getOp() == Instr::aff) {
 		string varName = params[1];
 		unordered_set<BasicBlock*> bbVisited;
-		bool needsDefinition = (this->lookForAffInstr(varName,bbVisited) > 1);
+		bool needsDefinition = (this->lookForAffInstr(varName, bbVisited) > 1);
 		// If there is no other aff with the same variable, we can propagate (and eventually delete)
 		deleteInstr = i->propagateConst(needsDefinition, it, instrList);
 	}  
@@ -56,8 +56,25 @@ void BasicBlock::optimizeIR() {
 int BasicBlock::lookForAffInstr(string varName, unordered_set<BasicBlock*> & bbVisited, int countAffect) {
 	bbVisited.insert(this);
 	for (Instr* i : instrList) {
-        if(i->getOp() == Instr::aff && i->getParams()[1] == varName) {
-			countAffect++;
+        Instr::Operation op = i->getOp();
+        switch (op) {
+            case Instr::aff:
+            {
+                if(i->getParams()[1] == varName) {
+                    countAffect++;
+                }
+                break;
+            }
+            case Instr::op_plus_equal:
+            case Instr::op_sub_equal:
+            case Instr::op_mult_equal:
+            case Instr::op_div_equal:
+            {
+                if (i->getParams()[0] == varName){
+                    countAffect++;
+                }
+                break;
+            }
         }
     }
 	if (exit_true && countAffect <= 1 && bbVisited.find(exit_true) == bbVisited.end()) {

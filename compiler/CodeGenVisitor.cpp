@@ -990,16 +990,27 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 
 }
 
-antlrcpp::Any CodeGenVisitor::visitPlusEqual(ifccParser::PlusEqualContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitPmmdEqual(ifccParser::PmmdEqualContext *ctx) {
 
     // Fetch constant's info
     varStruct* rExpr = visit(ctx->expr());
     // Fetch variable
     string lExpr = ctx->TOKENNAME()->getText();
+    // Get op
+    string op = ctx->OPPMMD->getText();
 
     // Add the instruction to the IR
     SymbolTable* symbolTable = symbolTablesStack.top();
-    cfg.getCurrentBB()->addInstr(Instr::op_plus_equal, {lExpr, rExpr->varName}, symbolTable);
+
+    if (op == "+=") {
+        cfg.getCurrentBB()->addInstr(Instr::op_plus_equal, {lExpr, rExpr->varName}, symbolTable);
+    } else if (op == "-=") {
+        cfg.getCurrentBB()->addInstr(Instr::op_sub_equal, {lExpr, rExpr->varName}, symbolTable);
+    } else if (op == "*=") {
+        cfg.getCurrentBB()->addInstr(Instr::op_mult_equal, {lExpr, rExpr->varName}, symbolTable);
+    } else {
+        cfg.getCurrentBB()->addInstr(Instr::op_div_equal, {lExpr, rExpr->varName}, symbolTable);
+    }
 
     return symbolTable->getVar(lExpr);
 

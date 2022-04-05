@@ -51,7 +51,7 @@ expr :
 
 affect :
     TOKENNAME '=' expr2                         #affExpr
-    | TOKENNAME '+=' expr                       #plusEqual
+    | TOKENNAME OPPMMD=('+='|'-='|'*='|'/=') expr      #pmmdEqual
 ;
 
 ifStatement :

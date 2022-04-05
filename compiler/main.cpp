@@ -22,7 +22,6 @@ int main(int argc, char *argv[])
 
     
     int c;
-    controlFlowGraph.setOptimized(true);
     char* arg_o = nullptr;
     while ((c = getopt(argc, argv, "o")) != -1)
     {
