@@ -25,6 +25,7 @@ struct varStruct {
 	int varLine;		// The line of code where the variable is declared
 	bool isUsed;		// Whether the variable is used in the code
     bool isCorrect; 	// False when a dummy struct is returned to avoid bad cast
+	bool noConst;		// Tell if the variable can be set as a simple const
 	int* constPtr;  	// Const pointer
 };
 

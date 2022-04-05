@@ -63,15 +63,19 @@ affect :
 ifStatement :
 	'if' '(' expr2 ')' beginBlock body endBlock (elseStatement)?
 	| 'if' '(' expr2 ')' expr2 ';' (elseStatement)?
+	| 'if' '(' expr2 ')' end ';' (elseStatement)?
 ;
 
 elseStatement :
 	'else' beginBlock body endBlock
 	|'else' expr2 ';'
+	|'else' end ';'
 ;
 
 whileStatement :
 	'while' '(' expr2 ')' beginBlock body endBlock
+	|'while' '(' expr2 ')' expr2 ';'
+	|'while' '(' expr2 ')' end ';'
 ;
 
 declr :

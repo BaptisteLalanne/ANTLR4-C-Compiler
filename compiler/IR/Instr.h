@@ -14,6 +14,7 @@ class Instr {
 
 		typedef enum {
 			ldconst,
+			decl,
 			copy,
             aff,
 			rmem,

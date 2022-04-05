@@ -593,8 +593,8 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 
 		// Add variable to symbol table
 		symbolTable->addVar(dVarName, dVarType, ctx->getStart()->getLine());
+		cfg.getCurrentBB()->addInstr(Instr::decl, {dVarType,dVarName}, symbolTable);
 	}
-
 	return 0;
 
 }
@@ -968,6 +968,11 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 		visit(ctx->expr2(1));
 		// Write instruction to jump back to the following block
 		thenBB->addInstr(Instr::absolute_jump, {thenBB->getExitTrue()->getLabel()}, symbolTable);
+	} else if (ctx->end())
+	{
+		visit(ctx->end());
+		// Write instruction to jump back to the following block
+		thenBB->addInstr(Instr::absolute_jump, {thenBB->getExitTrue()->getLabel()}, symbolTable);
 	}
 	
 	// Set the next current BB
@@ -992,6 +997,11 @@ antlrcpp::Any CodeGenVisitor::visitElseStatement(ifccParser::ElseStatementContex
 		visit(ctx->expr2());
 		// Write instruction to jump back to the following block
 		elseBB->addInstr(Instr::absolute_jump, {elseBB->getExitTrue()->getLabel()}, symbolTable);
+	}else if (ctx->end())
+	{
+		visit(ctx->end());
+		// Write instruction to jump back to the following block
+		elseBB->addInstr(Instr::absolute_jump, {elseBB->getExitTrue()->getLabel()}, symbolTable);
 	}
 
 	return 0;
@@ -1010,7 +1020,7 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 	cout << "#testBB = " << testBB->getLabel() << endl;
 	// Fetch the condition of the while loop
 	cfg.setCurrentBB(testBB);
-	varStruct* testVar = visit(ctx->expr2());
+	varStruct* testVar = visit(ctx->expr2(0));
 	//Stores the name of the boolean test variable within the basic block for the test
 	testBB->setTestVarName(testVar->varName);
 
@@ -1048,9 +1058,16 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 
 	// Visit body of the while loop
 	cfg.setCurrentBB(bodyBB);
-	visit(ctx->beginBlock());
-	visit(ctx->body());
-	visit(ctx->endBlock());
+	if (ctx->body()) {
+		visit(ctx->beginBlock());
+		visit(ctx->body());
+		visit(ctx->endBlock());
+	} else if (ctx->expr2(1)) {
+		visit(ctx->expr2(1));
+	} else if (ctx->end()) {
+		visit(ctx->end());
+	} 
+	
 
 	//if(afterWhileBB->getExitTrue())
 	beforeWhileBB->addInstr(Instr::absolute_jump, {beforeWhileBB->getExitTrue()->getLabel()}, symbolTable);

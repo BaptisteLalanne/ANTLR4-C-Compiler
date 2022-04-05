@@ -14,7 +14,7 @@ using namespace std;
 
 unordered_map<string, int> SymbolTable::typeSizes = {{"int", 4}, {"char", 1}};
 unordered_map<string, string> SymbolTable::typeOpeMoves = {{"int", "movl"}, {"char", "movzbl"}};
-varStruct SymbolTable::dummyVarStruct = {"", 0, "", 0, false, false};
+varStruct SymbolTable::dummyVarStruct = {"", 0, "", 0, false, false, false};
 
 int SymbolTable::hasVar(string name) {
 	bool hasVarInOwnMap = varMap.find(name) != varMap.end();
@@ -91,6 +91,7 @@ void SymbolTable::addVar(string name, string vT, int vL, int* constPtr) {
 		vL,
 		false,
 		true,
+		false,
 		constPtr
 	};
 	varMap[name] = s;
