@@ -36,6 +36,11 @@ To get x86 asm code for your c-like program, go to `compiler` directory and run 
 $ ./ifcc your_input_file.c 
 ```
 
+If you want to add our optimization methods, you can add the `-o` parameter :
+```sh
+$ ./ifcc -o your_input_file.c 
+```
+
 To launch your c-like program, you can use `runner.sh` script, in `compiler` directory :
 ```sh
 $ ./runner.sh your_input_file.c
