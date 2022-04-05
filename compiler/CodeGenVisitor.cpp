@@ -762,6 +762,9 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrHeader(ifccParser::FuncDeclrContext 
 	// Fetch function name
 	string funcName = ctx->TOKENNAME(0)->getText();
 
+	// Fetch return type
+	string returnType = ctx->FTYPE->getText();
+
 	// Fetch parameter names and types
 	vector<string> paramTypes = {};
 	vector<string> paramNames = {};
@@ -772,12 +775,9 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrHeader(ifccParser::FuncDeclrContext 
 		paramTypes.push_back(paramType);
 		paramNames.push_back(paramName);
 	}
-	if (ctx->TVOID().size() != 0) {
+	if (ctx->TVOID().size() == 2 && returnType == "void" || ctx->TVOID().size() == 1 && returnType != "void") {
 		numParams = -1;
 	}
-
-	// Fetch return type
-	string returnType = ctx->FTYPE->getText();
 
 	// Check errors
 	if (globalSymbolTable->hasFunc(funcName)) {
