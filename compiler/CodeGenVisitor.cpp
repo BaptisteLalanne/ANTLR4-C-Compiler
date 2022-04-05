@@ -593,8 +593,8 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 
 		// Add variable to symbol table
 		symbolTable->addVar(dVarName, dVarType, ctx->getStart()->getLine());
+		cfg.getCurrentBB()->addInstr(Instr::decl, {dVarType,dVarName}, symbolTable);
 	}
-
 	return 0;
 
 }

@@ -39,9 +39,10 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 			varStruct *s1 = symbolTable->getVar(params.at(0));
 			varStruct *s2 = symbolTable->getVar(params.at(1));
 			// If it is a scope variable assign with a const
+
 			if (s2 && s1->constPtr)
 			{
-				if (!needsDefinition)
+				if (!needsDefinition && !s2->noConst)
 				{
 					s2->constPtr = new int(*s1->constPtr);
 					deleteInstr = true;
@@ -49,6 +50,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 				else {
 					// Assign a const to a variable
                     // Switch aff/copy to load const
+					s2->noConst = true;
 					op = Instr::ldconst;
 					params[0] = "$" + to_string(*s1->constPtr);
 				}
@@ -60,6 +62,7 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 			varStruct *s1 = symbolTable->getVar(params.at(0));
 			varStruct *s2 = symbolTable->getVar(params.at(1));
 			varStruct *s3 = symbolTable->getVar(params.at(2));
+
 			if (s1->constPtr && s2->constPtr)
 			{
 				int res = *s1->constPtr + *s2->constPtr;
@@ -399,6 +402,15 @@ bool Instr::propagateConst(bool needsDefinition, list<Instr*>::iterator it, list
 			}
 			break;
 		}
+		case Instr::decl:
+		{
+			deleteInstr = true;
+			if(needsDefinition){
+				varStruct* s1 = symbolTable->getVar(params.at(1));
+				s1->noConst = true;
+			}
+			break;
+		}
 
 	}
 	return deleteInstr;
@@ -459,6 +471,7 @@ bool Instr::checkNeedForLoadConst(varStruct *s1, varStruct *s2, varStruct *s3, l
 		if(s1->constPtr) {
 			Instr* newInstr = new Instr(bb, Instr::ldconst, {"$" + to_string(*s1->constPtr), s1->varName}, sT);
 			instrList.insert(it, newInstr);
+			
 		} 
 		else if(s2->constPtr) {
 			Instr* newInstr = new Instr(bb, Instr::ldconst, {"$" + to_string(*s2->constPtr), s2->varName}, sT);

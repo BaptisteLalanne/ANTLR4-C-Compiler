@@ -24,7 +24,7 @@ class BasicBlock {
 		void addInstr(Instr::Operation op, vector<string> params, SymbolTable* sT);
 		void optimizeIR();
 		bool evaluateConstInstr(list<Instr*>::iterator it);
-        int lookForAffInstr(string varName, unordered_set<BasicBlock*> & bbVisited,int countAffect = 0);
+        int lookForAffInstr(string varName, unordered_set<BasicBlock*> & bbVisited);
 		void setExitTrue(BasicBlock* bb);
 		BasicBlock* getExitTrue();
 		void setExitFalse(BasicBlock* bb);
