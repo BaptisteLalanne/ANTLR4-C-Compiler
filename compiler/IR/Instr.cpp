@@ -1242,7 +1242,7 @@ void Instr::generateASM(ostream &o)
 		string blockLabel = params.at(0);
 
 		// Write ASM instructions
-		o << "	jmp    " << blockLabel << endl;
+		o << "	jmp	" << blockLabel << endl;
 
 		break;
 	}
