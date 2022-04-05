@@ -1020,7 +1020,7 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 	cout << "#testBB = " << testBB->getLabel() << endl;
 	// Fetch the condition of the while loop
 	cfg.setCurrentBB(testBB);
-	varStruct* testVar = visit(ctx->expr2());
+	varStruct* testVar = visit(ctx->expr2(0));
 	//Stores the name of the boolean test variable within the basic block for the test
 	testBB->setTestVarName(testVar->varName);
 
@@ -1058,9 +1058,16 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 
 	// Visit body of the while loop
 	cfg.setCurrentBB(bodyBB);
-	visit(ctx->beginBlock());
-	visit(ctx->body());
-	visit(ctx->endBlock());
+	if (ctx->body()) {
+		visit(ctx->beginBlock());
+		visit(ctx->body());
+		visit(ctx->endBlock());
+	} else if (ctx->expr2(1)) {
+		visit(ctx->expr2(1));
+	} else if (ctx->end()) {
+		visit(ctx->end());
+	} 
+	
 
 	//if(afterWhileBB->getExitTrue())
 	beforeWhileBB->addInstr(Instr::absolute_jump, {beforeWhileBB->getExitTrue()->getLabel()}, symbolTable);

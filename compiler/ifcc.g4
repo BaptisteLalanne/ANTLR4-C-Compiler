@@ -74,6 +74,8 @@ elseStatement :
 
 whileStatement :
 	'while' '(' expr2 ')' beginBlock body endBlock
+	|'while' '(' expr2 ')' expr2 ';'
+	|'while' '(' expr2 ')' end ';'
 ;
 
 declr :
