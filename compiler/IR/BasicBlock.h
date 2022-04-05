@@ -30,8 +30,6 @@ class BasicBlock {
 		void setExitFalse(BasicBlock* bb);
 		BasicBlock* getExitFalse();
 		void setTestVarName(string n) { testVarName = n; }
-		int getTestVarMemoryOffset() { return testVarMemoryOffset; }
-		void setTestVarMemoryOffset(int o) { testVarMemoryOffset = o; }
 		string getTestVarName() { return testVarName; }
         list<Instr*> getInstrList() { return instrList; };
 		string getLabel();
@@ -52,10 +50,9 @@ class BasicBlock {
 		CFG* cfg; 
 
 		/* The instructions themselves */
-		list<Instr*> instrList; 
+		list<Instr*> instrList;
 
 		/* When generating IR code for an if(expr) or while(expr) etc, store here the name of the variable that holds the value of expr */
 		string testVarName;
-		int testVarMemoryOffset;  
  
 };

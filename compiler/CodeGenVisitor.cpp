@@ -865,12 +865,9 @@ antlrcpp::Any CodeGenVisitor::visitEndBlock(ifccParser::EndBlockContext *ctx) {
 
 	if (currBB->getExitFalse()) {
 		currBB->addInstr(Instr::conditional_jump, {currBB->getTestVarName(), currBB->getExitFalse()->getLabel(), currBB->getExitTrue()->getLabel()}, symbolTable);
-		//cout << "	cmpl    $0, " << testVarMemoryOffset << "(%rbp)" << endl;
-		//cout << "	je    " << exit_false->label << endl;
 	}
 	if (currBB->getExitTrue()){
 		currBB->addInstr(Instr::absolute_jump, {currBB->getExitTrue()->getLabel()}, symbolTable);
-		//cout << "	jmp    " << this->exit_true->label << endl;
 	}
 
 	// Remove symbol table from stack
@@ -913,7 +910,6 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 
 	//Stores the name of the boolean test variable within the basic block for the test
 	testBB->setTestVarName(testVar->varName);
-	testBB->setTestVarMemoryOffset(testVar->memoryOffset);
 
 	// Create an 'then' BB
 	BasicBlock* thenBB = cfg.createBB();
@@ -1017,7 +1013,6 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 	varStruct* testVar = visit(ctx->expr2());
 	//Stores the name of the boolean test variable within the basic block for the test
 	testBB->setTestVarName(testVar->varName);
-	testBB->setTestVarMemoryOffset(testVar->memoryOffset);
 
 	// Create a basic block that will contain the body of the while loop
 	BasicBlock* bodyBB = cfg.createBB();
