@@ -24,14 +24,12 @@ class BasicBlock {
 		void addInstr(Instr::Operation op, vector<string> params, SymbolTable* sT);
 		void optimizeIR();
 		bool evaluateConstInstr(list<Instr*>::iterator it);
-        int lookForAffInstr(string varName, unordered_set<BasicBlock*> & bbVisited,int countAffect = 0);
+        int lookForAffInstr(string varName, unordered_set<BasicBlock*> & bbVisited);
 		void setExitTrue(BasicBlock* bb);
 		BasicBlock* getExitTrue();
 		void setExitFalse(BasicBlock* bb);
 		BasicBlock* getExitFalse();
 		void setTestVarName(string n) { testVarName = n; }
-		int getTestVarMemoryOffset() { return testVarMemoryOffset; }
-		void setTestVarMemoryOffset(int o) { testVarMemoryOffset = o; }
 		string getTestVarName() { return testVarName; }
         list<Instr*> getInstrList() { return instrList; };
 		string getLabel();
@@ -52,10 +50,9 @@ class BasicBlock {
 		CFG* cfg; 
 
 		/* The instructions themselves */
-		list<Instr*> instrList; 
+		list<Instr*> instrList;
 
 		/* When generating IR code for an if(expr) or while(expr) etc, store here the name of the variable that holds the value of expr */
 		string testVarName;
-		int testVarMemoryOffset;  
  
 };

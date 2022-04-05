@@ -34,6 +34,8 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		// Linearising functions
 		virtual antlrcpp::Any visitProg(ifccParser::ProgContext *ctx);
 		virtual antlrcpp::Any visitMainDeclr(ifccParser::MainDeclrContext *ctx) ;
+		virtual antlrcpp::Any visitMainDeclrHeaderWithRet(ifccParser::MainDeclrHeaderWithRetContext *ctx) ;
+		virtual antlrcpp::Any visitMainDeclrHeaderNoRet(ifccParser::MainDeclrHeaderNoRetContext *ctx) ;
 		virtual antlrcpp::Any visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) ;
 		virtual antlrcpp::Any visitFuncDeclrHeader(ifccParser::FuncDeclrContext *ctx) ;
 		virtual antlrcpp::Any visitFuncDeclrBody(ifccParser::FuncDeclrContext *ctx) ;

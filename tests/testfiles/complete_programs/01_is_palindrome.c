@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-# leetcode
 void printInt(int x){
 
     while(x>0){

@@ -32,11 +32,11 @@ CodeGenVisitor::~CodeGenVisitor() {
 }
 
 void CodeGenVisitor::addSymbolPutchar() {
-	globalSymbolTable->addFunc("putchar", "int", {"int"}, {"c"}, 0);
+	globalSymbolTable->addFunc("putchar", "int", 1, {"int"}, {"c"}, 0);
 }
 
 void CodeGenVisitor::addSymbolGetchar() {
-	globalSymbolTable->addFunc("getchar", "int", {}, {}, 0);
+	globalSymbolTable->addFunc("getchar", "int", -1, {}, {}, 0);
 }
 
 antlrcpp::Any CodeGenVisitor::visitProg(ifccParser::ProgContext *ctx) {
@@ -72,7 +72,7 @@ antlrcpp::Any CodeGenVisitor::visitUnaryExpr(ifccParser::UnaryExprContext *ctx) 
 	if (var->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
 	// Apply the operators
@@ -103,7 +103,7 @@ antlrcpp::Any CodeGenVisitor::visitAndExpr(ifccParser::AndExprContext *ctx) {
 	if (var1->varType == "void" || var2->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
 	// Apply the operator
@@ -127,7 +127,7 @@ antlrcpp::Any CodeGenVisitor::visitXorExpr(ifccParser::XorExprContext *ctx) {
 	if (var1->varType == "void" || var2->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
 	// Apply the operator
@@ -151,7 +151,7 @@ antlrcpp::Any CodeGenVisitor::visitOrExpr(ifccParser::OrExprContext *ctx) {
 	if (var1->varType == "void" || var2->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 	
 	// Apply the operator
@@ -175,11 +175,11 @@ antlrcpp::Any CodeGenVisitor::visitAddSubExpr(ifccParser::AddSubExprContext *ctx
 	if (var1->varType == "void" || var2->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
     if(!var1->isCorrect || !var2->isCorrect) {
-        return SymbolTable::dummyVarStruct;
+        return &SymbolTable::dummyVarStruct;
     }
 
 	// Apply the operators
@@ -211,11 +211,11 @@ antlrcpp::Any CodeGenVisitor::visitMulDivModExpr(ifccParser::MulDivModExprContex
 	if (var1->varType == "void" || var2->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
     if(!var1->isCorrect || !var2->isCorrect) {
-        return SymbolTable::dummyVarStruct;
+        return &SymbolTable::dummyVarStruct;
     }
 
 	// Apply the operators
@@ -250,11 +250,11 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 	if (var1->varType == "void" || var2->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
     if(!var1->isCorrect || !var2->isCorrect) {
-        return SymbolTable::dummyVarStruct;
+        return &SymbolTable::dummyVarStruct;
     }
 
 	// Apply the operators
@@ -285,11 +285,11 @@ antlrcpp::Any CodeGenVisitor::visitCmpEqualityLessGreaterExpr(ifccParser::CmpEqu
 	if (var1->varType == "void" || var2->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
     if(!var1->isCorrect || !var2->isCorrect) {
-        return SymbolTable::dummyVarStruct;
+        return &SymbolTable::dummyVarStruct;
     }
 
 	// Apply the operators
@@ -320,11 +320,11 @@ antlrcpp::Any CodeGenVisitor::visitCmpEqualityExpr(ifccParser::CmpEqualityExprCo
 	if (var1->varType == "void" || var2->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
     if(!var1->isCorrect || !var2->isCorrect) {
-        return SymbolTable::dummyVarStruct;
+        return &SymbolTable::dummyVarStruct;
     }
 
 	// Apply the operators
@@ -354,10 +354,10 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	string varName = ctx->TOKENNAME()->getText();
 
 	// Check for errors
-	if (!symbolTable->hasVar(varName) && !symbolTable->hasParam(varName)) {
+	if (symbolTable->hasVar(varName) == 0 && symbolTable->hasParam(varName) == 0) {
 		string message =  "Variable '" + varName + "' has not been declared";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 		
 	// Save current stack pointer
@@ -373,7 +373,7 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	if (result->varType == "void") {
 		string message =  "Cannot assign on void type";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
 	// Write assembly instructions to save expression in variable 
@@ -494,10 +494,10 @@ antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
 	string varName = ctx->TOKENNAME()->getText();
 
 	// Throw error if no corresponding variable has been found
-	if (!symbolTable->hasVar(varName) && !symbolTable->hasParam(varName)) {
+	if (symbolTable->hasVar(varName) == 0 && symbolTable->hasParam(varName) == 0) {
 		string message =  "Variable '" + varName + "' has not been declared";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
 	// Mark it as used
@@ -518,7 +518,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 	if (!globalSymbolTable->hasFunc(funcName)) {
 		string message =  "Function '" + funcName + "' has not been declared";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
 	funcStruct* func = globalSymbolTable->getFunc(funcName);
@@ -531,32 +531,21 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 
 	// Check param number
 	int numParams = ctx->expr().size();
-	if (numParams != func->nbParameters) {
+	bool hasVoid = func->nbParameters < 0;
+	if ((func->nbParameters > 0 && numParams != func->nbParameters) || (hasVoid && numParams > 0)) {
 		string message =  "Function '" + funcName + "' is called with the wrong number of parameters";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
 	// Save current stack pointer
 	int currStackPointer = symbolTable->getStackPointer();
 
-	// Iterate through parameters to evaluate them
+	// Iterate through parameters to evaluate and save them
 	vector<varStruct*> params;
 	for(int i = 0 ; i < numParams ; i++) {
-		
-		// Compute param expression
 		varStruct* result = visit(ctx->expr(i));
-
-		// Check param types
-		if (result->varType != func->parameterTypes[i] && !(result->varType == "char" && func->parameterTypes[i] == "int")) {
-			string message =  "Function '" + funcName + "' is called with the wrong parameter types";
-			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-			return SymbolTable::dummyVarStruct;
-		}
-		
-		// Save the param results
 		params.push_back(result);
-		
 	}
 
 	// Reset the stack pointer after having evaluated the expression
@@ -591,12 +580,12 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 		string dVarName = ctx->TOKENNAME(i)->getText();
 
 		// Check errors
-		if (symbolTable->hasVar(dVarName)) {
+		if (symbolTable->hasVar(dVarName) == 1) {
 			string message =  "Variable '" + dVarName + "' has already been declared";
 			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 			return 1;
 		}
-		if (symbolTable->hasParam(dVarName)) {
+		if (symbolTable->hasParam(dVarName) == 1) {
 			string message =  "Variable '" + dVarName + "' is already defined as a parameter of the function";
 			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 			return 1;
@@ -604,8 +593,8 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 
 		// Add variable to symbol table
 		symbolTable->addVar(dVarName, dVarType, ctx->getStart()->getLine());
+		cfg.getCurrentBB()->addInstr(Instr::decl, {dVarType,dVarName}, symbolTable);
 	}
-
 	return 0;
 
 }
@@ -619,12 +608,12 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	string dVarType = ctx->vtype()->getText();
 
 	// Check errors
-	if (symbolTable->hasVar(dVarName)) {
+	if (symbolTable->hasVar(dVarName) == 1) {
 		string message =  "Variable '" + dVarName + "' has already been declared";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
         return 1;
 	}
-	if (symbolTable->hasParam(dVarName)) {
+	if (symbolTable->hasParam(dVarName) == 1) {
 		string message =  "Variable '" + dVarName + "' is already defined as a parameter of the function";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 		return 1;
@@ -643,7 +632,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	if (result->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 	
 	// Reset the stack pointer and temp variable counter after having evaluated the expression
@@ -669,7 +658,7 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 	if (result->varType == "void") {
 		string message =  "Cannot perform operations on void";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
+		return &SymbolTable::dummyVarStruct;
 	}
 
     if (!result->isCorrect) {
@@ -718,14 +707,34 @@ void CodeGenVisitor::returnDefault(antlr4::ParserRuleContext *ctx) {
 		errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
 	}
 
+	bool return41 = currFunction == "main" && func->returnType == "void";
+
 	// Add actual return instruction
-	cfg.getCurrentBB()->addInstr(Instr::ret, {"$0"}, symbolTable);
+	cfg.getCurrentBB()->addInstr(Instr::ret, {(return41) ? "$41" : "$0"}, symbolTable);
 }
 
-antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitMainDeclrHeaderNoRet(ifccParser::MainDeclrHeaderNoRetContext *ctx) { 
 
 	// Create main function in symbol table (grammar makes sure it can only be declared once)
-	globalSymbolTable->addFunc("main", "int", {}, {}, ctx->getStart()->getLine());
+	globalSymbolTable->addFunc("main", "int", 0, {}, {}, ctx->getStart()->getLine());
+
+	// Warning
+	string message =  "No return type specified: defaults to 'int'";
+	errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
+
+	return 0;
+
+}
+antlrcpp::Any CodeGenVisitor::visitMainDeclrHeaderWithRet(ifccParser::MainDeclrHeaderWithRetContext *ctx) {
+
+	// Create main function in symbol table (grammar makes sure it can only be declared once)
+	globalSymbolTable->addFunc("main", ctx->FTYPE->getText(), 0, {}, {}, ctx->getStart()->getLine());
+	return 0;
+
+}
+antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) {
+
+	visit(ctx->mainDeclrHeader());
 	currFunction = "main";
 
 	// Visit begin (create symbol table) 
@@ -753,6 +762,9 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrHeader(ifccParser::FuncDeclrContext 
 	// Fetch function name
 	string funcName = ctx->TOKENNAME(0)->getText();
 
+	// Fetch return type
+	string returnType = ctx->FTYPE->getText();
+
 	// Fetch parameter names and types
 	vector<string> paramTypes = {};
 	vector<string> paramNames = {};
@@ -763,9 +775,9 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrHeader(ifccParser::FuncDeclrContext 
 		paramTypes.push_back(paramType);
 		paramNames.push_back(paramName);
 	}
-
-	// Fetch return type
-	string returnType = ctx->FTYPE->getText();
+	if (ctx->TVOID().size() == 2 && returnType == "void" || ctx->TVOID().size() == 1 && returnType != "void") {
+		numParams = -1;
+	}
 
 	// Check errors
 	if (globalSymbolTable->hasFunc(funcName)) {
@@ -775,7 +787,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrHeader(ifccParser::FuncDeclrContext 
 	}
 
 	// Create function in symbol table (if doesn't exist, otherwise error)
-	globalSymbolTable->addFunc(funcName, returnType, paramTypes, paramNames, ctx->getStart()->getLine());
+	globalSymbolTable->addFunc(funcName, returnType, numParams, paramTypes, paramNames, ctx->getStart()->getLine());
 
 	return 0;
 
@@ -853,12 +865,9 @@ antlrcpp::Any CodeGenVisitor::visitEndBlock(ifccParser::EndBlockContext *ctx) {
 
 	if (currBB->getExitFalse()) {
 		currBB->addInstr(Instr::conditional_jump, {currBB->getTestVarName(), currBB->getExitFalse()->getLabel(), currBB->getExitTrue()->getLabel()}, symbolTable);
-		//cout << "	cmpl    $0, " << testVarMemoryOffset << "(%rbp)" << endl;
-		//cout << "	je    " << exit_false->label << endl;
 	}
 	if (currBB->getExitTrue()){
 		currBB->addInstr(Instr::absolute_jump, {currBB->getExitTrue()->getLabel()}, symbolTable);
-		//cout << "	jmp    " << this->exit_true->label << endl;
 	}
 
 	// Remove symbol table from stack
@@ -901,7 +910,6 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 
 	//Stores the name of the boolean test variable within the basic block for the test
 	testBB->setTestVarName(testVar->varName);
-	testBB->setTestVarMemoryOffset(testVar->memoryOffset);
 
 	// Create an 'then' BB
 	BasicBlock* thenBB = cfg.createBB();
@@ -960,6 +968,11 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 		visit(ctx->expr2(1));
 		// Write instruction to jump back to the following block
 		thenBB->addInstr(Instr::absolute_jump, {thenBB->getExitTrue()->getLabel()}, symbolTable);
+	} else if (ctx->end())
+	{
+		visit(ctx->end());
+		// Write instruction to jump back to the following block
+		thenBB->addInstr(Instr::absolute_jump, {thenBB->getExitTrue()->getLabel()}, symbolTable);
 	}
 	
 	// Set the next current BB
@@ -984,6 +997,11 @@ antlrcpp::Any CodeGenVisitor::visitElseStatement(ifccParser::ElseStatementContex
 		visit(ctx->expr2());
 		// Write instruction to jump back to the following block
 		elseBB->addInstr(Instr::absolute_jump, {elseBB->getExitTrue()->getLabel()}, symbolTable);
+	}else if (ctx->end())
+	{
+		visit(ctx->end());
+		// Write instruction to jump back to the following block
+		elseBB->addInstr(Instr::absolute_jump, {elseBB->getExitTrue()->getLabel()}, symbolTable);
 	}
 
 	return 0;
@@ -995,55 +1013,50 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 
 	// Basic block before the while expression
 	BasicBlock* beforeWhileBB = cfg.getCurrentBB();
-	cout << "#beforeWhileBB = " << beforeWhileBB->getLabel() << endl;
 
 	// Create a basic block that will contain the condition
 	BasicBlock* testBB = cfg.createBB();
-	cout << "#testBB = " << testBB->getLabel() << endl;
 	// Fetch the condition of the while loop
 	cfg.setCurrentBB(testBB);
-	varStruct* testVar = visit(ctx->expr2());
+	varStruct* testVar = visit(ctx->expr2(0));
 	//Stores the name of the boolean test variable within the basic block for the test
 	testBB->setTestVarName(testVar->varName);
-	testBB->setTestVarMemoryOffset(testVar->memoryOffset);
 
 	// Create a basic block that will contain the body of the while loop
 	BasicBlock* bodyBB = cfg.createBB();
-	cout << "#bodyBB = " << bodyBB->getLabel() << endl;
 	
 	// Create a basic block that will contain the code after the while loop
 	BasicBlock* afterWhileBB = cfg.createBB();
-	cout << "#afterWhileBB = " << afterWhileBB->getLabel() << endl;
 
 	// Set the exit pointers of the afterWhileBB to the ones of the parent BB
 	afterWhileBB->setExitTrue(beforeWhileBB->getExitTrue());
-	cout << "#afterWhileBB->setExitTrue = " << (beforeWhileBB->getExitTrue()?beforeWhileBB->getExitTrue()->getLabel():"Null") << endl;
 	afterWhileBB->setExitFalse(beforeWhileBB->getExitFalse());
 	
 	// Set beforeWhileBB exit to testBB
 	beforeWhileBB->setExitTrue(testBB);
-	cout << "#beforeWhileBB->setExitTrue = " << testBB->getLabel() << endl;
 	beforeWhileBB->setExitFalse(nullptr);
-	cout << "#beforeWhileBB->setExitFalse = " << "Null" << endl;
 	
 	// Set the tue exit pointer of the test block to the body block
 	testBB->setExitTrue(bodyBB);
-	cout << "#testBB->setExitTrue = " << bodyBB->getLabel() << endl;
 	// Set the false exit pointer of the test block to the block after the while
 	testBB->setExitFalse(afterWhileBB);
-	cout << "#testBB->setExitFalse = " << afterWhileBB->getLabel() << endl;
 
 	// Set the true exit pointer of the body block to the test block
 	bodyBB->setExitTrue(testBB);
-	cout << "#bodyBB->setExitTrue = " << testBB->getLabel() << endl;
 	bodyBB->setExitFalse(nullptr);
-	cout << "#bodyBB->setExitFalse = " << "Null" << endl;
 
 	// Visit body of the while loop
 	cfg.setCurrentBB(bodyBB);
-	visit(ctx->beginBlock());
-	visit(ctx->body());
-	visit(ctx->endBlock());
+	if (ctx->body()) {
+		visit(ctx->beginBlock());
+		visit(ctx->body());
+		visit(ctx->endBlock());
+	} else if (ctx->expr2(1)) {
+		visit(ctx->expr2(1));
+	} else if (ctx->end()) {
+		visit(ctx->end());
+	} 
+	
 
 	//if(afterWhileBB->getExitTrue())
 	beforeWhileBB->addInstr(Instr::absolute_jump, {beforeWhileBB->getExitTrue()->getLabel()}, symbolTable);

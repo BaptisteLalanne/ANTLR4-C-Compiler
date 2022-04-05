@@ -108,7 +108,8 @@ int main(int argc, char *argv[])
 
     // Optimize ASM instructions
     if(controlFlowGraph.getOptimized()) {
-        controlFlowGraph.optimizeASM(out, cout);
+        //controlFlowGraph.optimizeASM(out, cout);
+        cout << out.str();
     }
     else {
         cout << out.str();

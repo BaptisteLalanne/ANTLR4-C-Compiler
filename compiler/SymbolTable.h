@@ -25,6 +25,7 @@ struct varStruct {
 	int varLine;		// The line of code where the variable is declared
 	bool isUsed;		// Whether the variable is used in the code
     bool isCorrect; 	// False when a dummy struct is returned to avoid bad cast
+	bool noConst;		// Tell if the variable can be set as a simple const
 	int* constPtr;  	// Const pointer
 };
 
@@ -32,7 +33,7 @@ struct varStruct {
 struct funcStruct {
 	string funcName;				//Its name
 	string returnType; 				//Its return type 
-	size_t nbParameters;			//The number of input parameters
+	int nbParameters;			//The number of input parameters
 	vector<string> parameterTypes;	//The type of every input parameter
 	vector<string> parameterNames; 	//The names of every parameter
 	int funcLine; 					// The line of code where the function is declared
@@ -62,8 +63,8 @@ class SymbolTable {
 		};
 
 		// Tell whether a variable with a given name is present in the symbol table
-		bool hasVar(string name);
-		bool hasParam(string name);
+		int hasVar(string name);
+		int hasParam(string name);
 
 		// Tell whether a function with a given name is present in the symbol table
 		bool hasFunc(string name);
@@ -84,7 +85,7 @@ class SymbolTable {
 		void addVar(string name, string vT, int vL, int* constPtr = nullptr);
 
 		// Add a function to the table of symbols
-		void addFunc(string name, string rT, vector<string> pT, vector<string> pN, int fL);
+		void addFunc(string name, string rT, int nP, vector<string> pT, vector<string> pN, int fL);
 
 		// Parent getter 
 		SymbolTable* getParent();

@@ -26,10 +26,11 @@ bool BasicBlock::evaluateConstInstr(list<Instr*>::iterator it) {
 	Instr* i = *it;
 	// If this is a aff instruction, check if there is another aff instruction with the same variable at the left
 	vector<string> params = i->getParams(); 
-	if (i->getOp() == Instr::aff) {
+	if (i->getOp() == Instr::aff || i->getOp() == Instr::decl) {
 		string varName = params[1];
 		unordered_set<BasicBlock*> bbVisited;
-		bool needsDefinition = (this->lookForAffInstr(varName, bbVisited) > 1);
+		int nbAff = this->lookForAffInstr(varName, bbVisited);
+		bool needsDefinition = (nbAff > 1);
 		// If there is no other aff with the same variable, we can propagate (and eventually delete)
 		deleteInstr = i->propagateConst(needsDefinition, it, instrList);
 	}  
@@ -53,37 +54,33 @@ void BasicBlock::optimizeIR() {
 	}
 }
 
-int BasicBlock::lookForAffInstr(string varName, unordered_set<BasicBlock*> & bbVisited, int countAffect) {
+int BasicBlock::lookForAffInstr(string varName, unordered_set<BasicBlock*> & bbVisited) {
 	bbVisited.insert(this);
+	int countAffect = 0;
 	for (Instr* i : instrList) {
         Instr::Operation op = i->getOp();
         switch (op) {
             case Instr::aff:
-            {
                 if(i->getParams()[1] == varName) {
                     countAffect++;
                 }
                 break;
-            }
             case Instr::op_plus_equal:
             case Instr::op_sub_equal:
             case Instr::op_mult_equal:
             case Instr::op_div_equal:
-            {
                 if (i->getParams()[0] == varName){
                     countAffect++;
                 }
-                break;
-            }
+				break;
         }
     }
 	if (exit_true && countAffect <= 1 && bbVisited.find(exit_true) == bbVisited.end()) {
-		countAffect += exit_true->lookForAffInstr(varName, bbVisited, countAffect);
+		countAffect += exit_true->lookForAffInstr(varName, bbVisited);
 	} 
     if (exit_false && countAffect <= 1 && bbVisited.find(exit_false) == bbVisited.end()) {
-		countAffect += exit_false->lookForAffInstr(varName, bbVisited, countAffect);
+		countAffect += exit_false->lookForAffInstr(varName, bbVisited);
 	}
-
 	return countAffect;
 }
 
