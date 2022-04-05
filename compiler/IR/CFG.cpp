@@ -93,12 +93,12 @@ void CFG::optimizeASM(stringstream& iS, ostream& oS) {
 			vector<string> params = splitString(args[2], ", ");
 			// If previous instruction was movl, but with swapped params
 			if (currInstr == previousInstr && params[0] == previousDest && params[1] == previousSrc) {
-				// Remove last instruction from stack 
-				outputLines.pop_back();
-				// Only skip this one if this is a var to reg & reg to var case
+				// Remove last instruction from stack only if this is a var to reg & reg to var case
 				if (previousDest[0] == '%' && previousSrc[0] != '%') {
-					continue;
+					outputLines.pop_back();
 				}
+				// Skip this one
+				continue;
 			}
 			// Store previous params
 			previousSrc = params[0];

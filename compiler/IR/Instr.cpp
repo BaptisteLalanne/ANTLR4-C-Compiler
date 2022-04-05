@@ -1231,7 +1231,7 @@ void Instr::generateASM(ostream &o)
 		// Write ASM instructions
 		o << "	cmpl	$0, " << symbolTable->getVar(testVarName)->memoryOffset << "(%rbp)" << endl;
 		o << "	je	" << falseExitBlockLabel << endl;
-		o << "	jmp	" << trueExitBlockLabel << endl;
+		o << "	jmp\t" << trueExitBlockLabel << endl;
 
 		break;
 	}
@@ -1242,7 +1242,7 @@ void Instr::generateASM(ostream &o)
 		string blockLabel = params.at(0);
 
 		// Write ASM instructions
-		o << "	jmp	" << blockLabel << endl;
+		o << "	jmp\t" << blockLabel << endl;
 
 		break;
 	}
