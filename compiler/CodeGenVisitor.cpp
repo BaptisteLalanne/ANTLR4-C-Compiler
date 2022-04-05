@@ -272,7 +272,7 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 	return tmp;
 }
 
-antlrcpp::Any CodeGenVisitor::visitCmpEqualityLessGreaterExpr (ifccParser::CmpEqualityLessGreaterExprContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitCmpEqualityLessGreaterExpr(ifccParser::CmpEqualityLessGreaterExprContext *ctx) {
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
@@ -375,7 +375,7 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 		return SymbolTable::dummyVarStruct;
 	}
-	
+
 	// Write assembly instructions to save expression in variable 
 	cfg.getCurrentBB()->addInstr(Instr::aff, {result->varName, varName}, symbolTable);
 
@@ -389,8 +389,8 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 
 antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) {
 	
-	int constValue;
 	SymbolTable* symbolTable = symbolTablesStack.top();
+	int constValue;
 
 	// Size of INT
 	long intSize = (long)INT_MAX - (long)INT_MIN + 1;
@@ -399,14 +399,12 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 	string constStr = ctx->CONST()->getText();
  
 	if (constStr.length() == 3 && constStr[0] == '\'' && constStr[2] == '\'') {
-
 		constValue = constStr[1];
-
 	} 
 	else if (constStr.length() > 3 && constStr[0] == '\'' && constStr[constStr.length()-1] == '\'') {
 
 		// Warning
-		string message =  "Multi-character character constant";
+		string message =  "Use of multi-character character constant";
 		errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
 		
 		// Compute value
@@ -451,7 +449,7 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 			constValue = (int)lConstValue;
 
 			// Warning
-			string message =  "Integer constant is too large for its type.\nOverflow in conversion to 'int' changes value from '" + constStr + "' to '" + to_string(constValue) + "'";
+			string message =  "Integer constant is too large for its type. Overflow in conversion to 'int' changes value from '" + constStr + "' to '" + to_string(constValue) + "'";
 			errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
 
 		} 
@@ -525,6 +523,12 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 
 	funcStruct* func = globalSymbolTable->getFunc(funcName);
 
+	// Check if it's an implicit declaration
+	if (func->funcLine > ctx->getStart()->getLine()) {
+		string message =  "Function '" + funcName + "' might be declared implicitely";
+		errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
+	}
+
 	// Check param number
 	int numParams = ctx->expr().size();
 	if (numParams != func->nbParameters) {
@@ -549,7 +553,6 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 			return SymbolTable::dummyVarStruct;
 		}
-		
 		
 		// Save the param results
 		params.push_back(result);
@@ -685,15 +688,37 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitEmptyEnd(ifccParser::EmptyEndContext *ctx) {
+
+	// Set flag
 	SymbolTable* symbolTable = symbolTablesStack.top();
 	symbolTable->setReturned(true);
+
+	// Check warnings
+	funcStruct* func = globalSymbolTable->getFunc(currFunction);
+	if (func->returnType != "void") {
+		string message =  "Use of empty 'return;' in non-void function '" + currFunction + "'";
+		errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
+	}
+
+	// Add actual return instruction
 	cfg.getCurrentBB()->addInstr(Instr::ret, {(currFunction == "main") ? "$41" : "$0"}, symbolTable);
 	return 0;
 }
 
-void CodeGenVisitor::returnDefault() {
+void CodeGenVisitor::returnDefault(antlr4::ParserRuleContext *ctx) {
+
+	// Set flag
 	SymbolTable* symbolTable = symbolTablesStack.top();
 	symbolTable->setReturned(true);
+
+	// Check warnings
+	funcStruct* func = globalSymbolTable->getFunc(currFunction);
+	if (func->returnType != "void") {
+		string message =  "No 'return' found in non-void function '" + currFunction + "'";
+		errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
+	}
+
+	// Add actual return instruction
 	cfg.getCurrentBB()->addInstr(Instr::ret, {"$0"}, symbolTable);
 }
 
@@ -714,7 +739,7 @@ antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) 
 	visit(ctx->body());
 
 	// Create default return instruction
-    if (!newSymbolTable->hasReturned()) returnDefault();
+    if (!newSymbolTable->hasReturned()) returnDefault(ctx);
 
 	// Visit end (discard symbol table)
 	visit(ctx->endBlock());
@@ -788,7 +813,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrBody(ifccParser::FuncDeclrContext *c
 	visit(ctx->body());
 
 	// Create default return instruction
-	if (!newSymbolTable->hasReturned()) returnDefault();
+	if (!newSymbolTable->hasReturned()) returnDefault(ctx);
 
 	// Visit end (discard symbol table)
 	visit(ctx->endBlock());

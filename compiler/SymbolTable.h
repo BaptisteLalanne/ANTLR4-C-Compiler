@@ -12,6 +12,7 @@
 //--------------------------------------------------- Called interfaces
 #include <unordered_map>
 #include <vector>
+#include <unordered_set>
 #include "ErrorHandler.h"
 using namespace std;
 
@@ -103,11 +104,16 @@ class SymbolTable {
 		// Perform static analysis on variables
 		void checkUsedVariables(ErrorHandler& eH);
 
+		// Perform static analysis on variables
+		void checkUsedFunctions(ErrorHandler& eH);
+
 		// Used for assembler
 		static int getCast(string type, int value);
 
 		// Hashtable containing the size in bytes of the different types (typeName : size)
 		static unordered_map<string, int> typeSizes;
+
+		// Hashtable containing the move asm instructions for different types (typeName : intrName)
 		static unordered_map<string, string> typeOpeMoves;
 
         // Dummy varStruct to handle parsing errors
