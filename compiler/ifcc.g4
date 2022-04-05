@@ -12,11 +12,16 @@ prog :
 ;
 
 funcDeclr :
-	FTYPE=('void'|'int'|'char') TOKENNAME '(' (vtype TOKENNAME (',' vtype TOKENNAME)*)? ')' beginBlock body endBlock
+	FTYPE=('void'|'int'|'char') TOKENNAME '(' (vtype TOKENNAME (',' vtype TOKENNAME)*)? ')' beginBlock body endBlock (';')?
+;
+
+mainDeclrHeader:
+	FTYPE=('void'|'int') 'main' '(' ('void')? ')' 		 		#mainDeclrHeaderWithRet
+	| 'main' '(' ('void')? ')' 									#mainDeclrHeaderNoRet
 ;
 
 mainDeclr : 
-	'int' 'main' '(' ')' beginBlock body endBlock
+	mainDeclrHeader beginBlock body endBlock (';')?
 ;
 
 body : 

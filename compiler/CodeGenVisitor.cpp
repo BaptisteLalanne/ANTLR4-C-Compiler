@@ -718,14 +718,34 @@ void CodeGenVisitor::returnDefault(antlr4::ParserRuleContext *ctx) {
 		errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
 	}
 
+	bool return41 = currFunction == "main" && func->returnType == "void";
+
 	// Add actual return instruction
-	cfg.getCurrentBB()->addInstr(Instr::ret, {"$0"}, symbolTable);
+	cfg.getCurrentBB()->addInstr(Instr::ret, {(return41) ? "$41" : "$0"}, symbolTable);
 }
 
-antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitMainDeclrHeaderNoRet(ifccParser::MainDeclrHeaderNoRetContext *ctx) { 
 
 	// Create main function in symbol table (grammar makes sure it can only be declared once)
 	globalSymbolTable->addFunc("main", "int", {}, {}, ctx->getStart()->getLine());
+
+	// Warning
+	string message =  "No return type specified: defaults to 'int'";
+	errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
+
+	return 0;
+
+}
+antlrcpp::Any CodeGenVisitor::visitMainDeclrHeaderWithRet(ifccParser::MainDeclrHeaderWithRetContext *ctx) {
+
+	// Create main function in symbol table (grammar makes sure it can only be declared once)
+	globalSymbolTable->addFunc("main", ctx->FTYPE->getText(), {}, {}, ctx->getStart()->getLine());
+	return 0;
+
+}
+antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) {
+
+	visit(ctx->mainDeclrHeader());
 	currFunction = "main";
 
 	// Visit begin (create symbol table) 
