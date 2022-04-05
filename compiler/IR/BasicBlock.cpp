@@ -29,7 +29,7 @@ bool BasicBlock::evaluateConstInstr(list<Instr*>::iterator it) {
 	if (i->getOp() == Instr::aff) {
 		string varName = params[1];
 		unordered_set<BasicBlock*> bbVisited;
-		bool needsDefinition = (this->lookForAffInstr(varName,bbVisited) > 1);
+		bool needsDefinition = (this->lookForAffInstr(varName, bbVisited) > 1);
 		// If there is no other aff with the same variable, we can propagate (and eventually delete)
 		deleteInstr = i->propagateConst(needsDefinition, it, instrList);
 	}  
@@ -39,41 +39,7 @@ bool BasicBlock::evaluateConstInstr(list<Instr*>::iterator it) {
 	return deleteInstr;
 }
 
-bool BasicBlock::evaluateTrivialOperationInstr(list<Instr*>::iterator it) {
-	bool deleteInstr = false;
-	Instr* i = *it;
-	SymbolTable* sT = i->getSymbolTable();
-	vector<string> params = i->getParams(); 
-	// If this is a trivial operation (add or sub 0, mul 1, div by 1), delete the instruction 
-	varStruct* s1;
-	varStruct* s2;
-	switch(i->getOp()) {
-		case Instr::op_add:
-		case Instr::op_sub:
-			s1 = sT->getVar(params[0]);
-			s2 = sT->getVar(params[1]);
-			if ((s1->constPtr && *s1->constPtr == 0) || (s2->constPtr && *s2->constPtr == 0)) {
-				deleteInstr = true;
-			}
-			break;
-		case Instr::op_mul:
-			s1 = sT->getVar(params[0]);
-			s2 = sT->getVar(params[1]);
-			if ((s1->constPtr && *s1->constPtr == 1) || (s2->constPtr && *s2->constPtr == 1)) {
-				deleteInstr = true;
-			}
-			break;
-		case Instr::op_div:
-			s2 = sT->getVar(params[1]);
-			if (s2->constPtr && *s2->constPtr == 1) {
-				deleteInstr = true;
-			}
-			break;
-	}
-	return deleteInstr;
-}
-
-void BasicBlock::optimization() {
+void BasicBlock::optimizeIR() {
 	
 	list<Instr*>::iterator it;
 	
@@ -85,24 +51,30 @@ void BasicBlock::optimization() {
 		}
 		else ++it;
 	}
-	/*
-	it = instrList.begin();
-	while(it != instrList.end()) {
-		bool deleteTrivialOperation = evaluateTrivialOperationInstr(it);
-		if(deleteTrivialOperation) {
-			it = instrList.erase(it);
-		}
-		else ++it;
-	}
-	*/
-	
 }
 
 int BasicBlock::lookForAffInstr(string varName, unordered_set<BasicBlock*> & bbVisited, int countAffect) {
 	bbVisited.insert(this);
 	for (Instr* i : instrList) {
-        if(i->getOp() == Instr::aff && i->getParams()[1] == varName) {
-			countAffect++;
+        Instr::Operation op = i->getOp();
+        switch (op) {
+            case Instr::aff:
+            {
+                if(i->getParams()[1] == varName) {
+                    countAffect++;
+                }
+                break;
+            }
+            case Instr::op_plus_equal:
+            case Instr::op_sub_equal:
+            case Instr::op_mult_equal:
+            case Instr::op_div_equal:
+            {
+                if (i->getParams()[0] == varName){
+                    countAffect++;
+                }
+                break;
+            }
         }
     }
 	if (exit_true && countAffect <= 1 && bbVisited.find(exit_true) == bbVisited.end()) {
@@ -121,7 +93,7 @@ void BasicBlock::addInstr(Instr::Operation op, vector<string> params, SymbolTabl
 }
 
 void BasicBlock::generateASM(ostream &o) {
-	cout << label << ":" << endl;
+	o << label << ":" << endl;
 	for (Instr* i : instrList) {
 		i->generateASM(o);
 	}

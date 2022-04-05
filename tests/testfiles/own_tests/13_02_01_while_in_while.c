@@ -1,11 +1,12 @@
 int main() {
-    int a=0;
-    int b=0;
-    while(b<5){
+    int a=1;
+    int b=2;
+    while(b<3){
+        b = 4;
         while(a<5){
-            a = a+1;
+            a = 6;
         }
-        b = b+1;
+        b = 7;
     }
     return a+b;
 }

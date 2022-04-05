@@ -1,5 +1,6 @@
 #include "../SymbolTable.h"
 
+#include <sstream>
 #include <iostream>
 #include <algorithm>
 #include <list>
@@ -24,6 +25,8 @@ class Instr {
 			cmp_neq,
 			cmp_lt,
 			cmp_gt,
+			cmp_eqlt,
+			cmp_eqgt,
 			op_or,
 			op_xor,
 			op_and,
@@ -34,6 +37,10 @@ class Instr {
 			op_mod,
 			op_not,
 			op_minus,
+            op_plus_equal,
+            op_sub_equal,
+            op_mult_equal,
+            op_div_equal,
 			ret,
 			prologue,
 			conditional_jump,
@@ -44,7 +51,7 @@ class Instr {
 
 		void generateASM(ostream &o); 
 
-		static unordered_map<string, string> AMD86_paramRegisters;
+		static unordered_map<string, vector<string>> AMD86_paramRegisters;
 
 		Operation getOp() { return op; };
 
@@ -52,7 +59,7 @@ class Instr {
 
 		bool propagateConst(bool needsDefinition, list<Instr*>::iterator it, list<Instr*> instrList);
 
-		void checkNeedForLoadConst(varStruct *s1, varStruct *s2, list<Instr*>::iterator it, list<Instr*> instrList);
+		bool checkNeedForLoadConst(varStruct *s1, varStruct *s2, varStruct *s3, list<Instr*>::iterator it, list<Instr*> instrList, Instr::Operation op);
 
 		SymbolTable* getSymbolTable(){ return symbolTable; };
 	private:
