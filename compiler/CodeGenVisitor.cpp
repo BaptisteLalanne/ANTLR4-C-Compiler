@@ -1013,11 +1013,9 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 
 	// Basic block before the while expression
 	BasicBlock* beforeWhileBB = cfg.getCurrentBB();
-	cout << "#beforeWhileBB = " << beforeWhileBB->getLabel() << endl;
 
 	// Create a basic block that will contain the condition
 	BasicBlock* testBB = cfg.createBB();
-	cout << "#testBB = " << testBB->getLabel() << endl;
 	// Fetch the condition of the while loop
 	cfg.setCurrentBB(testBB);
 	varStruct* testVar = visit(ctx->expr2(0));
@@ -1026,35 +1024,26 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 
 	// Create a basic block that will contain the body of the while loop
 	BasicBlock* bodyBB = cfg.createBB();
-	cout << "#bodyBB = " << bodyBB->getLabel() << endl;
 	
 	// Create a basic block that will contain the code after the while loop
 	BasicBlock* afterWhileBB = cfg.createBB();
-	cout << "#afterWhileBB = " << afterWhileBB->getLabel() << endl;
 
 	// Set the exit pointers of the afterWhileBB to the ones of the parent BB
 	afterWhileBB->setExitTrue(beforeWhileBB->getExitTrue());
-	cout << "#afterWhileBB->setExitTrue = " << (beforeWhileBB->getExitTrue()?beforeWhileBB->getExitTrue()->getLabel():"Null") << endl;
 	afterWhileBB->setExitFalse(beforeWhileBB->getExitFalse());
 	
 	// Set beforeWhileBB exit to testBB
 	beforeWhileBB->setExitTrue(testBB);
-	cout << "#beforeWhileBB->setExitTrue = " << testBB->getLabel() << endl;
 	beforeWhileBB->setExitFalse(nullptr);
-	cout << "#beforeWhileBB->setExitFalse = " << "Null" << endl;
 	
 	// Set the tue exit pointer of the test block to the body block
 	testBB->setExitTrue(bodyBB);
-	cout << "#testBB->setExitTrue = " << bodyBB->getLabel() << endl;
 	// Set the false exit pointer of the test block to the block after the while
 	testBB->setExitFalse(afterWhileBB);
-	cout << "#testBB->setExitFalse = " << afterWhileBB->getLabel() << endl;
 
 	// Set the true exit pointer of the body block to the test block
 	bodyBB->setExitTrue(testBB);
-	cout << "#bodyBB->setExitTrue = " << testBB->getLabel() << endl;
 	bodyBB->setExitFalse(nullptr);
-	cout << "#bodyBB->setExitFalse = " << "Null" << endl;
 
 	// Visit body of the while loop
 	cfg.setCurrentBB(bodyBB);
