@@ -60,6 +60,7 @@ void CFG::optimizeASM(stringstream& iS, ostream& oS) {
 	string previousSrc = "";
 	string previousDest = "";
 	string previousInstr = "";
+	string previousJump = "null";
 
 	// Fetch lines
 	string line;
@@ -68,32 +69,48 @@ void CFG::optimizeASM(stringstream& iS, ostream& oS) {
 		// Fetch args
 		vector<string> args = splitString(line, "\t");
 		
-		// Keep writing if it's not an instruction
+		// If this is a bb declaration
+		if (args[0].find(".bb") != string::npos) {
+			// If it corresponds to the jump previously visited
+			if (args[0].find(previousJump) != string::npos) {
+				// Remove last instruction from stack (which was a jump to this)
+				outputLines.pop_back();
+			}
+		}
+
+		// If this is instruction has no arguments, keep moving
 		if (args.size() < 2) {
 			outputLines.push_back(line);
 			continue;
 		}
-		
+	
+		// Fetch other arguments
 		string currInstr = args[1];
 
 		// If this is a movl instruction
 		if (currInstr == "movl" || currInstr == "movb") {
-
 			// Fetch params
 			vector<string> params = splitString(args[2], ", ");
-
 			// If previous instruction was movl, but with swapped params
 			if (currInstr == previousInstr && params[0] == previousDest && params[1] == previousSrc) {
-				
 				// Remove last instruction from stack and skip this one
 				outputLines.pop_back();
 				continue;
-
 			}
-
 			// Store previous params
 			previousSrc = params[0];
 			previousDest = params[1];
+		}
+
+		// If this is a jump instruction
+		if (currInstr == "jmp") {
+			// Fetch params
+			vector<string> params = splitString(args[2], "\t");
+			// Store previous jump
+			previousJump = params[0];
+		}
+		else {
+			previousJump = "null";
 		}
 
 		// Store previous instructions

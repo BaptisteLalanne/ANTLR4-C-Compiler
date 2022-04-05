@@ -1012,8 +1012,8 @@ void Instr::generateASM(ostream &o)
 
 		// Write ASM instructions
 		o << label << ":" << endl;
-		o << "	pushq 	%rbp " << endl;
-		o << "	movq 	%rsp, %rbp" << endl;
+		o << "	pushq	%rbp " << endl;
+		o << "	movq	%rsp, %rbp" << endl;
 
 		// Get the memory size needed to store the function's local variables (must be multiple of 16)
 		int memSize = symbolTable->getMemorySpace();
@@ -1201,8 +1201,8 @@ void Instr::generateASM(ostream &o)
 		}
 
 		// Note: the actual return is handled by the epilogue NEVERMIND???
-		o << "	movq %rbp, %rsp" << endl;
-		o << "	popq %rbp" << endl;
+		o << "	movq	%rbp, %rsp" << endl;
+		o << "	popq	%rbp" << endl;
 		o << "	ret" << endl;
 
 		break;
@@ -1216,9 +1216,9 @@ void Instr::generateASM(ostream &o)
 		string trueExitBlockLabel = params.at(2);
 
 		// Write ASM instructions
-		o << "	cmpl    $0, " << symbolTable->getVar(testVarName)->memoryOffset << "(%rbp)" << endl;
-		o << "	je    " << falseExitBlockLabel << endl;
-		o << "	jmp    " << trueExitBlockLabel << endl;
+		o << "	cmpl	$0, " << symbolTable->getVar(testVarName)->memoryOffset << "(%rbp)" << endl;
+		o << "	je	" << falseExitBlockLabel << endl;
+		o << "	jmp	" << trueExitBlockLabel << endl;
 
 		break;
 	}
