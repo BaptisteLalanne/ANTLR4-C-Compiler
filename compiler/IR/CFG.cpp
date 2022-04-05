@@ -72,7 +72,8 @@ void CFG::optimizeASM(stringstream& iS, ostream& oS) {
 		// If this is a bb declaration
 		if (args[0].find(".bb") != string::npos) {
 			// If it corresponds to the jump previously visited
-			if (args[0].find(previousJump) != string::npos) {
+			string::size_type pos = args[0].find(':');
+			if (args[0].substr(0, pos) == previousJump) {
 				// Remove last instruction from stack (which was a jump to this)
 				outputLines.pop_back();
 			}
@@ -99,6 +100,7 @@ void CFG::optimizeASM(stringstream& iS, ostream& oS) {
 				}
 				// Skip this one
 				continue;
+				
 			}
 			// Store previous params
 			previousSrc = params[0];
