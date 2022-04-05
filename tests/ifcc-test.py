@@ -26,7 +26,7 @@ def command(string, logfile=None):
     if args.verbose:
         print("ifcc-test.py: "+string)
     try:
-        output=subprocess.check_output(string,stderr=subprocess.STDOUT,shell=True)
+        output=subprocess.check_output("echo a | " + string,stderr=subprocess.STDOUT,shell=True)
         ret= 0
     except subprocess.CalledProcessError as e:
         ret=e.returncode
@@ -34,7 +34,10 @@ def command(string, logfile=None):
 
     if logfile:
         f=open(logfile,'w')
-        print(output.decode(sys.stdout.encoding)+'\n'+'return code: '+str(ret),file=f)
+        try:
+            print(output.decode(sys.stdout.encoding)+'\n'+'return code: '+str(ret),file=f)
+        except:
+            print(str(output)+'\n'+'return code: '+str(ret),file=f)
         f.close()
 
     return ret

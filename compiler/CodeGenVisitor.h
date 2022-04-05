@@ -26,7 +26,10 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 	public:
 
 		// Default constructor
-		CodeGenVisitor(ErrorHandler& eH, CFG& cfg) : errorHandler(eH), cfg(cfg) { globalSymbolTable = new SymbolTable(0, nullptr); }
+		CodeGenVisitor(ErrorHandler& eH, CFG& cfg);
+
+		// Default destructor
+		~CodeGenVisitor();
 
 		// Linearising functions
 		virtual antlrcpp::Any visitProg(ifccParser::ProgContext *ctx);
@@ -56,9 +59,11 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitEndBlock(ifccParser::EndBlockContext *ctx) ;
 		virtual antlrcpp::Any visitVtype(ifccParser::VtypeContext *ctx) ;
 		virtual antlrcpp::Any visitIfStatement(ifccParser::IfStatementContext *ctx) ;
+		virtual antlrcpp::Any visitElseStatement(ifccParser::ElseStatementContext *ctx) ;
 		virtual antlrcpp::Any visitWhileStatement(ifccParser::WhileStatementContext *ctx) ;
-        //virtual antlrcpp::Any visitExprEgalExpr(ifccParser::ExprEgalExprContext *ctx);
-		
+        virtual antlrcpp::Any visitPmmdEqual(ifccParser::PmmdEqualContext *ctx) ;
+		SymbolTable* getGlobalSymbolTable();
+
 	protected:
 
 		// The associated error handler instance
@@ -72,6 +77,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 
 		// The currently visited symbol table to keep track of nested scopes
 		stack<SymbolTable*> symbolTablesStack;
+		stack<SymbolTable*> symbolTableGarbage;
 
 		// The current function
 		string currFunction = "";
@@ -80,9 +86,14 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		SymbolTable* globalSymbolTable;
 		
 		// Return 0 by default
-		void returnDefault();
+		void returnDefault(antlr4::ParserRuleContext *ctx);
 		
 		// Return offset temp variable after created it
 		varStruct* createTempVar(antlr4::ParserRuleContext *ctx, string varType="int", int* constPtr = nullptr);
+
+	private:
+
+		void addSymbolPutchar();
+		void addSymbolGetchar();
 
 };

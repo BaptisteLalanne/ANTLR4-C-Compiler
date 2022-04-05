@@ -6,7 +6,7 @@ A C-like compiler, programmed in C++ with ANTLR4. The compiler only generates x8
 
 ## Getting started
 
-First, download the entire repository : \
+First, download the entire repository :
 ```sh
 $ git clone https://github.com/BaptisteLalanne/PLD-Compilateur.git c_comp
 ```
@@ -48,7 +48,7 @@ $ ./runner.sh your_input_file.c
 
 ### Tests
 
-A python script launch all the C-like test files.\
+A python script launch all the C-like test files.
 
 In `tests` directory, simply type :
 ```sh
@@ -63,6 +63,22 @@ For each test, there is four possibles cases :
 - TEST FAIL (your compiler rejects a valid program),
 - TEST FAIL (your compiler produces incorrect assembly).
 
+### Memory leaks
+
+A python script launch `valgrind` for all the C-like test files.
+
+In `tests` directory, simply type :
+```sh
+$ python3 ifcc-valgrind.py testfiles
+```
+
+The script run valgrind with our binary on very c-like file as input. As ANTLR4 parser involves memory leaks when a syntax error is encountered, a test file which doesn't compile is not analyzed with valgrind (we "skip" it).
+
+For each test, there is three possibles cases :
+- TEST OK,
+- TEST INVALID
+- TEST SKIPPED
+
 ## Authors
 
 Tom PERRILLAT-COLLOMB \
@@ -72,6 +88,6 @@ Bastien BARBE \
 David TOMA \
 Loann LARGERON \
 Arthur DURAND \
-Amine LBATH \
+Amine LBATH
 
 

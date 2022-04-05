@@ -12,6 +12,32 @@
 
 using namespace std;
 
+CodeGenVisitor::CodeGenVisitor(ErrorHandler& eH, CFG& cfg) : errorHandler(eH), cfg(cfg) {
+	globalSymbolTable = new SymbolTable(0, nullptr);
+	this->addSymbolPutchar();
+	this->addSymbolGetchar();
+}
+
+CodeGenVisitor::~CodeGenVisitor() {
+	delete globalSymbolTable;
+
+	while (!symbolTableGarbage.empty()) {
+		SymbolTable* _st = symbolTableGarbage.top();
+		if (_st != nullptr) {
+			delete _st;
+			symbolTableGarbage.pop();
+		}
+	}
+
+}
+
+void CodeGenVisitor::addSymbolPutchar() {
+	globalSymbolTable->addFunc("putchar", "int", {"int"}, {"c"}, 0);
+}
+
+void CodeGenVisitor::addSymbolGetchar() {
+	globalSymbolTable->addFunc("getchar", "int", {}, {}, 0);
+}
 
 antlrcpp::Any CodeGenVisitor::visitProg(ifccParser::ProgContext *ctx) {
 
@@ -246,7 +272,7 @@ antlrcpp::Any CodeGenVisitor::visitCmpLessOrGreaterExpr(ifccParser::CmpLessOrGre
 	return tmp;
 }
 
-antlrcpp::Any CodeGenVisitor::visitCmpEqualityLessGreaterExpr (ifccParser::CmpEqualityLessGreaterExprContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitCmpEqualityLessGreaterExpr(ifccParser::CmpEqualityLessGreaterExprContext *ctx) {
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
@@ -349,7 +375,7 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 		return SymbolTable::dummyVarStruct;
 	}
-	
+
 	// Write assembly instructions to save expression in variable 
 	cfg.getCurrentBB()->addInstr(Instr::aff, {result->varName, varName}, symbolTable);
 
@@ -363,8 +389,8 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 
 antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) {
 	
-	int constValue;
 	SymbolTable* symbolTable = symbolTablesStack.top();
+	int constValue;
 
 	// Size of INT
 	long intSize = (long)INT_MAX - (long)INT_MIN + 1;
@@ -373,14 +399,12 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 	string constStr = ctx->CONST()->getText();
  
 	if (constStr.length() == 3 && constStr[0] == '\'' && constStr[2] == '\'') {
-
 		constValue = constStr[1];
-
 	} 
 	else if (constStr.length() > 3 && constStr[0] == '\'' && constStr[constStr.length()-1] == '\'') {
 
 		// Warning
-		string message =  "Multi-character character constant";
+		string message =  "Use of multi-character character constant";
 		errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
 		
 		// Compute value
@@ -425,7 +449,7 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 			constValue = (int)lConstValue;
 
 			// Warning
-			string message =  "Integer constant is too large for its type.\nOverflow in conversion to 'int' changes value from '" + constStr + "' to '" + to_string(constValue) + "'";
+			string message =  "Integer constant is too large for its type. Overflow in conversion to 'int' changes value from '" + constStr + "' to '" + to_string(constValue) + "'";
 			errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
 
 		} 
@@ -444,11 +468,17 @@ antlrcpp::Any CodeGenVisitor::visitConstExpr(ifccParser::ConstExprContext *ctx) 
 	if (constStr[0] == '\'') {
 		int* constPtr = new int(constValue);
 		tmp = createTempVar(ctx, "char", constPtr);
-		// cfg.getCurrentBB()->addInstr(Instr::ldconst, {"\'" + to_string(constValue), tmp->varName}, symbolTable);
+		// Load each const if we do not add the optimize option
+		if(!cfg.getOptimized()){
+			cfg.getCurrentBB()->addInstr(Instr::ldconst, {"\'" + to_string(constValue), tmp->varName}, symbolTable);
+		}
 	} else {
 		int* constPtr = new int(constValue);
 		tmp = createTempVar(ctx, "int", constPtr);
-		// cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp->varName}, symbolTable);
+		// Load each const if we do not add the optimize option
+		if(!cfg.getOptimized()){
+			cfg.getCurrentBB()->addInstr(Instr::ldconst, {"$" + to_string(constValue), tmp->varName}, symbolTable);
+		}
 	}
 
 	// Return the temporary variable
@@ -493,17 +523,16 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 
 	funcStruct* func = globalSymbolTable->getFunc(funcName);
 
+	// Check if it's an implicit declaration
+	if (func->funcLine > ctx->getStart()->getLine()) {
+		string message =  "Function '" + funcName + "' might be declared implicitely";
+		errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
+	}
+
 	// Check param number
 	int numParams = ctx->expr().size();
 	if (numParams != func->nbParameters) {
 		string message =  "Function '" + funcName + "' is called with the wrong number of parameters";
-		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-		return SymbolTable::dummyVarStruct;
-	}
-
-	// TEMPORARY Error message if there are more than 6 params
-	if (numParams > 6) {
-		string message =  "Sorry, this compiler does not support more than 6 parameters yet";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 		return SymbolTable::dummyVarStruct;
 	}
@@ -519,7 +548,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 		varStruct* result = visit(ctx->expr(i));
 
 		// Check param types
-		if (result->varType != func->parameterTypes[i]) {
+		if (result->varType != func->parameterTypes[i] && !(result->varType == "char" && func->parameterTypes[i] == "int")) {
 			string message =  "Function '" + funcName + "' is called with the wrong parameter types";
 			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 			return SymbolTable::dummyVarStruct;
@@ -534,13 +563,14 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 	symbolTable->setStackPointer(currStackPointer);
 
 	// Write assembly instructions to put the evaluated params into a param register
-	for (int i = 0; i < numParams; i++) {
-		cfg.getCurrentBB()->addInstr(Instr::wparam, {params[i]->varName, to_string(i)}, symbolTable);
+	for (int i = numParams-1; i >= 0; i--) {
+			cfg.getCurrentBB()->addInstr(Instr::wparam, {params[i]->varName, to_string(i)}, symbolTable);
 	}
 
 	// Write call instruction
 	varStruct* tmp = createTempVar(ctx, func->returnType);
-	cfg.getCurrentBB()->addInstr(Instr::call, {funcName, tmp->varName}, symbolTable);
+	cfg.getCurrentBB()->addInstr(Instr::call, {funcName, tmp->varName, to_string(numParams)}, symbolTable);
+	func->isCalled = true;
 
 	return tmp;
 
@@ -550,7 +580,7 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 	
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
-	// Number of variable to declare
+	// Number of variable to declarer
 	int numVariable = ctx->TOKENNAME().size();
 
 	// Fetch type
@@ -658,15 +688,37 @@ antlrcpp::Any CodeGenVisitor::visitExprEnd(ifccParser::ExprEndContext *ctx) {
 }
 
 antlrcpp::Any CodeGenVisitor::visitEmptyEnd(ifccParser::EmptyEndContext *ctx) {
+
+	// Set flag
 	SymbolTable* symbolTable = symbolTablesStack.top();
 	symbolTable->setReturned(true);
+
+	// Check warnings
+	funcStruct* func = globalSymbolTable->getFunc(currFunction);
+	if (func->returnType != "void") {
+		string message =  "Use of empty 'return;' in non-void function '" + currFunction + "'";
+		errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
+	}
+
+	// Add actual return instruction
 	cfg.getCurrentBB()->addInstr(Instr::ret, {(currFunction == "main") ? "$41" : "$0"}, symbolTable);
 	return 0;
 }
 
-void CodeGenVisitor::returnDefault() {
+void CodeGenVisitor::returnDefault(antlr4::ParserRuleContext *ctx) {
+
+	// Set flag
 	SymbolTable* symbolTable = symbolTablesStack.top();
 	symbolTable->setReturned(true);
+
+	// Check warnings
+	funcStruct* func = globalSymbolTable->getFunc(currFunction);
+	if (func->returnType != "void") {
+		string message =  "No 'return' found in non-void function '" + currFunction + "'";
+		errorHandler.signal(WARNING, message, ctx->getStart()->getLine());
+	}
+
+	// Add actual return instruction
 	cfg.getCurrentBB()->addInstr(Instr::ret, {"$0"}, symbolTable);
 }
 
@@ -687,7 +739,7 @@ antlrcpp::Any CodeGenVisitor::visitMainDeclr(ifccParser::MainDeclrContext *ctx) 
 	visit(ctx->body());
 
 	// Create default return instruction
-    if (!newSymbolTable->hasReturned()) returnDefault();
+    if (!newSymbolTable->hasReturned()) returnDefault(ctx);
 
 	// Visit end (discard symbol table)
 	visit(ctx->endBlock());
@@ -751,15 +803,17 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrBody(ifccParser::FuncDeclrContext *c
 	cfg.getCurrentBB()->addInstr(Instr::prologue, {funcName}, newSymbolTable); 
 	
 	// Create instruction that loads register into variable
-	for(int i = 0 ; i < func->nbParameters ; i++) {
-		cfg.getCurrentBB()->addInstr(Instr::rparam, {func->parameterNames[i], to_string(i)}, newSymbolTable);
+	int paramStackOffset = 16; // The size of the return adress stored on the stack when calling the function
+	for(int i = func->nbParameters-1 ; i >= 0 ; i--) {
+		cfg.getCurrentBB()->addInstr(Instr::rparam, {func->parameterNames[i], to_string(i), to_string(paramStackOffset)}, newSymbolTable);
+		paramStackOffset += 8;
 	}
 
 	// Create body instructions
 	visit(ctx->body());
 
 	// Create default return instruction
-	if (!newSymbolTable->hasReturned()) returnDefault();
+	if (!newSymbolTable->hasReturned()) returnDefault(ctx);
 
 	// Visit end (discard symbol table)
 	visit(ctx->endBlock());
@@ -771,7 +825,6 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrBody(ifccParser::FuncDeclrContext *c
 antlrcpp::Any CodeGenVisitor::visitFuncDeclr(ifccParser::FuncDeclrContext *ctx) {
 	return 0;
 }	
-
 
 antlrcpp::Any CodeGenVisitor::visitBeginBlock(ifccParser::BeginBlockContext *ctx) {
 	// Fetch parent symbol table
@@ -791,11 +844,25 @@ antlrcpp::Any CodeGenVisitor::visitBeginBlock(ifccParser::BeginBlockContext *ctx
 }
 
 antlrcpp::Any CodeGenVisitor::visitEndBlock(ifccParser::EndBlockContext *ctx) {
-
+	
 	// Static analysis
 	symbolTablesStack.top()->checkUsedVariables(errorHandler);
 
+	SymbolTable* symbolTable = symbolTablesStack.top();
+	BasicBlock * currBB = cfg.getCurrentBB();
+
+	if (currBB->getExitFalse()) {
+		currBB->addInstr(Instr::conditional_jump, {currBB->getTestVarName(), currBB->getExitFalse()->getLabel(), currBB->getExitTrue()->getLabel()}, symbolTable);
+		//cout << "	cmpl    $0, " << testVarMemoryOffset << "(%rbp)" << endl;
+		//cout << "	je    " << exit_false->label << endl;
+	}
+	if (currBB->getExitTrue()){
+		currBB->addInstr(Instr::absolute_jump, {currBB->getExitTrue()->getLabel()}, symbolTable);
+		//cout << "	jmp    " << this->exit_true->label << endl;
+	}
+
 	// Remove symbol table from stack
+	symbolTableGarbage.push(symbolTable);
 	symbolTablesStack.pop();
 
 	return 0;
@@ -824,16 +891,17 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 	SymbolTable* symbolTable = symbolTablesStack.top();
 
 	// Fetch boolean expression of the if
-	varStruct* testVar = visit(ctx->expr2());
+	varStruct* testVar = visit(ctx->expr2(0));
 
 	//Check whether there is an else statment
-	bool hasElseStatment = ctx->body().size() == 2; 
+	bool hasElseStatment = ctx->elseStatement(); 
 
 	// Basic block for the test
 	BasicBlock* testBB = cfg.getCurrentBB();
 
 	//Stores the name of the boolean test variable within the basic block for the test
 	testBB->setTestVarName(testVar->varName);
+	testBB->setTestVarMemoryOffset(testVar->memoryOffset);
 
 	// Create an 'then' BB
 	BasicBlock* thenBB = cfg.createBB();
@@ -849,7 +917,7 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 	
 	// If there's both a 'then' and an 'else' statement,
 	if (hasElseStatment) {
-
+		
 		// Create an 'else' BB
 		BasicBlock* elseBB = cfg.createBB();
 
@@ -859,53 +927,66 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 		// Set the 'else's BB true exit pointer to the following BB
 		elseBB->setExitTrue(endIfBB);
 		elseBB->setExitFalse(nullptr);
-
+				
 		// Write jump instructions
 		testBB->addInstr(Instr::conditional_jump, {testBB->getTestVarName(), testBB->getExitFalse()->getLabel(), testBB->getExitTrue()->getLabel()}, symbolTable);
 	
 		// Visit else body
 		cfg.setCurrentBB(elseBB);
-		visit(ctx->beginBlock(1));
-		visit(ctx->body(1));
-		// Write instruction to jump back to the following block
-		elseBB->addInstr(Instr::absolute_jump, {elseBB->getExitTrue()->getLabel()}, symbolTable);
-
-		visit(ctx->endBlock(1));
-
+		visit(ctx->elseStatement());
 	}
 	// If there's only a 'then' statement
 	else {
-
 		// Set the parent's false exit pointer to the following BB
 		testBB->setExitFalse(endIfBB);
 
 		// Write jump instructions
 		testBB->addInstr(Instr::conditional_jump, {testBB->getTestVarName(), testBB->getExitFalse()->getLabel(), testBB->getExitTrue()->getLabel()}, symbolTable);
-
 	}
 
 	// Set the 'then's BB true exit pointer to the following BB
 	thenBB->setExitTrue(endIfBB);
 	thenBB->setExitFalse(nullptr);
 	
-	// Visit then body
+	// Visit then body or exprssion
 	cfg.setCurrentBB(thenBB);
-	visit(ctx->beginBlock(0));
-	visit(ctx->body(0));
-	// Write instruction to jump back to the following block
-	thenBB->addInstr(Instr::absolute_jump, {thenBB->getExitTrue()->getLabel()}, symbolTable);
-
-	visit(ctx->endBlock(0));
-
+	if (ctx->body()) {
+		visit(ctx->beginBlock());
+		visit(ctx->body());
+		// Write instruction to jump back to the following block
+		visit(ctx->endBlock());
+	} else if (ctx->expr2(1))
+	{
+		visit(ctx->expr2(1));
+		// Write instruction to jump back to the following block
+		thenBB->addInstr(Instr::absolute_jump, {thenBB->getExitTrue()->getLabel()}, symbolTable);
+	}
+	
 	// Set the next current BB
 	cfg.setCurrentBB(endIfBB);
 
-	if (endIfBB->getExitTrue()){
-		endIfBB->addInstr(Instr::absolute_jump, {endIfBB->getExitTrue()->getLabel()}, symbolTable);
+	return 0;
+
+}
+
+antlrcpp::Any CodeGenVisitor::visitElseStatement(ifccParser::ElseStatementContext *ctx) {
+	SymbolTable* symbolTable = symbolTablesStack.top();
+	// Basic block for the test
+	BasicBlock* elseBB = cfg.getCurrentBB();
+
+	if (ctx->body()) {
+		visit(ctx->beginBlock());
+		visit(ctx->body());
+		// Write instruction to jump back to the following block
+		visit(ctx->endBlock());
+	} else if (ctx->expr2())
+	{
+		visit(ctx->expr2());
+		// Write instruction to jump back to the following block
+		elseBB->addInstr(Instr::absolute_jump, {elseBB->getExitTrue()->getLabel()}, symbolTable);
 	}
 
 	return 0;
-
 }
 
 antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementContext *ctx) {
@@ -914,44 +995,61 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 
 	// Basic block before the while expression
 	BasicBlock* beforeWhileBB = cfg.getCurrentBB();
+	cout << "#beforeWhileBB = " << beforeWhileBB->getLabel() << endl;
 
 	// Create a basic block that will contain the condition
 	BasicBlock* testBB = cfg.createBB();
+	cout << "#testBB = " << testBB->getLabel() << endl;
 	// Fetch the condition of the while loop
 	cfg.setCurrentBB(testBB);
 	varStruct* testVar = visit(ctx->expr2());
 	//Stores the name of the boolean test variable within the basic block for the test
 	testBB->setTestVarName(testVar->varName);
+	testBB->setTestVarMemoryOffset(testVar->memoryOffset);
 
 	// Create a basic block that will contain the body of the while loop
 	BasicBlock* bodyBB = cfg.createBB();
-	// Visit body of the while loop
-	cfg.setCurrentBB(bodyBB);
-	visit(ctx->beginBlock());
-	visit(ctx->body());
-
-	visit(ctx->endBlock());
-
+	cout << "#bodyBB = " << bodyBB->getLabel() << endl;
+	
 	// Create a basic block that will contain the code after the while loop
 	BasicBlock* afterWhileBB = cfg.createBB();
+	cout << "#afterWhileBB = " << afterWhileBB->getLabel() << endl;
+
 	// Set the exit pointers of the afterWhileBB to the ones of the parent BB
 	afterWhileBB->setExitTrue(beforeWhileBB->getExitTrue());
+	cout << "#afterWhileBB->setExitTrue = " << (beforeWhileBB->getExitTrue()?beforeWhileBB->getExitTrue()->getLabel():"Null") << endl;
 	afterWhileBB->setExitFalse(beforeWhileBB->getExitFalse());
 	
 	// Set beforeWhileBB exit to testBB
 	beforeWhileBB->setExitTrue(testBB);
+	cout << "#beforeWhileBB->setExitTrue = " << testBB->getLabel() << endl;
 	beforeWhileBB->setExitFalse(nullptr);
-
+	cout << "#beforeWhileBB->setExitFalse = " << "Null" << endl;
+	
 	// Set the tue exit pointer of the test block to the body block
 	testBB->setExitTrue(bodyBB);
+	cout << "#testBB->setExitTrue = " << bodyBB->getLabel() << endl;
 	// Set the false exit pointer of the test block to the block after the while
 	testBB->setExitFalse(afterWhileBB);
-	testBB->addInstr(Instr::conditional_jump, {testBB->getTestVarName(), testBB->getExitFalse()->getLabel(), testBB->getExitTrue()->getLabel()}, symbolTable);
+	cout << "#testBB->setExitFalse = " << afterWhileBB->getLabel() << endl;
 
 	// Set the true exit pointer of the body block to the test block
 	bodyBB->setExitTrue(testBB);
+	cout << "#bodyBB->setExitTrue = " << testBB->getLabel() << endl;
 	bodyBB->setExitFalse(nullptr);
+	cout << "#bodyBB->setExitFalse = " << "Null" << endl;
+
+	// Visit body of the while loop
+	cfg.setCurrentBB(bodyBB);
+	visit(ctx->beginBlock());
+	visit(ctx->body());
+	visit(ctx->endBlock());
+
+	//if(afterWhileBB->getExitTrue())
+	beforeWhileBB->addInstr(Instr::absolute_jump, {beforeWhileBB->getExitTrue()->getLabel()}, symbolTable);
+	testBB->addInstr(Instr::conditional_jump, {testBB->getTestVarName(), testBB->getExitFalse()->getLabel(), testBB->getExitTrue()->getLabel()}, symbolTable);
 	bodyBB->addInstr(Instr::absolute_jump, {bodyBB->getExitTrue()->getLabel()}, symbolTable);
+
 
 	// Set the next current BB
 	cfg.setCurrentBB(afterWhileBB);
@@ -959,11 +1057,32 @@ antlrcpp::Any CodeGenVisitor::visitWhileStatement(ifccParser::WhileStatementCont
 	return 0;
 
 }
+antlrcpp::Any CodeGenVisitor::visitPmmdEqual(ifccParser::PmmdEqualContext *ctx) {
 
-/*antlrcpp::Any CodeGenVisitor::visitExprEgalExpr(ifccParser::ExprEgalExprContext *ctx) {
-    varStruct* expr0 = visit(ctx->expr(0));
-    varStruct* expr1 = visit(ctx->expr(1));
-    string message =  "Function '" + expr0->varName + " = " + expr1->varName + " lvalue required as left operand of assignmentd";
-    errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
-    return SymbolTable::dummyVarStruct;
-}*/
+    // Fetch constant's info
+    varStruct* rExpr = visit(ctx->expr());
+    // Fetch variable
+    string lExpr = ctx->TOKENNAME()->getText();
+    // Get op
+    string op = ctx->OPPMMD->getText();
+
+    // Add the instruction to the IR
+    SymbolTable* symbolTable = symbolTablesStack.top();
+
+    if (op == "+=") {
+        cfg.getCurrentBB()->addInstr(Instr::op_plus_equal, {lExpr, rExpr->varName}, symbolTable);
+    } else if (op == "-=") {
+        cfg.getCurrentBB()->addInstr(Instr::op_sub_equal, {lExpr, rExpr->varName}, symbolTable);
+    } else if (op == "*=") {
+        cfg.getCurrentBB()->addInstr(Instr::op_mult_equal, {lExpr, rExpr->varName}, symbolTable);
+    } else {
+        cfg.getCurrentBB()->addInstr(Instr::op_div_equal, {lExpr, rExpr->varName}, symbolTable);
+    }
+
+    return symbolTable->getVar(lExpr);
+
+}
+
+SymbolTable* CodeGenVisitor::getGlobalSymbolTable() {
+	return this->globalSymbolTable;
+}

@@ -1,7 +1,7 @@
 
 grammar ifcc;
 
-axiom : prog ;
+axiom : prog EOF;
 
 vtype: TINT | TCHAR ;
 beginBlock : '{' ;
@@ -52,10 +52,17 @@ expr :
 
 affect :
     TOKENNAME '=' expr2                         #affExpr
+    | TOKENNAME OPPMMD=('+='|'-='|'*='|'/=') expr      #pmmdEqual
 ;
 
 ifStatement :
-	'if' '(' expr2 ')' beginBlock body endBlock ('else' beginBlock body endBlock)?
+	'if' '(' expr2 ')' beginBlock body endBlock (elseStatement)?
+	| 'if' '(' expr2 ')' expr2 ';' (elseStatement)?
+;
+
+elseStatement :
+	'else' beginBlock body endBlock
+	|'else' expr2 ';'
 ;
 
 whileStatement :
