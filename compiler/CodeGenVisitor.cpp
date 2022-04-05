@@ -969,6 +969,11 @@ antlrcpp::Any CodeGenVisitor::visitIfStatement(ifccParser::IfStatementContext *c
 		visit(ctx->expr2(1));
 		// Write instruction to jump back to the following block
 		thenBB->addInstr(Instr::absolute_jump, {thenBB->getExitTrue()->getLabel()}, symbolTable);
+	} else if (ctx->end())
+	{
+		visit(ctx->end());
+		// Write instruction to jump back to the following block
+		thenBB->addInstr(Instr::absolute_jump, {thenBB->getExitTrue()->getLabel()}, symbolTable);
 	}
 	
 	// Set the next current BB
@@ -991,6 +996,11 @@ antlrcpp::Any CodeGenVisitor::visitElseStatement(ifccParser::ElseStatementContex
 	} else if (ctx->expr2())
 	{
 		visit(ctx->expr2());
+		// Write instruction to jump back to the following block
+		elseBB->addInstr(Instr::absolute_jump, {elseBB->getExitTrue()->getLabel()}, symbolTable);
+	}else if (ctx->end())
+	{
+		visit(ctx->end());
 		// Write instruction to jump back to the following block
 		elseBB->addInstr(Instr::absolute_jump, {elseBB->getExitTrue()->getLabel()}, symbolTable);
 	}
