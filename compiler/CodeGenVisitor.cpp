@@ -532,7 +532,6 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 	// Check param number
 	int numParams = ctx->expr().size();
 	bool hasVoid = func->nbParameters < 0;
-	cout << func->nbParameters << endl;
 	if ((func->nbParameters > 0 && numParams != func->nbParameters) || (hasVoid && numParams > 0)) {
 		string message =  "Function '" + funcName + "' is called with the wrong number of parameters";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
