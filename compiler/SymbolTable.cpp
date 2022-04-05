@@ -18,7 +18,7 @@ varStruct SymbolTable::dummyVarStruct = {"", 0, "", 0, false, false};
 
 int SymbolTable::hasVar(string name) {
 	bool hasVarInOwnMap = varMap.find(name) != varMap.end();
-	bool hasVarInParentMap = (parentSymbolTable != nullptr && parentSymbolTable->hasVar(name));
+	bool hasVarInParentMap = (parentSymbolTable != nullptr && parentSymbolTable->hasVar(name) > 0);
 	int level = 0;
 	if (hasVarInOwnMap) level = 1;
 	else if (hasVarInParentMap) level = 2;

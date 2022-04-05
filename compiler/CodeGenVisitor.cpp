@@ -354,7 +354,7 @@ antlrcpp::Any CodeGenVisitor::visitAffExpr(ifccParser::AffExprContext *ctx) {
 	string varName = ctx->TOKENNAME()->getText();
 
 	// Check for errors
-	if (!symbolTable->hasVar(varName) && !symbolTable->hasParam(varName)) {
+	if (symbolTable->hasVar(varName) == 0 && symbolTable->hasParam(varName) == 0) {
 		string message =  "Variable '" + varName + "' has not been declared";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 		return &SymbolTable::dummyVarStruct;
@@ -494,7 +494,7 @@ antlrcpp::Any CodeGenVisitor::visitVarExpr(ifccParser::VarExprContext *ctx) {
 	string varName = ctx->TOKENNAME()->getText();
 
 	// Throw error if no corresponding variable has been found
-	if (!symbolTable->hasVar(varName) && !symbolTable->hasParam(varName)) {
+	if (symbolTable->hasVar(varName) == 0 && symbolTable->hasParam(varName) == 0) {
 		string message =  "Variable '" + varName + "' has not been declared";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 		return &SymbolTable::dummyVarStruct;
@@ -580,12 +580,12 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclr(ifccParser::VarDeclrContext *ctx) {
 		string dVarName = ctx->TOKENNAME(i)->getText();
 
 		// Check errors
-		if (symbolTable->hasVar(dVarName)) {
+		if (symbolTable->hasVar(dVarName) == 1) {
 			string message =  "Variable '" + dVarName + "' has already been declared";
 			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 			return 1;
 		}
-		if (symbolTable->hasParam(dVarName)) {
+		if (symbolTable->hasParam(dVarName) == 1) {
 			string message =  "Variable '" + dVarName + "' is already defined as a parameter of the function";
 			errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 			return 1;
