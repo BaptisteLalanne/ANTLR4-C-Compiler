@@ -79,10 +79,14 @@ int main(int argc, char *argv[])
     // Create error handler
     ErrorHandler errorHandler;
 
-    // Visit tree and linearize
+    // Visit tree and linearize while generating IR
     CodeGenVisitor v(errorHandler, controlFlowGraph);
     v.visit(tree);
 
+    // Perform static analysis on functions
+    v.getGlobalSymbolTable()->checkUsedFunctions(errorHandler);
+
+    // Check for errors, flush output if that is the case
     bool hasErrors = errorHandler.hasError();
     if (hasErrors)
     {
@@ -90,6 +94,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    // Place standard functions in the code if needed
     controlFlowGraph.initStandardFunctions(v.getGlobalSymbolTable());
 
     // Optimize IR

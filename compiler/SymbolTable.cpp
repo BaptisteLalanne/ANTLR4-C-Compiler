@@ -116,9 +116,6 @@ bool SymbolTable::hasReturned() {
 
 void SymbolTable::setReturned(bool r) {
 	returned = r;
-	/*if (parentSymbolTable != nullptr) {
-		parentSymbolTable->setReturned(r);
-	}*/
 }
 
 int SymbolTable::getStackPointer() {
@@ -145,7 +142,18 @@ void SymbolTable::checkUsedVariables(ErrorHandler& eH) {
 	}
 }
 
-int SymbolTable::getCast(string type, int value){
+void SymbolTable::checkUsedFunctions(ErrorHandler& eH) {
+	unordered_set<string> globFunc = {"main", "putchar", "getchar"};
+	for (auto v : funcMap) {
+		if (globFunc.find(v.second.funcName) != globFunc.end()) { continue; }
+		if (!v.second.isCalled) {
+			string message =  "Function '" + v.first + "' declared at line " + to_string(v.second.funcLine) + " is not used";
+			eH.signal(WARNING, message, -1);
+		}
+	}
+}
+
+int SymbolTable::getCast(string type, int value) {
 	if(type.compare("int") == 0){
 		return (int) value;
 	} else if (type.compare("char") == 0){

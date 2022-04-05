@@ -85,7 +85,7 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		SymbolTable* globalSymbolTable;
 		
 		// Return 0 by default
-		void returnDefault();
+		void returnDefault(antlr4::ParserRuleContext *ctx);
 		
 		// Return offset temp variable after created it
 		varStruct* createTempVar(antlr4::ParserRuleContext *ctx, string varType="int", int* constPtr = nullptr);

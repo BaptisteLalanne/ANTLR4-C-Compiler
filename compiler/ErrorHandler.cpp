@@ -24,7 +24,11 @@ void ErrorHandler::signal(int severity, string message, int lineNumber) {
 }
 
 void ErrorHandler::generateMessage(int severity, string message, int lineNumber) {
-    cerr << errorValues[severity] << " : " << message << " at line " << lineNumber << "." << endl;
+    cerr << errorValues[severity];
+	if (lineNumber >= 0) {
+		cerr << " at line " << lineNumber;
+	} 
+	cerr << " : " << message << "." << endl;
 }
 
 bool ErrorHandler::hasError() {
