@@ -32,11 +32,11 @@ CodeGenVisitor::~CodeGenVisitor() {
 }
 
 void CodeGenVisitor::addSymbolPutchar() {
-	globalSymbolTable->addFunc("putchar", "int", {"int"}, {"c"}, 0);
+	globalSymbolTable->addFunc("putchar", "int", 1, {"int"}, {"c"}, 0);
 }
 
 void CodeGenVisitor::addSymbolGetchar() {
-	globalSymbolTable->addFunc("getchar", "int", {}, {}, 0);
+	globalSymbolTable->addFunc("getchar", "int", -1, {}, {}, 0);
 }
 
 antlrcpp::Any CodeGenVisitor::visitProg(ifccParser::ProgContext *ctx) {
@@ -532,6 +532,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncExpr(ifccParser::FuncExprContext *ctx) {
 	// Check param number
 	int numParams = ctx->expr().size();
 	bool hasVoid = func->nbParameters < 0;
+	cout << func->nbParameters << endl;
 	if ((func->nbParameters > 0 && numParams != func->nbParameters) || (hasVoid && numParams > 0)) {
 		string message =  "Function '" + funcName + "' is called with the wrong number of parameters";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
@@ -608,12 +609,12 @@ antlrcpp::Any CodeGenVisitor::visitVarDeclrAndAffect(ifccParser::VarDeclrAndAffe
 	string dVarType = ctx->vtype()->getText();
 
 	// Check errors
-	if (symbolTable->hasVar(dVarName)) {
+	if (symbolTable->hasVar(dVarName) == 1) {
 		string message =  "Variable '" + dVarName + "' has already been declared";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
         return 1;
 	}
-	if (symbolTable->hasParam(dVarName)) {
+	if (symbolTable->hasParam(dVarName) == 1) {
 		string message =  "Variable '" + dVarName + "' is already defined as a parameter of the function";
 		errorHandler.signal(ERROR, message, ctx->getStart()->getLine());
 		return 1;
@@ -716,7 +717,7 @@ void CodeGenVisitor::returnDefault(antlr4::ParserRuleContext *ctx) {
 antlrcpp::Any CodeGenVisitor::visitMainDeclrHeaderNoRet(ifccParser::MainDeclrHeaderNoRetContext *ctx) { 
 
 	// Create main function in symbol table (grammar makes sure it can only be declared once)
-	globalSymbolTable->addFunc("main", "int", {}, {}, ctx->getStart()->getLine());
+	globalSymbolTable->addFunc("main", "int", 0, {}, {}, ctx->getStart()->getLine());
 
 	// Warning
 	string message =  "No return type specified: defaults to 'int'";
@@ -728,7 +729,7 @@ antlrcpp::Any CodeGenVisitor::visitMainDeclrHeaderNoRet(ifccParser::MainDeclrHea
 antlrcpp::Any CodeGenVisitor::visitMainDeclrHeaderWithRet(ifccParser::MainDeclrHeaderWithRetContext *ctx) {
 
 	// Create main function in symbol table (grammar makes sure it can only be declared once)
-	globalSymbolTable->addFunc("main", ctx->FTYPE->getText(), {}, {}, ctx->getStart()->getLine());
+	globalSymbolTable->addFunc("main", ctx->FTYPE->getText(), 0, {}, {}, ctx->getStart()->getLine());
 	return 0;
 
 }
@@ -787,7 +788,7 @@ antlrcpp::Any CodeGenVisitor::visitFuncDeclrHeader(ifccParser::FuncDeclrContext 
 	}
 
 	// Create function in symbol table (if doesn't exist, otherwise error)
-	globalSymbolTable->addFunc(funcName, returnType, paramTypes, paramNames, ctx->getStart()->getLine());
+	globalSymbolTable->addFunc(funcName, returnType, numParams, paramTypes, paramNames, ctx->getStart()->getLine());
 
 	return 0;
 

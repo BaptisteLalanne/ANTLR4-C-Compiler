@@ -16,13 +16,16 @@ unordered_map<string, int> SymbolTable::typeSizes = {{"int", 4}, {"char", 1}};
 unordered_map<string, string> SymbolTable::typeOpeMoves = {{"int", "movl"}, {"char", "movzbl"}};
 varStruct SymbolTable::dummyVarStruct = {"", 0, "", 0, false, false};
 
-bool SymbolTable::hasVar(string name) {
+int SymbolTable::hasVar(string name) {
 	bool hasVarInOwnMap = varMap.find(name) != varMap.end();
 	bool hasVarInParentMap = (parentSymbolTable != nullptr && parentSymbolTable->hasVar(name));
-	return hasVarInOwnMap || hasVarInParentMap;
+	int level = 0;
+	if (hasVarInOwnMap) level = 1;
+	else if (hasVarInParentMap) level = 2;
+	return level;
 }
 
-bool SymbolTable::hasParam(string name) {
+int SymbolTable::hasParam(string name) {
 	return hasVar("^"+name);
 }
 
@@ -93,11 +96,11 @@ void SymbolTable::addVar(string name, string vT, int vL, int* constPtr) {
 	varMap[name] = s;
 }
 
-void SymbolTable::addFunc(string name, string rT, vector<string> pT, vector<string> pN, int fL) {
+void SymbolTable::addFunc(string name, string rT, int nP, vector<string> pT, vector<string> pN, int fL) {
 	struct funcStruct s = {
 		name,
 		rT,
-		pT.size(),
+		nP,
 		pT,
 		pN,
 		fL,
@@ -135,7 +138,6 @@ void SymbolTable::checkUsedVariables(ErrorHandler& eH) {
 			}
 			else {
 				message =  "Variable '" + v.first + "' declared at line " + to_string(v.second.varLine) + " is not used";
-				
 			}
 			eH.signal(WARNING, message, -1);
 		}
