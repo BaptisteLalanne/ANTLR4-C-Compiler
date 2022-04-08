@@ -31,13 +31,13 @@ struct varStruct {
 
 // Store all informations relvent for a function
 struct funcStruct {
-	string funcName;				//Its name
-	string returnType; 				//Its return type 
-	int nbParameters;			//The number of input parameters
-	vector<string> parameterTypes;	//The type of every input parameter
-	vector<string> parameterNames; 	//The names of every parameter
+	string funcName;				// Its name
+	string returnType; 				// Its return type 
+	int nbParameters;				// The number of input parameters
+	vector<string> parameterTypes;	// The type of every input parameter
+	vector<string> parameterNames; 	// The names of every parameter
 	int funcLine; 					// The line of code where the function is declared
-	bool isCalled;					//Whether the function is called
+	bool isCalled;					// Whether the function is called
 };
 
 //------------------------------------------------------------------------
@@ -49,20 +49,19 @@ class SymbolTable {
 	
 	public:
 
-		// Constructor of SymbolTable
+		/* Constructor / Destructor */
 		SymbolTable(int sP = 0, SymbolTable* par = nullptr) : stackPointer(sP), parentSymbolTable(par) {
 			if (parentSymbolTable != nullptr) {
 				parentSymbolTable->childSymbolTables.push_back(this);
 			}
 		}
-
 		~SymbolTable() {
 			for(auto var: varMap) {
 				delete(var.second.constPtr);
 			}
 		};
 
-		// Tell whether a variable with a given name is present in the symbol table
+		// Tell whether a variable or a parameter with a given name is present in the symbol table
 		int hasVar(string name);
 		int hasParam(string name);
 
