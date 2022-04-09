@@ -111,6 +111,10 @@ void CFG::optimizeASM(stringstream& iS, ostream& oS) {
 		if (currInstr == "jmp") {
 			// Fetch params
 			vector<string> params = splitString(args[2], "\t");
+			// Check if there was no other identical jump right before, in which case this should be skipped
+			if (previousJump == params[0]) {
+				continue;
+			}
 			// Store previous jump
 			previousJump = params[0];
 		}
