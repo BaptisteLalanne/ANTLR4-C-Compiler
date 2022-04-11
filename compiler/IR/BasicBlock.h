@@ -17,14 +17,26 @@ class BasicBlock {
 
 	public:
 
+		/* Constructor / Destructor */
 		BasicBlock(CFG* cfg, string label);
 		~BasicBlock();
 
+		/* Generate the ASM code corresponding to the Basic Block*/
 		void generateASM(ostream &o); 
+
+		/* Create and add a new instruction to the Basic Block*/
 		void addInstr(Instr::Operation op, vector<string> params, SymbolTable* sT);
+
+		/* Optimize the Instructions of the Basic Block*/
 		void optimizeIR();
+
+		/* Evaluate whether the currently iterated Instruction is a const one */
 		bool evaluateConstInstr(list<Instr*>::iterator it);
+
+		/* Search for affectation instructions with the variable name in the current and children Basic Blocks*/
         int lookForAffInstr(string varName, unordered_set<BasicBlock*> & bbVisited);
+
+		/* Accessors */
 		void setExitTrue(BasicBlock* bb);
 		BasicBlock* getExitTrue();
 		void setExitFalse(BasicBlock* bb);

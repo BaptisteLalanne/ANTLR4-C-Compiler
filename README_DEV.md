@@ -20,7 +20,7 @@ Here is our source code tree:
     └── testfiles
 ```
 
-`antlr` directory is included in thi repo to avoid conflicts with ANTLR4 version, from one computer to another. With this static import, development gets easier.
+`antlr` directory is included in this repo to avoid conflicts with ANTLR4 version, from one computer to another. With this static import, development gets easier.
 
 ### Compiler folder
 
@@ -30,24 +30,44 @@ Files in `compiler` folder:
 - `ifcc.g4`: our grammar, which will be analyzed by ANTLR4 library,
 - `runner.sh`: a bash script to compile and run a c-like file with our compiler. Usage: `./runner.sh my_program.c`,
 - `Makefile`: makefile to compile our source code (see "Build" section in our [user documentation](https://github.com/BaptisteLalanne/PLD-Compilateur/README.md)),
-- `main.cpp`: contains main function, which launch the lexer to analyze syntax, then our visitors to generate IR, and then write assembly using those IR instructions,
-- `CodeGenVisitor.*` : all our visitors, one for each expression defined in our grammar,
+- `main.cpp`: contains main function, which launches antl4 functions to analyze the input program's syntax, then our syntax visitors to generate the IR, then optimises said IR, and finally writes the assembly code using the IR,
+- `CodeGenVisitor.*` : all our syntax visitors, one for each expression defined in our grammar,
+- `SymbolTable.*` : the symbol table class, where all the variables and functions of the input program are stored,
 - `ErrorHandler.*` : a simple error logger class.
 
 A `IR` subfolder also contains source code:
 - `Instr.*` : all the instructions (`copy`, `ldconst`, `op_add`...) that can be put in our intermediate representation,
-- `BasicBlock.*` : basic block codes, which contains IR instructions and run them one after another to generate assembly code,
-- `CFG.*` : the control flow graph code, which manages all the basic blocks of the user c-like program.
+- `BasicBlock.*` : basic block codes, which contains IR instructions and runs them one after the other to generate the assembly code,
+- `CFG.*` : the control flow graph code, which manages all the basic blocks of the c-like program.
 
 
 ### Tests folder
 
 All the tests (c-like program) must be put in `testfiles` subdirectory. Python script `ifcc-test.py` allows you to run all the tests or simply one.
+Note: Tests are run using the -o option. If you wish to disable optimisation while running the tests, please remove it from the `ifcc-wrapper.sh` file.
 
 ```sh
 $ python3 ifcc-test.py testfiles # to run all the tests
-$ python3 ifcc-test.py testfiles/my_test_file.c # to run only one test
+$ python3 ifcc-test.py testfiles/[PATH]/my_test_file.c # to run only one test
 ```
+
+`testfiles` contains tests regarding all the supported features.
+`testfiles_special` contains tests that need to be ran manually (require inputs), have inherent infinite loops, or are not supported by our compiler
+
+`testfiles` is subdivided into more folders:
+
+```
+testfiles
+        ├── c_testsuite
+        ├── complete_programs
+        ├── cours
+        └── own_tests
+```
+
+`c_testsuite` contains tests from an official C test suite
+`complete_programs` contains complete programs that test many features at once
+`cours` contains tests that were given in the assignment
+`own_tests` contains our own tests for each edge-case
 
 After execution, a `ifcc-test-output` folder is generated. In it, others subfolders are generated for each test executed. For exemple:
 
@@ -58,7 +78,13 @@ After execution, a `ifcc-test-output` folder is generated. In it, others subfold
     │   ├── testfiles-01_02_00_invalid_program
     │   ├── testfiles-01_03_00_multiline_comment_valid
     │   └── ...
+    ├── testfiles_special
     └── testfiles
+        ├── c_testsuite
+        ├── complete_programs
+        ├── cours
+        └── own_tests
+
 ```
 
 In each `test_files-*` subdirectory, you will find:
@@ -73,4 +99,4 @@ In each `test_files-*` subdirectory, you will find:
 - `ifcc-link.txt` : link message written by our compiler,
 - `input.c` : c-like program tested.
 
-Our python script compare if results (`*-compile.txt`, `*-link.txt` and `*-execute.txt`) are the same with GCC and IFCC (our compiler).
+Our python script compare if results (`*-compile.txt`, `*-link.txt` and `*-execute.txt`) are the same with GCC 9.3 and IFCC (our compiler).

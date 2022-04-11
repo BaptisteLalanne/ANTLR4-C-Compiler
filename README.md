@@ -25,7 +25,7 @@ Commands for Makefile are:
 - `make`: build binary,
 - `make clean`: delete binary and built object files,
 - `make re`: delete binary, built object files, then rebuild the project,
-- `make gui`: generate parse tree code.
+- `make gui [FILE]`: generate parse tree graph of the given file.
 
 Once built, an executable `ifcc` can be found in current directory.
 
@@ -55,7 +55,7 @@ In `tests` directory, simply type :
 $ python3 ifcc-test.py testfiles
 ```
 
-The script run our binary with c-like file as input, do the same with a legit c compiler (i.e.: gcc), and then compare results.
+The script runs our binary with c-like file as input, does the same with a legit c compiler (in our case, gcc 9.3), and then compares the results.
 
 For each test, there is four possibles cases :
 - TEST OK,
@@ -74,7 +74,7 @@ $ python3 ifcc-valgrind.py testfiles
 
 The script run valgrind with our binary on very c-like file as input. As ANTLR4 parser involves memory leaks when a syntax error is encountered, a test file which doesn't compile is not analyzed with valgrind (we "skip" it).
 
-For each test, there is three possibles cases :
+For each test, there are three possibles cases :
 - TEST OK,
 - TEST INVALID
 - TEST SKIPPED
@@ -83,11 +83,11 @@ For each test, there is three possibles cases :
 
 Tom PERRILLAT-COLLOMB \
 Laetitia DODO \
-Baptiste LALANNE \
+Baptiste LALANNE (git master)\
 Bastien BARBE \
-David TOMA \
+David-Marcus TOMA \
 Loann LARGERON \
-Arthur DURAND \
-Amine LBATH
+Arthur DURAND (test engineer)\
+Amine LBATH (scrum master)
 
 

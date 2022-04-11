@@ -72,7 +72,8 @@ void CFG::optimizeASM(stringstream& iS, ostream& oS) {
 		// If this is a bb declaration
 		if (args[0].find(".bb") != string::npos) {
 			// If it corresponds to the jump previously visited
-			if (args[0].find(previousJump) != string::npos) {
+			string::size_type pos = args[0].find(':');
+			if (args[0].substr(0, pos) == previousJump) {
 				// Remove last instruction from stack (which was a jump to this)
 				outputLines.pop_back();
 			}
@@ -93,9 +94,13 @@ void CFG::optimizeASM(stringstream& iS, ostream& oS) {
 			vector<string> params = splitString(args[2], ", ");
 			// If previous instruction was movl, but with swapped params
 			if (currInstr == previousInstr && params[0] == previousDest && params[1] == previousSrc) {
-				// Remove last instruction from stack and skip this one
-				outputLines.pop_back();
+				// Remove last instruction from stack only if this is a var to reg & reg to var case
+				if (previousDest[0] == '%' && previousSrc[0] != '%') {
+					outputLines.pop_back();
+				}
+				// Skip this one
 				continue;
+				
 			}
 			// Store previous params
 			previousSrc = params[0];
@@ -106,6 +111,10 @@ void CFG::optimizeASM(stringstream& iS, ostream& oS) {
 		if (currInstr == "jmp") {
 			// Fetch params
 			vector<string> params = splitString(args[2], "\t");
+			// Check if there was no other identical jump right before, in which case this should be skipped
+			if (previousJump == params[0]) {
+				continue;
+			}
 			// Store previous jump
 			previousJump = params[0];
 		}

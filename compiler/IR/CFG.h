@@ -13,20 +13,30 @@ class CFG {
 
 	public:
 
+		/* Constructor / Destructor */
 		CFG();
 		~CFG();
 		
-		BasicBlock* createBB(); 
-		BasicBlock* getCurrentBB();
-		void setCurrentBB(BasicBlock* bb);
-
+		/* Generate the ASM code corresponding to the CFG*/
 		void generateASM(ostream& o);
+
+		/* Create a new Basic Block */
+		BasicBlock* createBB(); 
+		
+		/* Optimize the Instructions of the CFG */
 		void optimizeIR();
+
+		/* Optimize the generated ASM code (contained in iS), to be put into oS */
 		void optimizeASM(stringstream& iS, ostream& oS);
+
+		/* Initialize standard functions (putchar, getchar...) */
 		void initStandardFunctions(SymbolTable* st);
 
+		/* Accessors */
 		bool getOptimized() { return optimized; };
 		void setOptimized(bool o) { optimized=o; };
+		BasicBlock* getCurrentBB();
+		void setCurrentBB(BasicBlock* bb);
 
 	protected:
 

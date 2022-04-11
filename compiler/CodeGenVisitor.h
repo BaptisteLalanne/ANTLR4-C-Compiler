@@ -25,10 +25,8 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 	
 	public:
 
-		// Default constructor
+		/* Constructor / Destructor */
 		CodeGenVisitor(ErrorHandler& eH, CFG& cfg);
-
-		// Default destructor
 		~CodeGenVisitor();
 
 		// Linearising functions
@@ -64,6 +62,8 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 		virtual antlrcpp::Any visitElseStatement(ifccParser::ElseStatementContext *ctx) ;
 		virtual antlrcpp::Any visitWhileStatement(ifccParser::WhileStatementContext *ctx) ;
         virtual antlrcpp::Any visitPmmdEqual(ifccParser::PmmdEqualContext *ctx) ;
+
+		/* Accessors */
 		SymbolTable* getGlobalSymbolTable();
 
 	protected:

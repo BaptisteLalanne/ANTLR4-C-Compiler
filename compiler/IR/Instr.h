@@ -12,6 +12,7 @@ class Instr {
  
 	public:
 
+		/* All allowed operations */
 		typedef enum {
 			ldconst,
 			decl,
@@ -48,21 +49,27 @@ class Instr {
 			absolute_jump
 		} Operation;
 
+		/* Constructor */
 		Instr(BasicBlock* bb, Instr::Operation op, vector<string> params, SymbolTable* sT);
 
+		/* Generate the ASM code corresponding to the Instruction */
 		void generateASM(ostream &o); 
 
-		static unordered_map<string, vector<string>> AMD86_paramRegisters;
-
-		Operation getOp() { return op; };
-
-        vector<string> getParams() { return params; };
-
+		/* Try to propagate the constants in the operation */
 		bool propagateConst(bool needsDefinition, list<Instr*>::iterator it, list<Instr*> instrList);
 
+		/* Check if it is needed to load a constant before an operation (for example var + const, where const hasn't been loaded by the ASM code) */
+		/* This is also where we simplify trivial operations such as +0 or *1 */
 		bool checkNeedForLoadConst(varStruct *s1, varStruct *s2, varStruct *s3, list<Instr*>::iterator it, list<Instr*> instrList, Instr::Operation op);
 
+		/* Accessors */
 		SymbolTable* getSymbolTable(){ return symbolTable; };
+		Operation getOp() { return op; };
+        vector<string> getParams() { return params; };
+
+		/* Static map containing the AMD86 parameter register names (for each type, int or char)*/
+		static unordered_map<string, vector<string>> AMD86_paramRegisters;
+
 	private:
 
 		/* The BB this instruction belongs to, which provides a pointer to the CFG this instruction belong to */
@@ -74,8 +81,8 @@ class Instr {
 		/* The associated symbol table*/
 		SymbolTable* symbolTable;
 
-		/* For 3-op instrs: d, x, y; for ldconst: d, c;  For call: label, d, params;  for wmem and rmem: choose yourself */
+		/* Params of the instructions (typically src, dest, tmpVar) */
 		vector<string> params; 
-		// if you subclass Instr, each Instr subclass has its parameters and the previous (very important) comment becomes useless: it would be a better design.
+
 
 };

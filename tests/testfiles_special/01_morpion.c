@@ -143,7 +143,7 @@ int main() {
             }
 
             //apply
-            if(x==1 && y==1){
+            if(x==1 & y==1){
                 if(top_left != '_'){
                     displayInvalid();
                 } else {
@@ -151,7 +151,7 @@ int main() {
                     valid = 1;
                 }
             }
-            if(x==2 && y==1){
+            if(x==2 & y==1){
                 if(top != '_'){
                     displayInvalid();
                 } else {
@@ -159,7 +159,7 @@ int main() {
                     valid = 1;
                 }
             }
-            if(x==3 && y==1){
+            if(x==3 & y==1){
                 if(top_right != '_'){
                     displayInvalid();
                 } else {
@@ -167,7 +167,7 @@ int main() {
                     valid = 1;
                 }
             }
-            if(x==1 && y==2){
+            if(x==1 & y==2){
                 if(left != '_'){
                     displayInvalid();
                 } else {
@@ -175,7 +175,7 @@ int main() {
                     valid = 1;
                 }
             }
-            if(x==2 && y==2){
+            if(x==2 & y==2){
                 if(middle != '_'){
                     displayInvalid();
                 } else {
@@ -183,7 +183,7 @@ int main() {
                     valid = 1;
                 }
             }
-            if(x==3 && y==2){
+            if(x==3 & y==2){
                 if(right != '_'){
                     displayInvalid();
                 } else {
@@ -191,7 +191,7 @@ int main() {
                     valid = 1;
                 }
             }
-            if(x==1 && y==3){
+            if(x==1 & y==3){
                 if(bottom_left != '_'){
                     displayInvalid();
                 } else {
@@ -199,7 +199,7 @@ int main() {
                     valid = 1;
                 }
             }
-            if(x==2 && y==3){
+            if(x==2 & y==3){
                 if(bottom != '_'){
                     displayInvalid();
                 } else {
@@ -207,7 +207,7 @@ int main() {
                     valid = 1;
                 }
             }
-            if(x==3 && y==3){
+            if(x==3 & y==3){
                 if(bottom_right != '_'){
                     displayInvalid();
                 } else {
@@ -219,35 +219,35 @@ int main() {
         }
         
         //win ?
-        if(top_left!='_' && top_left==top && top==top_right){
+        if(top_left!='_' & top_left==top & top==top_right){
             win(player);
             turn = 10;
         }
-        if(left!='_' && left==middle && middle==right){
+        if(left!='_' & left==middle & middle==right){
             win(player);
             turn = 10;
         }
-        if(bottom_left!='_' && bottom_left==bottom && bottom==bottom_right){
+        if(bottom_left!='_' & bottom_left==bottom & bottom==bottom_right){
             win(player);
             turn = 10;
         }
-        if(top_left!='_' && top_left==left && left==bottom_left){
+        if(top_left!='_' & top_left==left & left==bottom_left){
             win(player);
             turn = 10;
         }
-        if(top!='_' && top==middle && middle==bottom){
+        if(top!='_' & top==middle & middle==bottom){
             win(player);
             turn = 10;
         }
-        if(top_right!='_' && top_right==right && right==bottom_right){
+        if(top_right!='_' & top_right==right & right==bottom_right){
             win(player);
             turn = 10;
         }
-        if(top_left!='_' && top_left==middle && middle==bottom_right){
+        if(top_left!='_' & top_left==middle & middle==bottom_right){
             win(player);
             turn = 10;
         }
-        if(top_right!='_' && top_right==middle && middle==bottom_left){
+        if(top_right!='_' & top_right==middle & middle==bottom_left){
             win(player);
             turn = 10;
         }

@@ -1043,10 +1043,13 @@ void Instr::generateASM(ostream &o)
 		string label = params.at(0);
 		string tmp = params.at(1);
 		int numParams = stoi(params.at(2));
+		int sub = max((numParams-6)*8, 0);
 
 		// Write ASM instructions
 		o << "	call 	" << label << endl;
-		o << "	subq	$" << max((numParams-6)*8, 0) << ", %rsp" << endl;
+		if (sub > 0) {
+			o << "	subq	$" << sub << ", %rsp" << endl;
+		}
 		o << "	movl	%eax, " << symbolTable->getVar(tmp)->memoryOffset << "(%rbp)"
 		  << "		# [call] load " << "%eax" << " into " << tmp << endl;
 
@@ -1231,7 +1234,7 @@ void Instr::generateASM(ostream &o)
 		// Write ASM instructions
 		o << "	cmpl	$0, " << symbolTable->getVar(testVarName)->memoryOffset << "(%rbp)" << endl;
 		o << "	je	" << falseExitBlockLabel << endl;
-		o << "	jmp	" << trueExitBlockLabel << endl;
+		o << "	jmp\t" << trueExitBlockLabel << endl;
 
 		break;
 	}
@@ -1242,7 +1245,7 @@ void Instr::generateASM(ostream &o)
 		string blockLabel = params.at(0);
 
 		// Write ASM instructions
-		o << "	jmp    " << blockLabel << endl;
+		o << "	jmp\t" << blockLabel << endl;
 
 		break;
 	}
