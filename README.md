@@ -55,7 +55,7 @@ In `tests` directory, simply type :
 $ python3 ifcc-test.py testfiles
 ```
 
-The script run our binary with c-like file as input, do the same with a legit c compiler (i.e.: gcc), and then compare results.
+The script runs our binary with c-like file as input, does the same with a legit c compiler (in our case, gcc 9.3), and then compares the results.
 
 For each test, there is four possibles cases :
 - TEST OK,
@@ -83,11 +83,11 @@ For each test, there are three possibles cases :
 
 Tom PERRILLAT-COLLOMB \
 Laetitia DODO \
-Baptiste LALANNE \
+Baptiste LALANNE (git master)\
 Bastien BARBE \
 David-Marcus TOMA \
 Loann LARGERON \
-Arthur DURAND \
-Amine LBATH
+Arthur DURAND (test engineer)\
+Amine LBATH (scrum master)
 
 

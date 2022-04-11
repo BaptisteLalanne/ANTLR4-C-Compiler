@@ -99,4 +99,4 @@ In each `test_files-*` subdirectory, you will find:
 - `ifcc-link.txt` : link message written by our compiler,
 - `input.c` : c-like program tested.
 
-Our python script compare if results (`*-compile.txt`, `*-link.txt` and `*-execute.txt`) are the same with GCC and IFCC (our compiler).
+Our python script compare if results (`*-compile.txt`, `*-link.txt` and `*-execute.txt`) are the same with GCC 9.3 and IFCC (our compiler).
